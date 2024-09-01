@@ -66,6 +66,8 @@
 /* END OF BGA-ZOOM */
 
 .goi_gameArea {
+  --tileSize: 160px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -73,17 +75,38 @@
 }
 
 .goi_board {
+  display: flex;
+  position: relative;
+
   background-image: url("img/board.jpg");
   background-size: cover;
-
-  position: relative;
 
   aspect-ratio: 1.178;
   width: 2000px;
 }
 
+.goi_tileGrid {
+  --tileSpacing: 8px;
+  position: absolute;
+  top: 220px;
+  left: 220px;
+}
+
+.goi_tileRow {
+  display: grid;
+  grid-template-columns: repeat(7, var(--tileSize));
+  gap: 8px;
+}
+
+.goi_tileRow:nth-child(odd) {
+  margin-left: calc(var(--tileSize) / 2);
+}
+
 .goi_tile {
-  background-image: url("img/tile.png");
-  aspect-ratio: 20/23;
-  width: 120px;
+  background-size: cover;
+  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+
+  margin-bottom: calc(var(--tileSpacing) - var(--tileSize) * 0.2885);
+  aspect-ratio: 100 / 115;
+  width: var(--tileSize);
 }

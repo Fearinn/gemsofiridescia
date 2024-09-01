@@ -36,6 +36,9 @@ define([
         zoomControls: {
           color: "white",
         },
+        autoZoom: {
+          expectedWidth: 740,
+        },
       });
 
       this.setupNotifications();
