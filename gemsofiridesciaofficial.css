@@ -34,7 +34,7 @@
 }
 
 .goi_tileGrid {
-  --tileSpacing: 8px;
+  --tileSpacing: 4px;
   position: absolute;
   top: 220px;
   left: 220px;
@@ -56,12 +56,14 @@
 
   margin-bottom: calc(var(--tileSpacing) - var(--tileSize) * 0.2885);
   aspect-ratio: 100 / 115;
-  width: var(--tileSize);
+  width: calc(var(--tileSize) + var(--tileSpacing));
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .goi_tile .card-side {
+  aspect-ratio: 100/115;
   background-image: url("img/tiles.png");
-  width: 100%;
+  width: var(--tileSize);
 }
 
 /* END OF CUSTOM STYLES */

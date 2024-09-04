@@ -53,9 +53,20 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "relative";
-          div.innerHTML += "<span></span>";
         },
-        setupFrontDiv: (card, div) => {},
+        setupFrontDiv: (card, div) => {
+          let backgroundPosition = this.calcBackgroundPosition(
+            (Number(card.type) - 1) * 14
+          );
+
+          if (card.type_arg) {
+            backgroundPosition = this.calcBackgroundPosition(
+              Number(card.type_arg) + (Number(card.type) - 1)
+            );
+          }
+
+          div.style.backgroundPosition = backgroundPosition;
+        },
         setupBackDiv: (card, div) => {
           const backgroundPosition = this.calcBackgroundPosition(
             (Number(card.type) - 1) * 14
