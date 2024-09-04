@@ -248,13 +248,14 @@ class GemsOfIridesciaOfficial extends Table
             $tilesOfTerrain = $this->tiles->getCardsOfTypeInLocation($terrain_id, null, "deck");
             $k_tilesOfTerrain = array_keys($tilesOfTerrain);
 
-            $location = strval($terrain_id);
-            $this->tiles->moveCards($k_tilesOfTerrain, $location);
-            $this->tiles->shuffle($location);
+            $temporaryLocation = strval($terrain_id);
+            $this->tiles->moveCards($k_tilesOfTerrain, $temporaryLocation);
+            $this->tiles->shuffle($temporaryLocation);
 
             $hex = 1;
             for ($i = 1; $i <= count($tilesOfTerrain); $i++) {
-                $this->tiles->pickCardForLocation($location, $location, $hex);
+                $this->tiles->pickCardForLocation($temporaryLocation, $terrain["name"], $hex);
+                $hex++;
             }
         }
 

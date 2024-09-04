@@ -186,11 +186,10 @@ define([
     getTileRow: function (terrain, hex) {
       let row = 1 + 2 * (Number(terrain) - 1);
 
-      if (Number(hex) >= 6) {
+      if (Number(hex) >= 7) {
         row++;
       }
 
-      console.log(row, terrain, hex);
       return row;
     },
 
