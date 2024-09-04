@@ -137,6 +137,15 @@ class GemsOfIridesciaOfficial extends Table
         $this->gamestate->nextState("nextPlayer");
     }
 
+    /*   Utility functions */
+
+    public function getBoard(): array
+    {
+        $board = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg FROM tile WHERE card_location<>'hand'");
+
+        return $board;
+    }
+
     /**
      * Migrate database.
      *
@@ -184,11 +193,8 @@ class GemsOfIridesciaOfficial extends Table
 
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
-        $result["players"] = $this->getCollectionFromDb(
-            "SELECT player_id, player_score score FROM player"
-        );
-
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+        $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
+        $result["board"] = $this->getBoard();
 
         return $result;
     }
@@ -231,35 +237,24 @@ class GemsOfIridesciaOfficial extends Table
         $tiles = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $terrain_id = $tile_info["terrain"];
-            $gem_id = $tile_info["gem"];
-            $effect_id = $tile_info["effect"];
 
             $tiles[] = ["type" => $terrain_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
         $this->tiles->createCards($tiles, "deck");
 
-        $hex = 1;
+
         foreach ($this->terrains_info as $terrain_id => $terrain) {
             $tilesOfTerrain = $this->tiles->getCardsOfTypeInLocation($terrain_id, null, "deck");
             $k_tilesOfTerrain = array_keys($tilesOfTerrain);
 
-            $terrainName =  $terrain["name"];
-            $this->tiles->moveCards($k_tilesOfTerrain, $terrainName);
-            $this->tiles->shuffle($terrainName);
+            $location = strval($terrain_id);
+            $this->tiles->moveCards($k_tilesOfTerrain, $location);
+            $this->tiles->shuffle($location);
 
+            $hex = 1;
             for ($i = 1; $i <= count($tilesOfTerrain); $i++) {
-                $this->tiles->pickCardForLocation($terrainName, strval($hex));
-                $hex++;
-            }
-
-            foreach ($tilesOfTerrain as $card_id => $card) {
-                $tile_id = $card["type_arg"];
-
-                $gem_id = $this->tiles_info[$tile_id]["gem"];
-                $effect_id = $this->tiles_info[$tile_id]["effect"];
-
-                $this->DbQuery("UPDATE tile SET card_type_arg=$gem_id, card_location_arg=$effect_id WHERE card_id=$card_id");
+                $this->tiles->pickCardForLocation($location, $location, $hex);
             }
         }
 

@@ -21,16 +21,23 @@ define([
   "ebg/core/gamegui",
   "ebg/counter",
   g_gamethemeurl + "modules/bga-zoom.js",
+  g_gamethemeurl + "modules/bga-cards.js",
 ], function (dojo, declare) {
   return declare("bgagame.gemsofiridesciaofficial", ebg.core.gamegui, {
     constructor: function () {
       console.log("gemsofiridesciaofficial constructor");
+
+      this.goiGlobals = {};
+      this.goiManagers = {};
+      this.goiStocks = {};
     },
 
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
-      this.zoomManager = new ZoomManager({
+      this.goiGlobals.board = gamedatas.board;
+
+      this.goiManagers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
         zoomControls: {
@@ -40,6 +47,49 @@ define([
           expectedWidth: 740,
         },
       });
+
+      this.goiManagers.tiles = new CardManager(this, {
+        getId: (card) => `tile-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_tile");
+          div.style.position = "relative";
+          div.innerHTML += "<span></span>";
+        },
+        setupFrontDiv: (card, div) => {},
+        setupBackDiv: (card, div) => {
+          const backgroundPosition = this.calcBackgroundPosition(
+            (Number(card.type) - 1) * 14
+          );
+          div.style.backgroundPosition = backgroundPosition;
+        },
+      });
+
+      /* create board */
+
+      for (let row = 1; row <= 9; row++) {
+        const rowKey = `boardRow-${row}`;
+        this.goiStocks[rowKey] = new CardStock(
+          this.goiManagers.tiles,
+          document.getElementById(`goi_tileRow-${row}`),
+          document.getElementById("goi_board"),
+          {}
+        );
+
+        const boardTiles = this.goiGlobals.board;
+
+        for (const card_id in boardTiles) {
+          const card = boardTiles[card_id];
+          const hex = card.location_arg;
+
+          if (this.getTileRow(card.type, hex) === row) {
+            delete boardTiles[card_id];
+
+            this.goiStocks[rowKey].addCard(card).then(() => {
+              this.goiStocks[rowKey].setCardVisible(card, false);
+            });
+          }
+        }
+      }
 
       this.setupNotifications();
 
@@ -129,12 +179,20 @@ define([
     ///////////////////////////////////////////////////
     //// Utility methods
 
-    /*
-        
-            Here, you can defines some utility methods that you can use everywhere in your javascript
-            script.
-        
-        */
+    calcBackgroundPosition: function (spritePos) {
+      return -spritePos * 100 + "% 0%";
+    },
+
+    getTileRow: function (terrain, hex) {
+      let row = 1 + 2 * (Number(terrain) - 1);
+
+      if (Number(hex) >= 6) {
+        row++;
+      }
+
+      console.log(row, terrain, hex);
+      return row;
+    },
 
     ///////////////////////////////////////////////////
     //// Player's action

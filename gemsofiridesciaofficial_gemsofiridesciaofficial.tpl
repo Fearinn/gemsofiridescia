@@ -13,82 +13,15 @@
 <div id="goi_gameArea" class="goi_gameArea">
   <div id="goi_board" class="goi_board">
     <div class="goi_tileGrid">
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
-      <div class="goi_tileRow">
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-        <div class="goi_tile"></div>
-      </div>
+      <div id="goi_tileRow-9" class="goi_tileRow"></div>
+      <div id="goi_tileRow-8" class="goi_tileRow"></div>
+      <div id="goi_tileRow-7" class="goi_tileRow"></div>
+      <div id="goi_tileRow-6" class="goi_tileRow"></div>
+      <div id="goi_tileRow-5" class="goi_tileRow"></div>
+      <div id="goi_tileRow-4" class="goi_tileRow"></div>
+      <div id="goi_tileRow-3" class="goi_tileRow"></div>
+      <div id="goi_tileRow-2" class="goi_tileRow"></div>
+      <div id="goi_tileRow-1" class="goi_tileRow"></div>
     </div>
   </div>
 </div>
