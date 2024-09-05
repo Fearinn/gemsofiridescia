@@ -3,13 +3,13 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * GemsOfIridesciaOfficial implementation : © Matheus Gomes matheusgomesforwork@gmail.com
+ * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * gemsofiridesciaofficial.game.php
+ * gemsofiridescia.game.php
  *
  * This is the main file for your game logic.
  *
@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
-class GemsOfIridesciaOfficial extends Table
+class GemsOfIridescia extends Table
 {
     public function __construct()
     {
@@ -36,10 +36,10 @@ class GemsOfIridesciaOfficial extends Table
      * Player action, example content.
      *
      * In this scenario, each time a player plays a card, this method will be called. This method is called directly
-     * by the action defined into `gemsofiridesciaofficial.action.php`.
+     * by the action defined into `gemsofiridescia.action.php`.
      *
      * @throws BgaSystemException
-     * @see action_gemsofiridesciaofficial::actMyAction
+     * @see action_gemsofiridescia::actMyAction
      */
     public function actPlayCard(int $card_id): void
     {
@@ -206,7 +206,7 @@ class GemsOfIridesciaOfficial extends Table
      */
     protected function getGameName()
     {
-        return "gemsofiridesciaofficial";
+        return "gemsofiridescia";
     }
 
     protected function setupNewGame($players, $options = [])

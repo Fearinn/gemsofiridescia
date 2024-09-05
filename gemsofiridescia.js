@@ -1,15 +1,15 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * GemsOfIridesciaOfficial implementation : © Matheus Gomes matheusgomesforwork@gmail.com
+ * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
- * gemsofiridesciaofficial.js
+ * gemsofiridescia.js
  *
- * GemsOfIridesciaOfficial user interface script
+ * GemsOfIridescia user interface script
  *
  * In this file, you are describing the logic of your user interface, in Javascript language.
  *
@@ -23,9 +23,9 @@ define([
   g_gamethemeurl + "modules/bga-zoom.js",
   g_gamethemeurl + "modules/bga-cards.js",
 ], function (dojo, declare) {
-  return declare("bgagame.gemsofiridesciaofficial", ebg.core.gamegui, {
+  return declare("bgagame.gemsofiridescia", ebg.core.gamegui, {
     constructor: function () {
-      console.log("gemsofiridesciaofficial constructor");
+      console.log("gemsofiridescia constructor");
 
       this.goiGlobals = {};
       this.goiManagers = {};
@@ -240,7 +240,7 @@ define([
             In this method, you associate each of your game notifications with your local method to handle it.
             
             Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
-                  your gemsofiridesciaofficial.game.php file.
+                  your gemsofiridescia.game.php file.
         
         */
     setupNotifications: function () {

@@ -2,15 +2,15 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * GemsOfIridesciaOfficial implementation : © Matheus Gomes matheusgomesforwork@gmail.com
+ * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on https://boardgamearena.com.
  * See http://en.doc.boardgamearena.com/Studio for more information.
  * -----
  *
- * gemsofiridesciaofficial.action.php
+ * gemsofiridescia.action.php
  *
- * GemsOfIridesciaOfficial main action entry point
+ * GemsOfIridescia main action entry point
  *
  *
  * In this file, you are describing all the methods that can be called from your
@@ -23,9 +23,9 @@
 declare(strict_types=1);
 
 /**
- * @property GemsOfIridesciaOfficial $game
+ * @property GemsOfIridescia $game
  */
-class action_gemsofiridesciaofficial extends APP_GameAction
+class action_gemsofiridescia extends APP_GameAction
 {
     /**
      * This is the constructor. Do not try to implement a `__construct` to bypass this method.
@@ -39,7 +39,7 @@ class action_gemsofiridesciaofficial extends APP_GameAction
         }
         else
         {
-            $this->view = "gemsofiridesciaofficial_gemsofiridesciaofficial";
+            $this->view = "gemsofiridescia_gemsofiridescia";
             $this->trace("Complete re-initialization of board game.");
         }
     }
