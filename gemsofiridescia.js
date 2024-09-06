@@ -75,14 +75,30 @@ define([
         },
       });
 
+      this.goiManagers.explorers = new CardManager(this, {
+        getId: (card) => `explorer-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_explorer");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          let backgroundPosition = this.calcBackgroundPosition(
+            Number(card.type) - 1
+          );
+
+          div.style.backgroundPosition = backgroundPosition;
+        },
+        setupBackDiv: (card, div) => {},
+      });
+
       /* create board */
 
       for (let row = 1; row <= 9; row++) {
-        const rowKey = `boardRow-${row}`;
-        this.goiStocks[rowKey] = new CardStock(
+        /* tiles */
+        const tileRow = `tileRow-${row}`;
+        this.goiStocks[tileRow] = new CardStock(
           this.goiManagers.tiles,
           document.getElementById(`goi_tileRow-${row}`),
-          document.getElementById("goi_board"),
           {}
         );
 
@@ -95,11 +111,28 @@ define([
           if (this.getTileRow(card.type, hex) === row) {
             delete boardTiles[card_id];
 
-            this.goiStocks[rowKey].addCard(card).then(() => {
-              this.goiStocks[rowKey].setCardVisible(card, false);
+            this.goiStocks[tileRow].addCard(card).then(() => {
+              this.goiStocks[tileRow].setCardVisible(card, false);
             });
           }
         }
+
+        /* explorers */
+
+        const explorerRow = `explorerRow-${row}`;
+        this.goiStocks[explorerRow] = new CardStock(
+          this.goiManagers.explorers,
+          document.getElementById(`goi_tileRow-${row}`),
+          {}
+        );
+
+        const tile = this.goiStocks[tileRow].getCards()[0].id;
+
+        this.goiStocks[explorerRow].addCard(
+          { id: row, type: 2 },
+          {},
+          { forceToElement: document.getElementById(`tile-${tile}`) }
+        );
       }
 
       this.setupNotifications();

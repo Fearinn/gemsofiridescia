@@ -14,7 +14,8 @@
  */
 
 .goi_gameArea {
-  --tileSize: 160px;
+  --tileSize: 200px;
+  --explorerSize: 200px;
 
   display: flex;
   flex-direction: column;
@@ -30,21 +31,21 @@
   background-size: cover;
 
   aspect-ratio: 1.178;
-  width: 2000px;
+  width: 2500px;
 }
 
 .goi_tileGrid {
-  --tileSpacing: 4px;
+  --tileSpacing: 5px;
   position: absolute;
-  top: 220px;
-  left: 220px;
+  top: 275px;
+  left: 275px;
 }
 
 .goi_tileRow {
   position: relative;
   display: grid;
   grid-template-columns: repeat(7, var(--tileSize));
-  gap: 8px;
+  gap: 10px;
 }
 
 .goi_tileRow:nth-child(odd) {
@@ -61,9 +62,25 @@
 }
 
 .goi_tile .card-side {
-  aspect-ratio: 100/115;
   background-image: url("img/tiles.png");
+  box-shadow: none !important;
+
+  aspect-ratio: 100/115;
   width: var(--tileSize);
+}
+
+.goi_explorer {
+  aspect-ratio: 1;
+  width: var(--explorerSize);
+  z-index: 1;
+}
+
+.goi_explorer .card-side {
+  background-image: url("img/explorers.png");
+  box-shadow: none !important;
+
+  aspect-ratio: 1;
+  width: var(--explorerSize);
 }
 
 /* END OF CUSTOM STYLES */
