@@ -37,6 +37,7 @@ define([
 
       this.goiGlobals.players = gamedatas.players;
       this.goiGlobals.tilesBoard = gamedatas.tilesBoard;
+      this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.explorers = gamedatas.explorers;
 
       this.goiManagers.zoom = new ZoomManager({
@@ -82,14 +83,15 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
           div.style.position = "relative";
-        },
-        setupFrontDiv: (card, div) => {
-          let backgroundPosition = this.calcBackgroundPosition(
-            Number(card.type) - 1
-          );
+
+          const spritePosition =
+            this.goiGlobals.playerBoards[card.type_arg] - 1;
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
 
           div.style.backgroundPosition = backgroundPosition;
         },
+        setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
       });
 
@@ -143,26 +145,30 @@ define([
       }
 
       for (const player_id in this.goiGlobals.players) {
+        const spritePosition = this.goiGlobals.playerBoards[player_id] - 1;
+        const backgroundPosition = this.calcBackgroundPosition(spritePosition);
+
         document.getElementById(
           "goi_playerBoards"
-        ).innerHTML += `<div id=goi_playerBoard-${player_id} class="goi_playerBoard">
-        <div id="goi_explorerScene-${player_id} class="goi_explorerScene"></div>
+        ).innerHTML += `<div id="goi_playerBoard-${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
+        <div id="goi_explorerScene-${player_id}" class="goi_explorerScene"></div>
         </div>`;
 
-        const explorerCargo = `explorerCargo-${player_id}`;
-        this.goiStocks[explorerCargo] = new CardStock(
+        const explorerScene = `explorerScene-${player_id}`;
+        this.goiStocks[explorerScene] = new CardStock(
           this.goiManagers.explorers,
-          document.getElementById("goi_explorerScene"),
+          document.getElementById(`goi_explorerScene-${player_id}`),
           {}
         );
 
         for (const card_id in this.goiGlobals.explorers) {
           const explorer = this.goiGlobals.explorers[card_id];
+
           if (
             explorer["location"] === "scene" &&
-            explorer["type_arg"] === player_id
+            explorer["type_arg"] == player_id
           ) {
-            this.goiStocks[explorerCargo].addCard(explorer);
+            this.goiStocks[explorerScene].addCard(explorer);
           }
         }
       }
@@ -255,8 +261,8 @@ define([
     ///////////////////////////////////////////////////
     //// Utility methods
 
-    calcBackgroundPosition: function (spritePos) {
-      return -spritePos * 100 + "% 0%";
+    calcBackgroundPosition: function (spritePosition) {
+      return -spritePosition * 100 + "% 0%";
     },
 
     getTileRow: function (terrain, hex) {

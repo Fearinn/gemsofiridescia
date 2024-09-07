@@ -31,7 +31,6 @@
 
   background-image: url("img/board.jpg");
   background-size: cover;
-
   aspect-ratio: 1.178;
   width: var(--boardSize);
 }
@@ -56,7 +55,6 @@
 
 .goi_tile {
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
-
   margin-bottom: calc(var(--tileSpacing) - var(--tileSize) * 0.2885);
   aspect-ratio: 100 / 115;
   width: calc(var(--tileSize) + var(--tileSpacing));
@@ -66,23 +64,8 @@
 .goi_tile .card-side {
   background-image: url("img/tiles.png");
   box-shadow: none !important;
-
   aspect-ratio: 100/115;
   width: var(--tileSize);
-}
-
-.goi_explorer {
-  aspect-ratio: 1;
-  width: var(--explorerSize);
-  z-index: 1;
-}
-
-.goi_explorer .card-side {
-  background-image: url("img/explorers.png");
-  box-shadow: none !important;
-
-  aspect-ratio: 1;
-  width: var(--explorerSize);
 }
 
 .goi_playerBoards {
@@ -95,10 +78,30 @@
 }
 
 .goi_playerBoard {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1.1fr 0.9fr;
+
   background: url("img/playerBoards.png");
   aspect-ratio: 1;
-  background: red;
   width: var(--playerBoardSize);
+}
+
+.goi_explorer {
+  background-image: url("img/explorers.png");
+  aspect-ratio: 1;
+  width: var(--explorerSize);
+  z-index: 1;
+}
+
+.goi_explorer .card-side {
+  box-shadow: none !important;
+}
+
+.goi_explorerScene {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* END OF CUSTOM STYLES */

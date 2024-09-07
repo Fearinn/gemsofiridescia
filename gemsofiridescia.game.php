@@ -151,7 +151,7 @@ class GemsOfIridescia extends Table
 
     public function getExplorers(): array
     {
-        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg FROM explorer WHERE card_location<>'box'");
+        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg FROM explorer WHERE card_location<>'box'");
 
         return $explorers;
     }
@@ -205,6 +205,7 @@ class GemsOfIridescia extends Table
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $result["tilesBoard"] = $this->getTilesBoard();
+        $result["playerBoards"] = $this->globals->get("playerBoards");
         $result["explorers"] = $this->getExplorers();
 
         return $result;
@@ -254,20 +255,25 @@ class GemsOfIridescia extends Table
 
         $this->explorers->createCards($explorers, "deck");
 
-        $explorer = $this->explorers->getCardsInLocation("deck");
-
+        $explorers = $this->explorers->getCardsInLocation("deck");
+        $playerBoards = [];
         foreach ($explorers as $card_id => $explorer) {
             foreach ($players as $player_id => $player) {
                 $player_color = $this->getPlayerColorById($player_id);
 
                 if ($player_color === $explorer["type"]) {
+                    $playerBoards[$player_id] = $explorer["type_arg"];
+
                     $this->explorers->moveCard($card_id, "scene");
                     $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$card_id'");
                 }
             }
         }
 
+        $this->globals->set("playerBoards", $playerBoards);
+        $this->explorers->moveAllCardsInLocation("deck", "box");
 
+        $this->globals->set("playerBoards", $playerBoards);
         $tiles = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $terrain_id = $tile_info["terrain"];
@@ -276,7 +282,6 @@ class GemsOfIridescia extends Table
         }
 
         $this->tiles->createCards($tiles, "deck");
-
 
         foreach ($this->terrains_info as $terrain_id => $terrain) {
             $tilesOfTerrain = $this->tiles->getCardsOfTypeInLocation($terrain_id, null, "deck");

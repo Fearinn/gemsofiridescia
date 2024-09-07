@@ -22,11 +22,11 @@
 $this->explorers_info = [
     1 => [
         "name" => "Kito",
-        "color" => "FF0000"
+        "color" => "ff0000"
     ],
     2 => [
         "name" => "Ooven",
-        "color" => "0000FF"
+        "color" => "0000ff"
     ],
     3 => [
         "name" => "Moja",
@@ -34,7 +34,7 @@ $this->explorers_info = [
     ],
     4 => [
         "name" => "Rhom",
-        "color" => "FFA500"
+        "color" => "ffa500"
     ],
 ];
 
