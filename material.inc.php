@@ -19,6 +19,24 @@
  * are available everywhere in your game logic code.
  *
  */
+$this->explorers_info = [
+    1 => [
+        "name" => "Kito",
+        "color" => "FF0000"
+    ],
+    2 => [
+        "name" => "Ooven",
+        "color" => "0000FF"
+    ],
+    3 => [
+        "name" => "Moja",
+        "color" => "008000"
+    ],
+    4 => [
+        "name" => "Rhom",
+        "color" => "FFA500"
+    ],
+];
 
 $this->gems_info = [
     1 => [

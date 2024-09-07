@@ -14,6 +14,8 @@
  */
 
 .goi_gameArea {
+  --boardSize: 2500px;
+  --playerBoardSize: 600px;
   --tileSize: 200px;
   --explorerSize: 200px;
 
@@ -31,7 +33,7 @@
   background-size: cover;
 
   aspect-ratio: 1.178;
-  width: 2500px;
+  width: var(--boardSize);
 }
 
 .goi_tileGrid {
@@ -81,6 +83,22 @@
 
   aspect-ratio: 1;
   width: var(--explorerSize);
+}
+
+.goi_playerBoards {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(var(--playerBoardSize), auto));
+  gap: 8px;
+
+  width: var(--boardSize);
+}
+
+.goi_playerBoard {
+  background: url("img/playerBoards.png");
+  aspect-ratio: 1;
+  background: red;
+  width: var(--playerBoardSize);
 }
 
 /* END OF CUSTOM STYLES */

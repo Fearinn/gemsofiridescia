@@ -23,7 +23,9 @@
       <div id="goi_tileRow-2" class="goi_tileRow"></div>
       <div id="goi_tileRow-1" class="goi_tileRow"></div>
     </div>
+    <div id="goi_explorersGrid"></div>
   </div>
+  <div id="goi_playerBoards" class="goi_playerBoards"></div>
 </div>
 
 {OVERALL_GAME_FOOTER}

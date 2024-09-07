@@ -30,6 +30,9 @@ class GemsOfIridescia extends Table
 
         $this->tiles = $this->getNew("module.common.deck");
         $this->tiles->init("tile");
+
+        $this->explorers = $this->getNew("module.common.deck");
+        $this->explorers->init("explorer");
     }
 
     /**
@@ -139,11 +142,18 @@ class GemsOfIridescia extends Table
 
     /*   Utility functions */
 
-    public function getBoard(): array
+    public function getTilesBoard(): array
     {
         $board = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg FROM tile WHERE card_location<>'hand'");
 
         return $board;
+    }
+
+    public function getExplorers(): array
+    {
+        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg FROM explorer WHERE card_location<>'box'");
+
+        return $explorers;
     }
 
     /**
@@ -194,7 +204,8 @@ class GemsOfIridescia extends Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["board"] = $this->getBoard();
+        $result["tilesBoard"] = $this->getTilesBoard();
+        $result["explorers"] = $this->getExplorers();
 
         return $result;
     }
@@ -233,6 +244,29 @@ class GemsOfIridescia extends Table
 
         $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
         $this->reloadPlayersBasicInfos();
+
+        $players = $this->loadPlayersBasicInfos();
+
+        $explorers = [];
+        foreach ($this->explorers_info as $explorer_id => $explorer) {
+            $explorers[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
+        }
+
+        $this->explorers->createCards($explorers, "deck");
+
+        $explorer = $this->explorers->getCardsInLocation("deck");
+
+        foreach ($explorers as $card_id => $explorer) {
+            foreach ($players as $player_id => $player) {
+                $player_color = $this->getPlayerColorById($player_id);
+
+                if ($player_color === $explorer["type"]) {
+                    $this->explorers->moveCard($card_id, "scene");
+                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$card_id'");
+                }
+            }
+        }
+
 
         $tiles = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {

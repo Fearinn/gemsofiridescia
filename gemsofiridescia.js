@@ -4,7 +4,7 @@
  * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
- * See http://en.boardgamearena.com/#!doc/Studio for more information.
+ * See http://en.tilesBoardgamearena.com/#!doc/Studio for more information.
  * -----
  *
  * gemsofiridescia.js
@@ -35,7 +35,9 @@ define([
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
-      this.goiGlobals.board = gamedatas.board;
+      this.goiGlobals.players = gamedatas.players;
+      this.goiGlobals.tilesBoard = gamedatas.tilesBoard;
+      this.goiGlobals.explorers = gamedatas.explorers;
 
       this.goiManagers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
@@ -102,37 +104,67 @@ define([
           {}
         );
 
-        const boardTiles = this.goiGlobals.board;
+        const tilesBoard = this.goiGlobals.tilesBoard;
 
-        for (const card_id in boardTiles) {
-          const card = boardTiles[card_id];
+        for (const card_id in tilesBoard) {
+          const card = tilesBoard[card_id];
           const hex = card.location_arg;
 
           if (this.getTileRow(card.type, hex) === row) {
-            delete boardTiles[card_id];
+            delete tilesBoard[card_id];
 
             this.goiStocks[tileRow].addCard(card).then(() => {
               this.goiStocks[tileRow].setCardVisible(card, false);
             });
           }
         }
+      }
 
-        /* explorers */
+      this.goiStocks.explorersGrid = new CardStock(
+        this.goiManagers.explorers,
+        document.getElementById("goi_explorersGrid"),
+        {}
+      );
 
-        const explorerRow = `explorerRow-${row}`;
-        this.goiStocks[explorerRow] = new CardStock(
+      for (const card_id in this.goiGlobals.explorers) {
+        const explorer = this.goiGlobals.explorers[card_id];
+
+        if (explorer["location"] === "board") {
+          const tile = explorer["location_arg"];
+
+          this.goiStocks.explorersGrid.addCard(
+            explorer,
+            {},
+            {
+              forceToElement: document.getElementById(`tile-${tile}`),
+            }
+          );
+        }
+      }
+
+      for (const player_id in this.goiGlobals.players) {
+        document.getElementById(
+          "goi_playerBoards"
+        ).innerHTML += `<div id=goi_playerBoard-${player_id} class="goi_playerBoard">
+        <div id="goi_explorerScene-${player_id} class="goi_explorerScene"></div>
+        </div>`;
+
+        const explorerCargo = `explorerCargo-${player_id}`;
+        this.goiStocks[explorerCargo] = new CardStock(
           this.goiManagers.explorers,
-          document.getElementById(`goi_tileRow-${row}`),
+          document.getElementById("goi_explorerScene"),
           {}
         );
 
-        const tile = this.goiStocks[tileRow].getCards()[0].id;
-
-        this.goiStocks[explorerRow].addCard(
-          { id: row, type: 2 },
-          {},
-          { forceToElement: document.getElementById(`tile-${tile}`) }
-        );
+        for (const card_id in this.goiGlobals.explorers) {
+          const explorer = this.goiGlobals.explorers[card_id];
+          if (
+            explorer["location"] === "scene" &&
+            explorer["type_arg"] === player_id
+          ) {
+            this.goiStocks[explorerCargo].addCard(explorer);
+          }
+        }
       }
 
       this.setupNotifications();
