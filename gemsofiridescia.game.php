@@ -94,14 +94,6 @@ class GemsOfIridescia extends Table
      * @return string[]
      * @see ./states.inc.php
      */
-    public function argPlayerTurn(): array
-    {
-        // Get some values from the current game situation from the database.
-
-        return [
-            "playableCardsIds" => [1, 2],
-        ];
-    }
 
     /**
      * Compute and return the current game progression.
@@ -120,40 +112,123 @@ class GemsOfIridescia extends Table
         return 0;
     }
 
-    /**
-     * Game state action, example content.
-     *
-     * The action method of state `nextPlayer` is called everytime the current game state is set to `nextPlayer`.
-     */
-    public function stNextPlayer(): void
-    {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
-
-        // Give some extra time to the active player when he completed an action
-        $this->giveExtraTime($player_id);
-
-        $this->activeNextPlayer();
-
-        // Go to another gamestate
-        // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
-        $this->gamestate->nextState("nextPlayer");
-    }
-
     /*   Utility functions */
 
-    public function getTilesBoard(): array
+    public function getTileBoard(): array
     {
-        $board = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg FROM tile WHERE card_location<>'hand'");
+        $tileBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
+        FROM tile WHERE card_location<>'hand'");
 
-        return $board;
+        return $tileBoard;
+    }
+
+    public function adjacentTiles(int $player_id): array
+    {
+        $adjacentTiles = [];
+
+        $explorer = $this->getExplorerByPlayerId($player_id);
+
+        if ($explorer["location"] === "scene") {
+            return [];
+        }
+
+        $explorerRegion = $explorer["type"];
+        $explorerHex = $explorer["type_arg"];
+
+        $leftHex = $explorerHex - 1;
+        $rightHex = $explorerHex + 1;
+        $topLeftHex = $explorerHex <= 6 ? $explorerHex + 6 : $explorerHex - 7;
+        $topRightHex =  $explorerHex <= 6 ? $explorerHex + 7 : $explorerHex - 6;
+
+        if ($explorerHex === 1) {
+            $leftHex = null;
+        }
+
+        if ($explorerHex === 6) {
+            $rightHex = null;
+        }
+
+        if ($explorerRegion === 5) {
+            $topLeftHex = null;
+            $topRightHex = null;
+        }
+
+        if ($explorerHex === 7) {
+            $leftHex = null;
+            $topLeftHex = null;
+        }
+
+        if ($explorerHex === 13) {
+            $rightHex = null;
+            $topRightHex = null;
+        }
+
+        $hexesOfSameRow = [
+            $leftHex,
+            $rightHex,
+        ];
+
+        $hexesOfNextRow = [
+            $topLeftHex,
+            $topRightHex
+        ];
+
+        $adjacentRegion = $explorerRegion + 1;
+
+        foreach ($hexesOfSameRow as $hex) {
+            if ($hex === null) {
+                continue;
+            }
+
+            $tileCard = $this->getObjectFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
+                FROM tile WHERE card_location='$explorerRegion' AND card_location_arg=$hex");
+
+            $tileCard_id = $tileCard["id"];
+            $adjacentTiles[$tileCard_id] = $tileCard;
+        }
+
+        foreach ($hexesOfNextRow as $hex) {
+            if ($hex === null) {
+                continue;
+            }
+
+            $location = $explorerHex <= 6 ? $explorerRegion : $adjacentRegion;
+
+            $tileCard = $this->getObjectFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
+                FROM tile WHERE card_location='$location' AND card_location_arg=$hex");
+
+            $tileCard_id = $tileCard["id"];
+            $adjacentTiles[$tileCard_id] = $tileCard;
+        }
+
+        return $adjacentTiles;
+    }
+
+    public function revealableTiles(int $player_id): array
+    {
+        $revealableTiles = [];
+        $tileBoard = $this->getTileBoard();
+
+        foreach ($tileBoard as $card_id => $tileCard) {
+        }
+
+        return $revealableTiles;
     }
 
     public function getExplorers(): array
     {
-        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg FROM explorer WHERE card_location<>'box'");
+        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
+        FROM explorer WHERE card_location<>'box'");
 
         return $explorers;
+    }
+
+    public function getExplorerByPlayerId(int $player_id): array
+    {
+        $explorer = $this->getObjectFromDB("SELECT card_id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
+        FROM explorer WHERE card_type_arg='$player_id'");
+
+        return $explorer;
     }
 
     /**
@@ -204,9 +279,10 @@ class GemsOfIridescia extends Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["tilesBoard"] = $this->getTilesBoard();
+        $result["tileBoard"] = $this->getTileBoard();
         $result["playerBoards"] = $this->globals->get("playerBoards");
         $result["explorers"] = $this->getExplorers();
+        $result["adjacentTiles"] = $this->adjacentTiles($current_player_id);
 
         return $result;
     }
@@ -287,13 +363,13 @@ class GemsOfIridescia extends Table
             $tilesOfTerrain = $this->tiles->getCardsOfTypeInLocation($terrain_id, null, "deck");
             $k_tilesOfTerrain = array_keys($tilesOfTerrain);
 
-            $temporaryLocation = strval($terrain_id);
+            $temporaryLocation = strval($terrain["name"]);
             $this->tiles->moveCards($k_tilesOfTerrain, $temporaryLocation);
             $this->tiles->shuffle($temporaryLocation);
 
             $hex = 1;
             for ($i = 1; $i <= count($tilesOfTerrain); $i++) {
-                $this->tiles->pickCardForLocation($temporaryLocation, $terrain["name"], $hex);
+                $this->tiles->pickCardForLocation($temporaryLocation, $terrain_id, $hex);
                 $hex++;
             }
         }

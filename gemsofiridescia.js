@@ -4,7 +4,7 @@
  * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
- * See http://en.tilesBoardgamearena.com/#!doc/Studio for more information.
+ * See http://en.boardgamearena.com/#!doc/Studio for more information.
  * -----
  *
  * gemsofiridescia.js
@@ -36,9 +36,11 @@ define([
       console.log("Starting game setup");
 
       this.goiGlobals.players = gamedatas.players;
-      this.goiGlobals.tilesBoard = gamedatas.tilesBoard;
+      this.goiGlobals.tileBoard = gamedatas.tileBoard;
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.explorers = gamedatas.explorers;
+
+      console.log(gamedatas.adjacentTiles);
 
       this.goiManagers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
@@ -106,14 +108,14 @@ define([
           {}
         );
 
-        const tilesBoard = this.goiGlobals.tilesBoard;
+        const tileBoard = this.goiGlobals.tileBoard;
 
-        for (const card_id in tilesBoard) {
-          const card = tilesBoard[card_id];
+        for (const card_id in tileBoard) {
+          const card = tileBoard[card_id];
           const hex = card.location_arg;
 
           if (this.getTileRow(card.type, hex) === row) {
-            delete tilesBoard[card_id];
+            delete tileBoard[card_id];
 
             this.goiStocks[tileRow].addCard(card).then(() => {
               this.goiStocks[tileRow].setCardVisible(card, false);
