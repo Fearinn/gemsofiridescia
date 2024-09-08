@@ -57,7 +57,7 @@ $this->gems_info = [
     ],
 ];
 
-$this->terrains_info = [
+$this->regions_info = [
     1 => [
         "name" => "Desert",
         "tr_label" => clienttranslate("Desert")
@@ -112,294 +112,294 @@ $this->tileEffects_info = [
 
 $this->tiles_info = [
     1 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 0,
         "effect" => 0,
     ],
 
     2 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 1,
         "effect" => 0,
     ],
     3 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 1,
         "effect" => 0,
     ],
     4 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 1,
         "effect" => 0,
     ],
     5 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 2,
         "effect" => 0,
     ],
     6 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 2,
         "effect" => 0,
     ],
     7 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 2,
         "effect" => 0,
     ],
     8 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 3,
         "effect" => 0,
     ],
     9 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 3,
         "effect" => 0,
     ],
     10 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 3,
         "effect" => 0,
     ],
     11 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 4,
         "effect" => 0,
     ],
     12 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 4,
         "effect" => 0,
     ],
     13 => [
-        "terrain" => 1,
+        "region" => 1,
         "gem" => 4,
         "effect" => 0,
     ],
 
     14 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 0,
         "effect" => 0
     ],
     15 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 1,
         "effect" => 1
     ],
     16 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 1,
         "effect" => 2
     ],
     17 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 1,
         "effect" => 3
     ],
     18 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 2,
         "effect" => 1
     ],
     19 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 2,
         "effect" => 2
     ],
     20 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 2,
         "effect" => 3
     ],
     21 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 3,
         "effect" => 1
     ],
     22 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 3,
         "effect" => 2
     ],
     23 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 3,
         "effect" => 3
     ],
     24 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 4,
         "effect" => 1
     ],
     25 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 4,
         "effect" => 2
     ],
     26 => [
-        "terrain" => 2,
+        "region" => 2,
         "gem" => 4,
         "effect" => 3
     ],
     27 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 0,
         "effect" => 0
     ],
     28 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 1,
         "effect" => 1
     ],
     29 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 1,
         "effect" => 2
     ],
     30 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 1,
         "effect" => 3
     ],
     31 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 2,
         "effect" => 1
     ],
     32 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 2,
         "effect" => 2
     ],
     33 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 2,
         "effect" => 3
     ],
     34 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 3,
         "effect" => 1
     ],
     35 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 3,
         "effect" => 2
     ],
     36 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 3,
         "effect" => 3
     ],
     37 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 4,
         "effect" => 1
     ],
     38 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 4,
         "effect" => 2
     ],
     39 => [
-        "terrain" => 3,
+        "region" => 3,
         "gem" => 4,
         "effect" => 3
     ],
     40 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 0,
         "effect" => 0
     ],
     41 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 1,
         "effect" => 1
     ],
     42 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 1,
         "effect" => 2
     ],
     43 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 1,
         "effect" => 3
     ],
     44 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 2,
         "effect" => 1
     ],
     45 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 2,
         "effect" => 2
     ],
     46 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 2,
         "effect" => 3
     ],
     47 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 3,
         "effect" => 1
     ],
     48 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 3,
         "effect" => 2
     ],
     49 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 3,
         "effect" => 3
     ],
     50 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 4,
         "effect" => 1
     ],
     51 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 4,
         "effect" => 2
     ],
     52 => [
-        "terrain" => 4,
+        "region" => 4,
         "gem" => 4,
         "effect" => 3
     ],
     53 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 0,
         "effect" => 2,
     ],
     54 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 1,
         "effect" => 2,
     ],
     55 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 2,
         "effect" => 2,
     ],
     56 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 3,
         "effect" => 2,
     ],
     57 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 4,
         "effect" => 2,
     ],
     58 => [
-        "terrain" => 5,
+        "region" => 5,
         "gem" => 10,
         "effect" => 2,
     ]

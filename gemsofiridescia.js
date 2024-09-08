@@ -40,8 +40,6 @@ define([
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.explorers = gamedatas.explorers;
 
-      console.log(gamedatas.adjacentTiles);
-
       this.goiManagers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
@@ -55,9 +53,12 @@ define([
 
       this.goiManagers.tiles = new CardManager(this, {
         getId: (card) => `tile-${card.id}`,
+        selectedCardClass: "goi_tileSelected",
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "relative";
+
+          div.style.order = card.location_arg;
         },
         setupFrontDiv: (card, div) => {
           let backgroundPosition = this.calcBackgroundPosition(
@@ -189,19 +190,19 @@ define([
     onEnteringState: function (stateName, args) {
       console.log("Entering state: " + stateName, args);
 
-      switch (stateName) {
-        /* Example:
-            
-            case 'myGameState':
-            
-                // Show some HTML block at this game state
-                dojo.style( 'my_html_block_id', 'display', 'block' );
-                
-                break;
-           */
+      if (this.isCurrentPlayerActive()) {
+        if (stateName === "revealTiles") {
+          const revealableTiles = args.args.revealableTiles;
 
-        case "dummmy":
-          break;
+          this.makeAllRowsSelectable();
+
+          for (const row in revealableTiles) {
+            const tileRow = `tileRow-${row}`;
+            const tileCards = revealableTiles[row];
+
+            this.goiStocks[tileRow].setSelectableCards(tileCards);
+          }
+        }
       }
     },
 
@@ -234,29 +235,6 @@ define([
       console.log("onUpdateActionButtons: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
-        switch (stateName) {
-          case "playerTurn":
-            const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
-
-            // Add test action buttons in the action status bar, simulating a card click:
-            playableCardsIds.forEach((cardId) =>
-              this.addActionButton(
-                `actPlayCard${cardId}-btn`,
-                _("Play card with id ${card_id}").replace("${card_id}", cardId),
-                () => this.onCardClick(cardId)
-              )
-            );
-
-            this.addActionButton(
-              "actPass-btn",
-              _("Pass"),
-              () => this.bgaPerformAction("actPass"),
-              null,
-              null,
-              "gray"
-            );
-            break;
-        }
       }
     },
 
@@ -267,14 +245,20 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
-    getTileRow: function (terrain, hex) {
-      let row = 1 + 2 * (Number(terrain) - 1);
+    getTileRow: function (region, hex) {
+      let row = 1 + 2 * (Number(region) - 1);
 
       if (Number(hex) >= 7) {
         row++;
       }
 
       return row;
+    },
+
+    makeAllRowsSelectable: function () {
+      for (let row = 1; row <= 9; row++) {
+        this.goiStocks[`tileRow-${row}`].setSelectionMode("multiple", []);
+      }
     },
 
     ///////////////////////////////////////////////////

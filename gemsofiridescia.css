@@ -55,10 +55,11 @@
 
 .goi_tile {
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+
+  background-color: rgba(0, 0, 0, 0.5);
   margin-bottom: calc(var(--tileSpacing) - var(--tileSize) * 0.2885);
   aspect-ratio: 100 / 115;
   width: calc(var(--tileSize) + var(--tileSpacing));
-  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .goi_tile .card-side {
@@ -66,6 +67,11 @@
   box-shadow: none !important;
   aspect-ratio: 100/115;
   width: var(--tileSize);
+}
+
+.goi_tileSelected {
+  background-color: darkred;
+  transform: scale(1.025);
 }
 
 .goi_playerBoards {

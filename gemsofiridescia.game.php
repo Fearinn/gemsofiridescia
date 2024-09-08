@@ -33,6 +33,8 @@ class GemsOfIridescia extends Table
 
         $this->explorers = $this->getNew("module.common.deck");
         $this->explorers->init("explorer");
+
+        $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg ";
     }
 
     /**
@@ -95,6 +97,15 @@ class GemsOfIridescia extends Table
      * @see ./states.inc.php
      */
 
+    public function argRevealTiles()
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        return [
+            "revealableTiles" => $this->revealableTiles($player_id)
+        ];
+    }
+
     /**
      * Compute and return the current game progression.
      *
@@ -129,7 +140,7 @@ class GemsOfIridescia extends Table
         $explorer = $this->getExplorerByPlayerId($player_id);
 
         if ($explorer["location"] === "scene") {
-            return [];
+            return $this->getCollectionFromDB($this->deckSelectQuery . "FROM tile WHERE card_location='1' AND card_location_arg<=6");
         }
 
         $explorerRegion = $explorer["type"];
@@ -163,39 +174,24 @@ class GemsOfIridescia extends Table
             $topRightHex = null;
         }
 
-        $hexesOfSameRow = [
+        $adjacentHexes = [
             $leftHex,
             $rightHex,
-        ];
-
-        $hexesOfNextRow = [
             $topLeftHex,
             $topRightHex
         ];
 
-        $adjacentRegion = $explorerRegion + 1;
-
-        foreach ($hexesOfSameRow as $hex) {
+        foreach ($adjacentHexes as $hex) {
             if ($hex === null) {
                 continue;
             }
 
-            $tileCard = $this->getObjectFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
-                FROM tile WHERE card_location='$explorerRegion' AND card_location_arg=$hex");
-
-            $tileCard_id = $tileCard["id"];
-            $adjacentTiles[$tileCard_id] = $tileCard;
-        }
-
-        foreach ($hexesOfNextRow as $hex) {
-            if ($hex === null) {
-                continue;
+            $location = $explorerRegion * 2;
+            if ($hex <= 6) {
+                $location--;
             }
 
-            $location = $explorerHex <= 6 ? $explorerRegion : $adjacentRegion;
-
-            $tileCard = $this->getObjectFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
-                FROM tile WHERE card_location='$location' AND card_location_arg=$hex");
+            $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "FROM tile WHERE card_location='$location' AND card_location_arg=$hex");
 
             $tileCard_id = $tileCard["id"];
             $adjacentTiles[$tileCard_id] = $tileCard;
@@ -207,9 +203,15 @@ class GemsOfIridescia extends Table
     public function revealableTiles(int $player_id): array
     {
         $revealableTiles = [];
-        $tileBoard = $this->getTileBoard();
 
-        foreach ($tileBoard as $card_id => $tileCard) {
+        $adjacentTiles =  $this->adjacentTiles($player_id);
+        $revealedTiles = $this->globals->get("revealedTiles", []);
+
+        foreach ($adjacentTiles as $card_id => $tileCard) {
+            if (!key_exists($card_id, $revealedTiles)) {
+                $tileRow = $tileCard["location"];
+                $revealableTiles[$tileRow][] = $tileCard;
+            }
         }
 
         return $revealableTiles;
@@ -217,7 +219,7 @@ class GemsOfIridescia extends Table
 
     public function getExplorers(): array
     {
-        $explorers = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
+        $explorers = $this->getCollectionFromDB($this->deckSelectQuery . " 
         FROM explorer WHERE card_location<>'box'");
 
         return $explorers;
@@ -282,7 +284,6 @@ class GemsOfIridescia extends Table
         $result["tileBoard"] = $this->getTileBoard();
         $result["playerBoards"] = $this->globals->get("playerBoards");
         $result["explorers"] = $this->getExplorers();
-        $result["adjacentTiles"] = $this->adjacentTiles($current_player_id);
 
         return $result;
     }
@@ -352,24 +353,30 @@ class GemsOfIridescia extends Table
         $this->globals->set("playerBoards", $playerBoards);
         $tiles = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
-            $terrain_id = $tile_info["terrain"];
+            $region_id = $tile_info["region"];
 
-            $tiles[] = ["type" => $terrain_id, "type_arg" => $tile_id, "nbr" => 1];
+            $tiles[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
         $this->tiles->createCards($tiles, "deck");
 
-        foreach ($this->terrains_info as $terrain_id => $terrain) {
-            $tilesOfTerrain = $this->tiles->getCardsOfTypeInLocation($terrain_id, null, "deck");
-            $k_tilesOfTerrain = array_keys($tilesOfTerrain);
+        foreach ($this->regions_info as $region_id => $region) {
+            $tilesOfregion = $this->tiles->getCardsOfTypeInLocation($region_id, null, "deck");
+            $k_tilesOfregion = array_keys($tilesOfregion);
 
-            $temporaryLocation = strval($terrain["name"]);
-            $this->tiles->moveCards($k_tilesOfTerrain, $temporaryLocation);
+            $temporaryLocation = strval($region["name"]);
+            $this->tiles->moveCards($k_tilesOfregion, $temporaryLocation);
             $this->tiles->shuffle($temporaryLocation);
 
             $hex = 1;
-            for ($i = 1; $i <= count($tilesOfTerrain); $i++) {
-                $this->tiles->pickCardForLocation($temporaryLocation, $terrain_id, $hex);
+            for ($i = 1; $i <= count($tilesOfregion); $i++) {
+                $finalLocation = $region_id * 2;
+
+                if ($hex <= 6) {
+                    $finalLocation--;
+                }
+
+                $this->tiles->pickCardForLocation($temporaryLocation, $finalLocation, $hex);
                 $hex++;
             }
         }

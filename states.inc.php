@@ -35,7 +35,8 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} may reveal up to two tiles'),
         "descriptionmyturn" => clienttranslate('${you} may reveal up to two tiles'),
         "type" => "activeplayer",
-        "possibleactions" => ["actRevealTile"],
+        "args" => "argRevealTiles",
+        "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
         "transitions" => ["moveToken"]
     ],
 
