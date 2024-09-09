@@ -40,6 +40,8 @@ define([
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.explorers = gamedatas.explorers;
 
+      this.goiGlobals.selectedTile = null;
+
       this.goiManagers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
@@ -240,6 +242,38 @@ define([
 
     ///////////////////////////////////////////////////
     //// Utility methods
+    getStateName: function () {
+      return this.gamedatas.gamestate.name;
+    },
+
+    handleConfirmationButton: function (
+      message = _("Confirm selection"),
+      elementId = "goiConfirmationBtn"
+    ) {
+      document.getElementById(elementId)?.remove();
+      const stateName = this.getStateName();
+
+      if (stateName === "revealTiles") {
+        const selectedTile = this.goiGlobals.selectedTile;
+        if (selectedTile) {
+          this.addActionButton(elementId, message, () => {
+            this.actRevealTile();
+          });
+
+          return;
+        }
+      }
+    },
+
+    unselectAllStocks: function (manager, exception) {
+      this.goiManagers[manager].stocks.forEach((stock) => {
+        if (exception.element.id === stock.element.id) {
+          return;
+        }
+
+        stock.unselectAll(true);
+      });
+    },
 
     calcBackgroundPosition: function (spritePosition) {
       return -spritePosition * 100 + "% 0%";
@@ -257,80 +291,49 @@ define([
 
     makeAllRowsSelectable: function () {
       for (let row = 1; row <= 9; row++) {
-        this.goiStocks[`tileRow-${row}`].setSelectionMode("multiple", []);
+        const tileRow = `tileRow-${row}`;
+        this.goiStocks[tileRow].setSelectionMode("single", []);
+
+        this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
+          if (this.getStateName() === "revealTiles") {
+            if (selected.length === 0) {
+              this.goiGlobals.selectedTile = null;
+            } else {
+              this.goiGlobals.selectedTile = lastChange;
+              this.unselectAllStocks("tiles", this.goiStocks[tileRow]);
+            }
+
+            this.handleConfirmationButton();
+          }
+        };
       }
     },
 
     ///////////////////////////////////////////////////
     //// Player's action
 
-    /*
-        
-            Here, you are defining methods to handle player's action (ex: results of mouse click on 
-            game objects).
-            
-            Most of the time, these methods:
-            _ check the action is possible at this game state.
-            _ make a call to the game server
-        
-        */
+    performAction: function (action, args = {}, options) {
+      this.bgaPerformAction(action, args);
+    },
 
-    // Example:
-
-    onCardClick: function (card_id) {
-      console.log("onCardClick", card_id);
-
-      this.bgaPerformAction("actPlayCard", {
-        card_id,
-      }).then(() => {
-        // What to do after the server call if it succeeded
-        // (most of the time, nothing, as the game will react to notifs / change of state instead)
+    actRevealTile: function () {
+      this.performAction("actRevealTile", {
+        tileCard_id: this.goiGlobals.selectedTile.id,
       });
     },
 
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
-    /*
-            setupNotifications:
-            
-            In this method, you associate each of your game notifications with your local method to handle it.
-            
-            Note: game notification names correspond to "notifyAllPlayers" and "notifyPlayer" calls in
-                  your gemsofiridescia.game.php file.
-        
-        */
     setupNotifications: function () {
       console.log("notifications subscriptions setup");
-
-      // TODO: here, associate your game notifications with local methods
-
-      // Example 1: standard notification handling
-      // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-
-      // Example 2: standard notification handling + tell the user interface to wait
-      //            during 3 seconds after calling the method in order to let the players
-      //            see what is happening in the game.
-      // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-      // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-      //
+      dojo.subscribe("revealTile", this, "notif_revealTile");
     },
 
-    // TODO: from this point and below, you can write your game notifications handling methods
+    notif_revealTile: function (notif) {
+      const tileCard = notif.args.tileCard;
 
-    /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
-        {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
-        },    
-        
-        */
+      this.goiStocks[`tileRow-${tileCard.location}`].flipCard(tileCard);
+    },
   });
 });

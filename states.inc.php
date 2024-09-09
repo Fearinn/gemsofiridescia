@@ -32,12 +32,12 @@ $machinestates = [
 
     2 => [
         "name" => "revealTiles",
-        "description" => clienttranslate('${actplayer} may reveal up to two tiles'),
-        "descriptionmyturn" => clienttranslate('${you} may reveal up to two tiles'),
+        "description" => clienttranslate('${actplayer} may reveal a tile'),
+        "descriptionmyturn" => clienttranslate('${you} may reveal a tile'),
         "type" => "activeplayer",
         "args" => "argRevealTiles",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["moveToken"]
+        "transitions" => ["revealTileAgain" => 2, "moveToken" => 3]
     ],
 
     // Final state.

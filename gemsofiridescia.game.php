@@ -46,46 +46,40 @@ class GemsOfIridescia extends Table
      * @throws BgaSystemException
      * @see action_gemsofiridescia::actMyAction
      */
-    public function actPlayCard(int $card_id): void
+
+    public function actRevealTile(int $tileCard_id): void
     {
-        // Check that this is the player's turn and that it is a "possible action" at this game state.
-        $this->checkAction("actPlayCard");
+        $player_id = (int) $this->getActivePlayerId();
 
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
+        $tileCard = $this->tiles->getCard($tileCard_id);
+        $tileRow = (int) $tileCard["location"];
 
-        // Add your game logic to play a card here.
-        $card_name = $this->card_types[$card_id]['card_name'];
+        $revealableTiles = $this->revealableTiles($player_id);
 
-        // Notify all players about the card played.
-        $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(),
-            "card_name" => $card_name,
-            "card_id" => $card_id,
-            "i18n" => ['card_name'],
-        ]);
+        if (!key_exists($tileRow, $revealableTiles) || !in_array($tileCard, $revealableTiles[$tileRow])) {
+            throw new BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
+        }
 
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("playCard");
-    }
+        $revealedTiles = $this->globals->get("revealedTiles", []);
+        $revealedTiles[$tileCard_id] = $tileCard;
+        $this->globals->set("revealedTiles", $revealedTiles);
 
-    public function actPass(): void
-    {
-        // Check that this is the player's turn and that it is a "possible action" at this game state.
-        $this->checkAction("actPass");
+        $region_id = $tileCard["type"];
 
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
+        $this->notifyAllPlayers(
+            "revealTile",
+            clienttranslate('${player_name} reveals a tile in the row ${row}, from the region "${region_label}"'),
+            [
+                "i18n" => ["region_label"],
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "region_label" => $this->regions_info[$region_id]["tr_label"],
+                "row" => $tileRow,
+                "tileCard" => $tileCard,
+            ]
+        );
 
-        // Notify all players about the choice to pass.
-        $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} passes'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(),
-        ]);
-
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("pass");
+        $this->gamestate->nextState("revealTileAgain");
     }
 
     /**
