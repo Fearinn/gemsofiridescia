@@ -113,7 +113,7 @@ define([
         );
 
         this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
-          if (this.getStateName() === "revealTiles") {
+          if (this.getStateName() === "revealTile") {
             if (selected.length === 0) {
               this.goiGlobals.selectedTile = null;
             } else {
@@ -210,8 +210,17 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
-        if (stateName === "revealTiles") {
+        if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
+
+          this.addActionButton(
+            "goi_skipBtn",
+            _("Skip"),
+            "actSkipRevealTile",
+            null,
+            false,
+            "red"
+          );
 
           this.toggleRowsSelection();
 
@@ -231,7 +240,7 @@ define([
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
 
-      if (stateName === "revealTiles") {
+      if (stateName === "revealTile") {
         this.toggleRowsSelection("none");
       }
     },
@@ -259,13 +268,10 @@ define([
       document.getElementById(elementId)?.remove();
       const stateName = this.getStateName();
 
-      if (stateName === "revealTiles") {
+      if (stateName === "revealTile") {
         const selectedTile = this.goiGlobals.selectedTile;
         if (selectedTile) {
-          this.addActionButton(elementId, message, () => {
-            this.actRevealTile();
-          });
-
+          this.addActionButton(elementId, message, "actRevealTile");
           return;
         }
       }
@@ -305,14 +311,18 @@ define([
     ///////////////////////////////////////////////////
     //// Player's action
 
-    performAction: function (action, args = {}, options) {
-      this.bgaPerformAction(action, args);
+    performAction: function (action, args = {}, options = {}) {
+      this.bgaPerformAction(action, args, options);
     },
 
     actRevealTile: function () {
       this.performAction("actRevealTile", {
         tileCard_id: this.goiGlobals.selectedTile.id,
       });
+    },
+
+    actSkipRevealTile: function () {
+      this.performAction("actSkipRevealTile");
     },
 
     ///////////////////////////////////////////////////

@@ -86,6 +86,7 @@ class GemsOfIridescia extends Table
 
     public function actSkipRevealTile()
     {
+        $this->globals->set("revealsLimit", 0);
         $this->gamestate->nextState("moveExplorer");
     }
 
@@ -98,7 +99,7 @@ class GemsOfIridescia extends Table
      * @see ./states.inc.php
      */
 
-    public function argRevealTiles(): array
+    public function argRevealTile(): array
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -110,9 +111,9 @@ class GemsOfIridescia extends Table
         ];
     }
 
-    public function stRevealTiles(): void
+    public function stRevealTile(): void
     {
-        $args = $this->argRevealTiles();
+        $args = $this->argRevealTile();
 
         if ($args["_no_notify"]) {
             $this->gamestate->nextState("moveExplorer");
