@@ -212,6 +212,17 @@ define([
       if (this.isCurrentPlayerActive()) {
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
+          const revealsLimit = args.args.revealsLimit;
+
+          if (revealsLimit === 1) {
+            this.gamedatas.gamestate.description = _(
+              "${actplayer} may reveal another tile"
+            );
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} may reveal another tile"
+            );
+            this.updatePageTitle();
+          }
 
           this.addActionButton(
             "goi_skipBtn",

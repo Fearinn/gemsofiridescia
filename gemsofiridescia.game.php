@@ -104,10 +104,12 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $revealableTiles = $this->revealableTiles($player_id);
+        $revealsLimit =  $this->globals->get("revealsLimit");
 
         return [
             "revealableTiles" => $this->revealableTiles($player_id),
-            "_no_notify" => !$revealableTiles || $this->globals->get("revealsLimit") >= 2,
+            "revealsLimit" => $revealsLimit,
+            "_no_notify" => !$revealableTiles || $revealsLimit >= 2,
         ];
     }
 
