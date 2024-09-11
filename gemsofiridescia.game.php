@@ -84,9 +84,18 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("revealTileAgain");
     }
 
+
     public function actSkipRevealTile()
     {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $explorableTiles = $this->explorableTiles($player_id);
+        if (!$explorableTiles) {
+            throw new BgaVisibleSystemException("You must reveal a tile now: actSkipRevealTile");
+        }
+
         $this->globals->set("revealsLimit", 0);
+
         $this->gamestate->nextState("moveExplorer");
     }
 
@@ -105,10 +114,12 @@ class GemsOfIridescia extends Table
 
         $revealableTiles = $this->revealableTiles($player_id);
         $revealsLimit =  $this->globals->get("revealsLimit");
+        $explorableTiles = $this->explorableTiles($player_id);
 
         return [
             "revealableTiles" => $this->revealableTiles($player_id),
             "revealsLimit" => $revealsLimit,
+            "skippable" => !!$explorableTiles,
             "_no_notify" => !$revealableTiles || $revealsLimit >= 2,
         ];
     }
@@ -251,6 +262,51 @@ class GemsOfIridescia extends Table
         }
 
         return $revealableTiles;
+    }
+
+    public function occupiedTiles(): array
+    {
+        $occupiedTiles = [];
+
+        $explorers = $this->getExplorers();
+        foreach ($explorers as $card_id => $explorerCard) {
+            $explorerLocation = $explorerCard["location"];
+            $explorerHex = $explorerCard["location_arg"];
+
+            if ($explorerLocation !== "board" && $explorerLocation !== "box") {
+                $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "from tile 
+                WHERE card_location='$explorerLocation' AND card_location_arg=$explorerHex");
+
+                if ($tileCard) {
+                    $tileCard_id = $tileCard["id"];
+                    $occupiedTiles[$tileCard_id] = $tileCard;
+                }
+            }
+        }
+
+        return $occupiedTiles;
+    }
+
+    public function explorableTiles(int $player_id): array
+    {
+        $explorableTiles = [];
+
+        $adjacentTiles = $this->adjacentTiles($player_id);
+        $revealedTiles = $this->globals->get("revealedTiles", []);
+        $occupiedTiles = (array) $this->occupiedTiles();
+
+        foreach ($adjacentTiles as $card_id => $tileCard) {
+            if (key_exists($card_id, $revealedTiles) && !key_exists($card_id, $occupiedTiles)) {
+                $tileRow = $tileCard["location"];
+                $explorableTiles[$tileRow][] = $tileCard;
+            }
+        };
+
+        foreach ($explorableTiles as $tileRow => $cards) {
+            $explorableTiles[$tileRow] = $this->hideCards($cards);
+        }
+
+        return $explorableTiles;
     }
 
     public function getExplorers(): array

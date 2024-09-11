@@ -213,6 +213,7 @@ define([
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
           const revealsLimit = args.args.revealsLimit;
+          const skippable = args.args.skippable;
 
           if (revealsLimit === 1) {
             this.gamedatas.gamestate.description = _(
@@ -224,14 +225,16 @@ define([
             this.updatePageTitle();
           }
 
-          this.addActionButton(
-            "goi_skipBtn",
-            _("Skip"),
-            "actSkipRevealTile",
-            null,
-            false,
-            "red"
-          );
+          if (skippable) {
+            this.addActionButton(
+              "goi_skipBtn",
+              _("Skip"),
+              "actSkipRevealTile",
+              null,
+              false,
+              "red"
+            );
+          }
 
           this.toggleRowsSelection();
 
