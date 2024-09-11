@@ -79,7 +79,14 @@ class GemsOfIridescia extends Table
             ]
         );
 
+        $this->globals->inc("revealsLimit", 1);
+
         $this->gamestate->nextState("revealTileAgain");
+    }
+
+    public function actSkipRevealTile()
+    {
+        $this->gamestate->nextState("moveExplorer");
     }
 
     /**
@@ -91,13 +98,25 @@ class GemsOfIridescia extends Table
      * @see ./states.inc.php
      */
 
-    public function argRevealTiles()
+    public function argRevealTiles(): array
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $revealableTiles = $this->revealableTiles($player_id);
+
         return [
-            "revealableTiles" => $this->revealableTiles($player_id)
+            "revealableTiles" => $this->revealableTiles($player_id),
+            "_no_notify" => !$revealableTiles || $this->globals->get("revealsLimit") >= 2,
         ];
+    }
+
+    public function stRevealTiles(): void
+    {
+        $args = $this->argRevealTiles();
+
+        if ($args["_no_notify"]) {
+            $this->gamestate->nextState("moveExplorer");
+        }
     }
 
     /**
@@ -119,12 +138,28 @@ class GemsOfIridescia extends Table
 
     /*   Utility functions */
 
+    public function hideCard(array $card): array
+    {
+        $card["type_arg"] = null;
+        return $card;
+    }
+
+    public function hideCards(array $cards): array
+    {
+        $hiddenCards = [];
+        foreach ($cards as $card_id => $card) {
+            $hiddenCards[$card_id] = $this->hideCard($card);
+        }
+
+        return $cards;
+    }
+
     public function getTileBoard(): array
     {
         $tileBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
         FROM tile WHERE card_location<>'hand'");
 
-        return $tileBoard;
+        return $this->hideCards($tileBoard);
     }
 
     public function adjacentTiles(int $player_id): array
@@ -206,6 +241,10 @@ class GemsOfIridescia extends Table
                 $tileRow = $tileCard["location"];
                 $revealableTiles[$tileRow][] = $tileCard;
             }
+        }
+
+        foreach ($revealableTiles as $tileRow => $cards) {
+            $revealableTiles[$tileRow] = $this->hideCards($cards);
         }
 
         return $revealableTiles;
@@ -374,6 +413,8 @@ class GemsOfIridescia extends Table
                 $hex++;
             }
         }
+
+        $this->globals->set("revealsLimit", 0);
 
         $this->activeNextPlayer();
     }

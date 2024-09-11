@@ -36,8 +36,18 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may reveal a tile'),
         "type" => "activeplayer",
         "args" => "argRevealTiles",
+        "action" => "stRevealTiles",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["revealTileAgain" => 2, "moveToken" => 3]
+        "transitions" => ["revealTileAgain" => 2, "moveExplorer" => 3]
+    ],
+
+    3 => [
+        "name" => "moveExplorer",
+        "description" => clienttranslate('${actplayer} must move his explorer'),
+        "descriptionmyturn" => clienttranslate('${you} must move your explorer'),
+        "type" => "activeplayer",
+        "possibleactions" => ["moveExplorer"],
+        "transitions" => ["moveAgain" => 3]
     ],
 
     // Final state.

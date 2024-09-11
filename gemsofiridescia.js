@@ -105,11 +105,28 @@ define([
       for (let row = 1; row <= 9; row++) {
         /* tiles */
         const tileRow = `tileRow-${row}`;
+
         this.goiStocks[tileRow] = new CardStock(
           this.goiManagers.tiles,
           document.getElementById(`goi_tileRow-${row}`),
           {}
         );
+
+        this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
+          if (this.getStateName() === "revealTiles") {
+            if (selected.length === 0) {
+              this.goiGlobals.selectedTile = null;
+            } else {
+              this.goiGlobals.selectedTile = lastChange;
+              this.unselectAllStocks(
+                this.goiManagers.tiles,
+                this.goiStocks[tileRow]
+              );
+            }
+
+            this.handleConfirmationButton();
+          }
+        };
 
         const tileBoard = this.goiGlobals.tileBoard;
 
@@ -196,7 +213,7 @@ define([
         if (stateName === "revealTiles") {
           const revealableTiles = args.args.revealableTiles;
 
-          this.makeAllRowsSelectable();
+          this.toggleRowsSelection();
 
           for (const row in revealableTiles) {
             const tileRow = `tileRow-${row}`;
@@ -214,19 +231,8 @@ define([
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
 
-      switch (stateName) {
-        /* Example:
-            
-            case 'myGameState':
-            
-                // Hide the HTML block we are displaying only during this game state
-                dojo.style( 'my_html_block_id', 'display', 'none' );
-                
-                break;
-           */
-
-        case "dummmy":
-          break;
+      if (stateName === "revealTiles") {
+        this.toggleRowsSelection("none");
       }
     },
 
@@ -265,9 +271,13 @@ define([
       }
     },
 
+    calcBackgroundPosition: function (spritePosition) {
+      return -spritePosition * 100 + "% 0%";
+    },
+
     unselectAllStocks: function (manager, exception) {
-      this.goiManagers[manager].stocks.forEach((stock) => {
-        if (exception.element.id === stock.element.id) {
+      manager.stocks.forEach((stock) => {
+        if (exception?.element.id === stock.element.id) {
           return;
         }
 
@@ -275,8 +285,11 @@ define([
       });
     },
 
-    calcBackgroundPosition: function (spritePosition) {
-      return -spritePosition * 100 + "% 0%";
+    toggleRowsSelection: function (selection = "single") {
+      for (let row = 1; row <= 9; row++) {
+        const tileRow = `tileRow-${row}`;
+        this.goiStocks[tileRow].setSelectionMode(selection, []);
+      }
     },
 
     getTileRow: function (region, hex) {
@@ -287,26 +300,6 @@ define([
       }
 
       return row;
-    },
-
-    makeAllRowsSelectable: function () {
-      for (let row = 1; row <= 9; row++) {
-        const tileRow = `tileRow-${row}`;
-        this.goiStocks[tileRow].setSelectionMode("single", []);
-
-        this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
-          if (this.getStateName() === "revealTiles") {
-            if (selected.length === 0) {
-              this.goiGlobals.selectedTile = null;
-            } else {
-              this.goiGlobals.selectedTile = lastChange;
-              this.unselectAllStocks("tiles", this.goiStocks[tileRow]);
-            }
-
-            this.handleConfirmationButton();
-          }
-        };
-      }
     },
 
     ///////////////////////////////////////////////////
@@ -333,7 +326,8 @@ define([
     notif_revealTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      this.goiStocks[`tileRow-${tileCard.location}`].flipCard(tileCard);
+      const tileRow = `tileRow-${tileCard.location}`;
+      this.goiStocks[tileRow].flipCard(tileCard);
     },
   });
 });
