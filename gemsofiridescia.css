@@ -76,13 +76,12 @@
   transform: scale(1.025);
 }
 
-.goi_tileSelected::before {
+.goi_tileSelected::after {
   position: absolute;
-  top: 8px;
+  bottom: 24px;
 
   animation: pulse infinite 0.75s;
-
-  content: "\25bc";
+  content: "\25b2";
   font-size: 40px;
   z-index: 1;
 }
@@ -127,6 +126,7 @@
   bottom: 12px;
 
   background-image: url("img/explorers.png");
+  transition: 1s;
   aspect-ratio: 1;
   width: var(--explorerSize);
   z-index: 1;

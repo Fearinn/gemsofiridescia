@@ -430,6 +430,7 @@ class GemsOfIridescia extends Table
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $result["tileBoard"] = $this->getTileBoard();
         $result["playerBoards"] = $this->globals->get("playerBoards");
+        $result["revealedTiles"] = $this->globals->get("revealedTiles", []);
         $result["explorers"] = $this->getExplorers();
 
         return $result;

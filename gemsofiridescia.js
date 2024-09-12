@@ -39,6 +39,8 @@ define([
       this.goiGlobals.player = gamedatas.players[this.player_id];
       this.goiGlobals.tileBoard = gamedatas.tileBoard;
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
+      this.goiGlobals.revealedTiles = gamedatas.revealedTiles;
+
       this.goiGlobals.explorers = gamedatas.explorers;
 
       this.goiGlobals.selectedTile = null;
@@ -136,16 +138,20 @@ define([
         };
 
         const tileBoard = this.goiGlobals.tileBoard;
-
         for (const tileCard_id in tileBoard) {
           const tileCard = tileBoard[tileCard_id];
-          const hex = tileCard.location_arg;
 
-          if (this.getTileRow(tileCard.type, hex) === row) {
+          if (tileCard.location == row) {
             delete tileBoard[tileCard_id];
 
             this.goiStocks[tileRow].addCard(tileCard).then(() => {
               this.goiStocks[tileRow].setCardVisible(tileCard, false);
+
+              const revealedTileCard =
+                this.goiGlobals.revealedTiles[tileCard_id];
+              if (revealedTileCard) {
+                this.goiStocks[tileRow].flipCard(revealedTileCard);
+              }
             });
           }
         }
@@ -165,7 +171,9 @@ define([
             explorerCard,
             {},
             {
-              forceToElement: document.getElementById(`tile-${explorerCard["location_arg"]}`),
+              forceToElement: document.getElementById(
+                `tile-${explorerCard["location_arg"]}`
+              ),
             }
           );
         }
