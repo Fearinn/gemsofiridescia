@@ -28,11 +28,11 @@ class GemsOfIridescia extends Table
 
         $this->initGameStateLabels([]);
 
-        $this->tiles = $this->getNew("module.common.deck");
-        $this->tiles->init("tile");
+        $this->tile_cards = $this->getNew("module.common.deck");
+        $this->tile_cards->init("tile");
 
-        $this->explorers = $this->getNew("module.common.deck");
-        $this->explorers->init("explorer");
+        $this->explorer_cards = $this->getNew("module.common.deck");
+        $this->explorer_cards->init("explorer");
 
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg ";
     }
@@ -51,7 +51,7 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $tileCard = $this->tiles->getCard($tileCard_id);
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
         $tileRow = (int) $tileCard["location"];
 
         $revealableTiles = $this->revealableTiles($player_id);
@@ -102,7 +102,7 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $tileCard = $this->tiles->getCard($tileCard_id);
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
         $tileRow = (int) $tileCard["location"];
 
         $explorableTiles = $this->explorableTiles($player_id);
@@ -114,7 +114,7 @@ class GemsOfIridescia extends Table
         $region_id = (int) $tileCard["type"];
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $this->explorers->moveCard($explorerCard["id"], "board", $tileCard["id"]);
+        $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["id"]);
 
         $this->notifyAllPlayers(
             "moveExplorer",
@@ -474,13 +474,13 @@ class GemsOfIridescia extends Table
         $players = $this->loadPlayersBasicInfos();
 
         $explorers = [];
-        foreach ($this->explorers_info as $explorer_id => $explorer) {
+        foreach ($this->explorer_cards_info as $explorer_id => $explorer) {
             $explorers[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
         }
 
-        $this->explorers->createCards($explorers, "deck");
+        $this->explorer_cards->createCards($explorers, "deck");
 
-        $explorers = $this->explorers->getCardsInLocation("deck");
+        $explorers = $this->explorer_cards->getCardsInLocation("deck");
         $playerBoards = [];
         foreach ($explorers as $card_id => $explorer) {
             foreach ($players as $player_id => $player) {
@@ -489,32 +489,32 @@ class GemsOfIridescia extends Table
                 if ($player_color === $explorer["type"]) {
                     $playerBoards[$player_id] = $explorer["type_arg"];
 
-                    $this->explorers->moveCard($card_id, "scene");
+                    $this->explorer_cards->moveCard($card_id, "scene");
                     $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$card_id'");
                 }
             }
         }
 
         $this->globals->set("playerBoards", $playerBoards);
-        $this->explorers->moveAllCardsInLocation("deck", "box");
+        $this->explorer_cards->moveAllCardsInLocation("deck", "box");
 
         $this->globals->set("playerBoards", $playerBoards);
         $tiles = [];
-        foreach ($this->tiles_info as $tile_id => $tile_info) {
+        foreach ($this->tile_cards_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
 
             $tiles[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
-        $this->tiles->createCards($tiles, "deck");
+        $this->tile_cards->createCards($tiles, "deck");
 
         foreach ($this->regions_info as $region_id => $region) {
-            $tilesOfregion = $this->tiles->getCardsOfTypeInLocation($region_id, null, "deck");
+            $tilesOfregion = $this->tile_cards->getCardsOfTypeInLocation($region_id, null, "deck");
             $k_tilesOfregion = array_keys($tilesOfregion);
 
             $temporaryLocation = strval($region["name"]);
-            $this->tiles->moveCards($k_tilesOfregion, $temporaryLocation);
-            $this->tiles->shuffle($temporaryLocation);
+            $this->tile_cards->moveCards($k_tilesOfregion, $temporaryLocation);
+            $this->tile_cards->shuffle($temporaryLocation);
 
             $hex = 1;
             for ($i = 1; $i <= count($tilesOfregion); $i++) {
@@ -524,7 +524,7 @@ class GemsOfIridescia extends Table
                     $finalLocation--;
                 }
 
-                $this->tiles->pickCardForLocation($temporaryLocation, $finalLocation, $hex);
+                $this->tile_cards->pickCardForLocation($temporaryLocation, $finalLocation, $hex);
                 $hex++;
             }
         }
