@@ -17,7 +17,7 @@
   --boardSize: 2500px;
   --playerBoardSize: 600px;
   --tileSize: 200px;
-  --explorerSize: 200px;
+  --explorerSize: 175px;
 
   display: flex;
   flex-direction: column;
@@ -54,15 +54,18 @@
 }
 
 .goi_tile {
-  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
   background-color: rgba(0, 0, 0, 0.75);
   margin-bottom: calc(var(--tileSpacing) - var(--tileSize) * 0.2885);
   aspect-ratio: 100 / 115;
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
-.goi_tile .card-side {
+.goi_tile .goi_tileSide {
   background-image: url("img/tiles.png");
   box-shadow: none !important;
   aspect-ratio: 100/115;
@@ -93,21 +96,28 @@
   width: var(--playerBoardSize);
 }
 
+.goi_explorerScene {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .goi_explorer {
+  pointer-events: none;
+  bottom: 12px;
+
   background-image: url("img/explorers.png");
   aspect-ratio: 1;
   width: var(--explorerSize);
   z-index: 1;
 }
 
-.goi_explorer .card-side {
-  box-shadow: none !important;
+.goi_tile:hover .goi_explorer {
+  opacity: 0.3;
 }
 
-.goi_explorerScene {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.goi_explorer .card-side {
+  box-shadow: none !important;
 }
 
 /* END OF CUSTOM STYLES */

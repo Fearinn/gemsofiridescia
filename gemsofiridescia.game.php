@@ -84,7 +84,6 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("revealTileAgain");
     }
 
-
     public function actSkipRevealTile()
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -97,6 +96,41 @@ class GemsOfIridescia extends Table
         $this->globals->set("revealsLimit", 0);
 
         $this->gamestate->nextState("moveExplorer");
+    }
+
+    public function actMoveExplorer(int $tileCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $tileCard = $this->tiles->getCard($tileCard_id);
+        $tileRow = (int) $tileCard["location"];
+
+        $explorableTiles = $this->explorableTiles($player_id);
+
+        if (!key_exists($tileRow, $explorableTiles) || !in_array($tileCard, $explorableTiles[$tileRow])) {
+            throw new BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
+        }
+
+        $region_id = (int) $tileCard["type"];
+
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $this->explorers->moveCard($explorerCard["id"], "board", $tileCard["id"]);
+
+        $this->notifyAllPlayers(
+            "moveExplorer",
+            clienttranslate('${player_name} moves his explorer to a tile in the row ${row}, from the region "${region_label}"'),
+            [
+                "i18n" => ["region_label"],
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "region_label" => $this->regions_info[$region_id]["tr_label"],
+                "row" => $tileRow,
+                "tileCard" => $tileCard,
+                "explorerCard" => $explorerCard
+            ]
+        );
+
+        $this->gamestate->nextState("mine");
     }
 
     /**
@@ -130,6 +164,27 @@ class GemsOfIridescia extends Table
 
         if ($args["_no_notify"]) {
             $this->gamestate->nextState("moveExplorer");
+        }
+    }
+
+    public function argMoveExplorer(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $explorableTiles = $this->explorableTiles($player_id);
+
+        return [
+            "explorableTiles" => $explorableTiles,
+            "_no_notify" => !$explorableTiles
+        ];
+    }
+
+    public function stMoveExplorer(): void
+    {
+        $args = $this->argMoveExplorer();
+
+        if ($args["_no_notify"]) {
+            $this->gamestate->nextState("mine");
         }
     }
 
@@ -236,8 +291,10 @@ class GemsOfIridescia extends Table
 
             $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "FROM tile WHERE card_location='$location' AND card_location_arg=$hex");
 
-            $tileCard_id = $tileCard["id"];
-            $adjacentTiles[$tileCard_id] = $tileCard;
+            if ($tileCard) {
+                $tileCard_id = $tileCard["id"];
+                $adjacentTiles[$tileCard_id] = $tileCard;
+            }
         }
 
         return $adjacentTiles;
@@ -270,12 +327,11 @@ class GemsOfIridescia extends Table
 
         $explorers = $this->getExplorers();
         foreach ($explorers as $card_id => $explorerCard) {
-            $explorerLocation = $explorerCard["location"];
-            $explorerHex = $explorerCard["location_arg"];
+            $explorerTile = $explorerCard["location_arg"];
 
-            if ($explorerLocation !== "board" && $explorerLocation !== "box") {
+            if ($explorerCard["location"] === "board") {
                 $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "from tile 
-                WHERE card_location='$explorerLocation' AND card_location_arg=$explorerHex");
+                WHERE card_location='board' AND card_location_arg=$explorerTile");
 
                 if ($tileCard) {
                     $tileCard_id = $tileCard["id"];
@@ -319,8 +375,7 @@ class GemsOfIridescia extends Table
 
     public function getExplorerByPlayerId(int $player_id): array
     {
-        $explorer = $this->getObjectFromDB("SELECT card_id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg 
-        FROM explorer WHERE card_type_arg='$player_id'");
+        $explorer = $this->getObjectFromDB($this->deckSelectQuery . "FROM explorer WHERE card_type_arg='$player_id'");
 
         return $explorer;
     }

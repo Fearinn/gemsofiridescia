@@ -63,6 +63,8 @@ define([
           div.style.order = card.location_arg;
         },
         setupFrontDiv: (card, div) => {
+          div.classList.add("goi_tileSide");
+
           let backgroundPosition = this.calcBackgroundPosition(
             (Number(card.type) - 1) * 14
           );
@@ -76,6 +78,8 @@ define([
           div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
+          div.classList.add("goi_tileSide");
+
           const backgroundPosition = this.calcBackgroundPosition(
             (Number(card.type) - 1) * 14
           );
@@ -113,7 +117,9 @@ define([
         );
 
         this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
-          if (this.getStateName() === "revealTile") {
+          const stateName = this.getStateName();
+
+          if (stateName === "revealTile" || stateName) {
             if (selected.length === 0) {
               this.goiGlobals.selectedTile = null;
             } else {
@@ -130,15 +136,15 @@ define([
 
         const tileBoard = this.goiGlobals.tileBoard;
 
-        for (const card_id in tileBoard) {
-          const card = tileBoard[card_id];
-          const hex = card.location_arg;
+        for (const tileCard_id in tileBoard) {
+          const tileCard = tileBoard[tileCard_id];
+          const hex = tileCard.location_arg;
 
-          if (this.getTileRow(card.type, hex) === row) {
-            delete tileBoard[card_id];
+          if (this.getTileRow(tileCard.type, hex) === row) {
+            delete tileBoard[tileCard_id];
 
-            this.goiStocks[tileRow].addCard(card).then(() => {
-              this.goiStocks[tileRow].setCardVisible(card, false);
+            this.goiStocks[tileRow].addCard(tileCard).then(() => {
+              this.goiStocks[tileRow].setCardVisible(tileCard, false);
             });
           }
         }
@@ -150,17 +156,15 @@ define([
         {}
       );
 
-      for (const card_id in this.goiGlobals.explorers) {
-        const explorer = this.goiGlobals.explorers[card_id];
+      for (const explorerCard_id in this.goiGlobals.explorers) {
+        const explorerCard = this.goiGlobals.explorers[explorerCard_id];
 
-        if (explorer["location"] === "board") {
-          const tile = explorer["location_arg"];
-
+        if (explorerCard["location"] === "board") {
           this.goiStocks.explorersGrid.addCard(
-            explorer,
+            explorerCard,
             {},
             {
-              forceToElement: document.getElementById(`tile-${tile}`),
+              forceToElement: document.getElementById(`tile-${explorerTile}`),
             }
           );
         }
@@ -244,6 +248,20 @@ define([
 
             this.goiStocks[tileRow].setSelectableCards(tileCards);
           }
+          return;
+        }
+
+        if (stateName === "moveExplorer") {
+          const explorableTiles = args.args.explorableTiles;
+
+          this.toggleRowsSelection();
+
+          for (const row in explorableTiles) {
+            const tileRow = `tileRow-${row}`;
+            const tileCards = explorableTiles[row];
+
+            this.goiStocks[tileRow].setSelectableCards(tileCards);
+          }
         }
       }
     },
@@ -255,6 +273,10 @@ define([
       console.log("Leaving state: " + stateName);
 
       if (stateName === "revealTile") {
+        this.toggleRowsSelection("none");
+      }
+
+      if (stateName === "moveExplorer") {
         this.toggleRowsSelection("none");
       }
     },
@@ -286,6 +308,14 @@ define([
         const selectedTile = this.goiGlobals.selectedTile;
         if (selectedTile) {
           this.addActionButton(elementId, message, "actRevealTile");
+          return;
+        }
+      }
+
+      if (stateName === "moveExplorer") {
+        const selectedTile = this.goiGlobals.selectedTile;
+        if (selectedTile) {
+          this.addActionButton(elementId, message, "actMoveExplorer");
           return;
         }
       }
@@ -339,12 +369,19 @@ define([
       this.performAction("actSkipRevealTile");
     },
 
+    actMoveExplorer: function () {
+      this.performAction("actMoveExplorer", {
+        tileCard_id: this.goiGlobals.selectedTile.id,
+      });
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
     setupNotifications: function () {
       console.log("notifications subscriptions setup");
       dojo.subscribe("revealTile", this, "notif_revealTile");
+      dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
     },
 
     notif_revealTile: function (notif) {
@@ -352,6 +389,19 @@ define([
 
       const tileRow = `tileRow-${tileCard.location}`;
       this.goiStocks[tileRow].flipCard(tileCard);
+    },
+
+    notif_moveExplorer: function (notif) {
+      const tileCard = notif.args.tileCard;
+      const explorerCard = notif.args.explorerCard;
+
+      this.goiStocks.explorersGrid.addCard(
+        explorerCard,
+        {},
+        {
+          forceToElement: document.getElementById(`tile-${tileCard.id}`),
+        }
+      );
     },
   });
 });

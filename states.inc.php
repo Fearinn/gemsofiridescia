@@ -43,11 +43,22 @@ $machinestates = [
 
     3 => [
         "name" => "moveExplorer",
-        "description" => clienttranslate('${actplayer} must move his explorer'),
-        "descriptionmyturn" => clienttranslate('${you} must move your explorer'),
+        "description" => clienttranslate('${actplayer} must move his explorer to a revealed tile'),
+        "descriptionmyturn" => clienttranslate('${you} must move your explorer to a revealed tile'),
         "type" => "activeplayer",
+        "args" => "argMoveExplorer",
+        "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer"],
-        "transitions" => ["moveAgain" => 3]
+        "transitions" => ["mine" => 31]
+    ],
+
+    31 => [
+        "name" => "mine",
+        "description" => clienttranslate('${actplayer} may spend 3 gold to mine'),
+        "descriptionmyturn" => clienttranslate('${you} may spend 3 gold to mine'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actMine", "actSkipMine"],
+        "transitions" => ["" => 4]
     ],
 
     // Final state.
