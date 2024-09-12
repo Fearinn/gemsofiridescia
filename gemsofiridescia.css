@@ -73,8 +73,28 @@
 }
 
 .goi_tileSelected {
-  background-color: blue;
   transform: scale(1.025);
+}
+
+.goi_tileSelected::before {
+  position: absolute;
+  top: 8px;
+
+  animation: pulse infinite 0.75s;
+
+  content: "\25bc";
+  font-size: 40px;
+  z-index: 1;
+}
+
+@keyframes pulse {
+  0% {
+    font-size: 40px;
+  }
+
+  100% {
+    font-size: 48px;
+  }
 }
 
 .goi_playerBoards {

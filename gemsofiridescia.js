@@ -36,6 +36,7 @@ define([
       console.log("Starting game setup");
 
       this.goiGlobals.players = gamedatas.players;
+      this.goiGlobals.player = gamedatas.players[this.player_id];
       this.goiGlobals.tileBoard = gamedatas.tileBoard;
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.explorers = gamedatas.explorers;
@@ -164,7 +165,7 @@ define([
             explorerCard,
             {},
             {
-              forceToElement: document.getElementById(`tile-${explorerTile}`),
+              forceToElement: document.getElementById(`tile-${explorerCard["location_arg"]}`),
             }
           );
         }
