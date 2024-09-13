@@ -54,8 +54,8 @@ $machinestates = [
 
     31 => [
         "name" => "mine",
-        "description" => clienttranslate('${actplayer} may spend 3 gold to mine'),
-        "descriptionmyturn" => clienttranslate('${you} may spend 3 gold to mine'),
+        "description" => clienttranslate('${actplayer} may spend 3 coins to mine this tile'),
+        "descriptionmyturn" => clienttranslate('${you} may spend 3 coins to mine this tile'),
         "type" => "activeplayer",
         "possibleactions" => ["actMine", "actSkipMine"],
         "transitions" => ["" => 4]

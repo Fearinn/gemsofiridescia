@@ -130,6 +130,10 @@ class GemsOfIridescia extends Table
             ]
         );
 
+        $tile_id = (int) $tileCard["type_arg"];
+
+        $this->resolveTileEffect($tile_id, $player_id);
+
         $this->gamestate->nextState("mine");
     }
 
@@ -221,6 +225,21 @@ class GemsOfIridescia extends Table
         }
 
         return $cards;
+    }
+
+    public function getExplorers(): array
+    {
+        $explorers = $this->getCollectionFromDB($this->deckSelectQuery . " 
+        FROM explorer WHERE card_location<>'box'");
+
+        return $explorers;
+    }
+
+    public function getExplorerByPlayerId(int $player_id): array
+    {
+        $explorer = $this->getObjectFromDB($this->deckSelectQuery . "FROM explorer WHERE card_type_arg='$player_id'");
+
+        return $explorer;
     }
 
     public function getTileBoard(): array
@@ -365,20 +384,90 @@ class GemsOfIridescia extends Table
         return $explorableTiles;
     }
 
-    public function getExplorers(): array
+    public function resolveTileEffect(int $tile_id, int $player_id): void
     {
-        $explorers = $this->getCollectionFromDB($this->deckSelectQuery . " 
-        FROM explorer WHERE card_location<>'box'");
+        $tileInfo = $this->tiles_info[$tile_id];
 
-        return $explorers;
+        $gem_id = (int) $tileInfo["gem"];
+
+        if ($gem_id === 0) {
+            $this->gamestate->nextState("wildTile");
+            return;
+        }
+
+        $this->incGem(1, $gem_id, $player_id);
     }
 
-    public function getExplorerByPlayerId(int $player_id): array
+    public function getGems(?int $player_id): array
     {
-        $explorer = $this->getObjectFromDB($this->deckSelectQuery . "FROM explorer WHERE card_type_arg='$player_id'");
+        $sql = "SELECT amethyst, citrine, emerald, sapphire FROM player WHERE player_id=";
+        if ($player_id) {
+            return $this->getObjectFromDB("$sql$player_id");
+        }
 
-        return $explorer;
+        $gems = [];
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $gems[$player_id] = $this->getObjectFromDB("$sql$player_id");
+        }
+
+        return $gems;
     }
+
+    public function incGem(int $delta, int $gem_id, int $player_id, $updateMarket = true): void
+    {
+        $gem = $this->gems_info[$gem_id]["name"];
+
+        $this->dump("gem", $gem);
+
+        $this->DbQuery("UPDATE player SET $gem=$gem+$delta WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "incGem",
+            clienttranslate('${player_name} gets ${delta} ${gem_label}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "delta" => $delta,
+                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "i18n" => ["gem_label"]
+            ]
+        );
+
+        if ($updateMarket) {
+            $this->updateMarket($gem_id);
+        }
+    }
+
+    public function decGem(int $delta, int $gem_id, int $player_id): void
+    {
+        $gem = $this->gems_info[$gem_id]["name"];
+
+        $gemCount = $this->getUniqueValueFromDB("SELECT $gem FROM player WHERE player_id=$player_id");
+
+        if ($gemCount < $delta) {
+            throw new BgaVisibleSystemException("Not enough gems: incGem, $gem, $delta, $gemCount");
+        }
+
+        $this->DbQuery("UPDATE player SET $gem=$gem-$delta WHERE player_id=$player_id");
+    }
+
+    public function updateMarket(int $gem_id): void
+    {
+        $gem = $this->gems_info[$gem_id]["name"];
+
+        $marketValueCode = "$gem:MarketValue";
+        $marketValue = $this->globals->get($marketValueCode);
+
+        if ($marketValue === 6) {
+            $this->globals->set($marketValueCode, 1);
+            return;
+        }
+
+        $this->globals->inc($marketValueCode, 1);
+    }
+
 
     /**
      * Migrate database.
@@ -432,6 +521,7 @@ class GemsOfIridescia extends Table
         $result["playerBoards"] = $this->globals->get("playerBoards");
         $result["revealedTiles"] = $this->globals->get("revealedTiles", []);
         $result["explorers"] = $this->getExplorers();
+        $result["gems"] = $this->getGems(null);
 
         return $result;
     }
@@ -474,7 +564,7 @@ class GemsOfIridescia extends Table
         $players = $this->loadPlayersBasicInfos();
 
         $explorers = [];
-        foreach ($this->explorer_cards_info as $explorer_id => $explorer) {
+        foreach ($this->explorers_info as $explorer_id => $explorer) {
             $explorers[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
         }
 
@@ -500,7 +590,7 @@ class GemsOfIridescia extends Table
 
         $this->globals->set("playerBoards", $playerBoards);
         $tiles = [];
-        foreach ($this->tile_cards_info as $tile_id => $tile_info) {
+        foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
 
             $tiles[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
@@ -530,6 +620,13 @@ class GemsOfIridescia extends Table
         }
 
         $this->globals->set("revealsLimit", 0);
+
+        foreach ($this->gems_info as $gem_info) {
+            $gem = $gem_info["name"];
+            $marketValueCode = "$gem:MarketValue";
+
+            $this->globals->set($marketValueCode, 0);
+        }
 
         $this->activeNextPlayer();
     }

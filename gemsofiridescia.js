@@ -40,6 +40,7 @@ define([
       this.goiGlobals.tileBoard = gamedatas.tileBoard;
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.revealedTiles = gamedatas.revealedTiles;
+      this.goiGlobals.gems = gamedatas.gems;
 
       this.goiGlobals.explorers = gamedatas.explorers;
 
@@ -108,7 +109,6 @@ define([
       });
 
       /* create board */
-
       for (let row = 1; row <= 9; row++) {
         /* tiles */
         const tileRow = `tileRow-${row}`;
