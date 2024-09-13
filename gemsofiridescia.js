@@ -30,6 +30,7 @@ define([
       this.goiGlobals = {};
       this.goiManagers = {};
       this.goiStocks = {};
+      this.goiCounters = {};
     },
 
     setup: function (gamedatas) {
@@ -40,10 +41,8 @@ define([
       this.goiGlobals.tileBoard = gamedatas.tileBoard;
       this.goiGlobals.playerBoards = gamedatas.playerBoards;
       this.goiGlobals.revealedTiles = gamedatas.revealedTiles;
-      this.goiGlobals.gems = gamedatas.gems;
-
       this.goiGlobals.explorers = gamedatas.explorers;
-
+      this.goiGlobals.gems = gamedatas.gems;
       this.goiGlobals.selectedTile = null;
 
       this.goiManagers.zoom = new ZoomManager({
@@ -108,7 +107,49 @@ define([
         setupBackDiv: (card, div) => {},
       });
 
-      /* create board */
+      /* PLAYER PANELS */
+      this.goiCounters.gems = {};
+      for (const player_id in this.goiGlobals.players) {
+        document.getElementById(
+          `player_board_${player_id}`
+        ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
+            <div id="goi_gemCounters:${player_id}" class="goi_gemCounters">
+              <div class="goi_gemCounter">
+                <div class="goi_gemIcon" data-gem="amethyst"></div>
+                <span id="goi_gemCounter:${player_id}-amethyst">0</span>
+              </div>
+              <div class="goi_gemCounter">
+                <div class="goi_gemIcon" data-gem="citrine"></div>
+                <span id="goi_gemCounter:${player_id}-citrine">0</span>
+              </div>
+              <div class="goi_gemCounter">
+                <div class="goi_gemIcon" data-gem="emerald"></div>
+                <span id="goi_gemCounter:${player_id}-emerald">0</span>
+              </div>
+              <div class="goi_gemCounter">
+                <div class="goi_gemIcon" data-gem="sapphire"></div>
+                <span id="goi_gemCounter:${player_id}-sapphire">0</span>
+              </div>
+            </div>
+          </div>`;
+
+        this.goiCounters.gems[player_id] = {
+          amethyst: new ebg.counter(),
+          citrine: new ebg.counter(),
+          emerald: new ebg.counter(),
+          sapphire: new ebg.counter(),
+        };
+
+        const gemCounters = this.goiCounters.gems[player_id];
+
+        for (const gem in gemCounters) {
+          const gemCounter = gemCounters[gem];
+          gemCounter.create(`goi_gemCounter:${player_id}-${gem}`);
+          gemCounter.setValue(this.goiGlobals.gems[player_id][gem]);
+        }
+      }
+
+      /* BOARDS */
       for (let row = 1; row <= 9; row++) {
         /* tiles */
         const tileRow = `tileRow-${row}`;
@@ -391,6 +432,7 @@ define([
       console.log("notifications subscriptions setup");
       dojo.subscribe("revealTile", this, "notif_revealTile");
       dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
+      dojo.subscribe("incGem", this, "notif_incGem");
     },
 
     notif_revealTile: function (notif) {
@@ -411,6 +453,14 @@ define([
           forceToElement: document.getElementById(`tile-${tileCard.id}`),
         }
       );
+    },
+
+    notif_incGem: function (notif) {
+      const player_id = notif.args.player_id;
+      const gem = notif.args.gem;
+      const delta = notif.args.delta;
+
+      this.goiCounters.gems[player_id][gem].incValue(delta);
     },
   });
 });

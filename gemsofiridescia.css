@@ -25,6 +25,44 @@
   gap: 8px;
 }
 
+.goi_playerPanel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.goi_gemCounters {
+  display: flex;
+  width: 100%;
+}
+
+.goi_gemCounter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+}
+
+.goi_gemIcon {
+  background-image: url("img/gems.png");
+  aspect-ratio: 1;
+  width: 100%;
+  background-size: cover;
+}
+
+.goi_gemIcon[data-gem="citrine"] {
+  background-position: -100% 0;
+}
+.goi_gemIcon[data-gem="emerald"] {
+  background-position: -200% 0;
+}
+.goi_gemIcon[data-gem="sapphire"] {
+  background-position: -300% 0;
+}
+
 .goi_board {
   display: flex;
   position: relative;

@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `explorer` (
   `card_location_arg` int(11) NOT NULL,
   PRIMARY KEY (`card_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8 AUTO_INCREMENT = 1;
+ALTER TABLE `player`
 ADD `coin` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player`
 ADD `amethyst` INT UNSIGNED NOT NULL DEFAULT 0;

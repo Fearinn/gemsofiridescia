@@ -68,7 +68,7 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a tile in the row ${row}, from the region "${region_label}"'),
+            clienttranslate('${player_name} reveals a tile in the row ${row}, from the ${region_label} region'),
             [
                 "i18n" => ["region_label"],
                 "player_id" => $player_id,
@@ -151,7 +151,7 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $revealableTiles = $this->revealableTiles($player_id);
-        $revealsLimit =  $this->globals->get("revealsLimit");
+        $revealsLimit = (int) $this->globals->get("revealsLimit");
         $explorableTiles = $this->explorableTiles($player_id);
 
         return [
@@ -419,8 +419,6 @@ class GemsOfIridescia extends Table
     {
         $gem = $this->gems_info[$gem_id]["name"];
 
-        $this->dump("gem", $gem);
-
         $this->DbQuery("UPDATE player SET $gem=$gem+$delta WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
@@ -430,6 +428,7 @@ class GemsOfIridescia extends Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
+                "gem" => $gem,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
                 "i18n" => ["gem_label"]
             ]
@@ -468,6 +467,20 @@ class GemsOfIridescia extends Table
         $this->globals->inc($marketValueCode, 1);
     }
 
+    public function getMarketValues(?int $gem_id): array | int
+    {
+        if ($gem_id) {
+            $gem = $this->gems_info[$gem_id]["name"];
+            return $this->globals->get("$gem:MarketValue");
+        };
+
+        foreach ($this->gems_info as $gem_id => $gem_info) {
+            $gem = $gem_info["name"];
+            $marketValues[$gem] = $this->globals->get("$gem:MarketValue");
+        }
+
+        return $marketValues;
+    }
 
     /**
      * Migrate database.
@@ -522,6 +535,7 @@ class GemsOfIridescia extends Table
         $result["revealedTiles"] = $this->globals->get("revealedTiles", []);
         $result["explorers"] = $this->getExplorers();
         $result["gems"] = $this->getGems(null);
+        $result["marketValues"] = $this->getMarketValues(null);
 
         return $result;
     }
