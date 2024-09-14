@@ -118,15 +118,15 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to a tile in the row ${row}, from the region "${region_label}"'),
+            clienttranslate('${player_name} moves his explorer to a tile in the row ${row}, from the ${region_label} region'),
             [
-                "i18n" => ["region_label"],
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "region_label" => $this->regions_info[$region_id]["tr_label"],
                 "row" => $tileRow,
                 "tileCard" => $tileCard,
-                "explorerCard" => $explorerCard
+                "explorerCard" => $explorerCard,
+                "i18n" => ["region_label"],
             ]
         );
 
@@ -421,7 +421,7 @@ class GemsOfIridescia extends Table
 
         $this->DbQuery("UPDATE player SET $gem=$gem+$delta WHERE player_id=$player_id");
 
-        $message = $mine ? clienttranslate('${player_name} mines 1 ${delta} ${gem_label}') : clienttranslate('${player_name} collects 1 ${delta} ${gem_label}');
+        $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') : clienttranslate('${player_name} collects ${delta} ${gem_label}');
 
         $this->notifyAllPlayers(
             "incGem",

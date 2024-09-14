@@ -18,6 +18,7 @@
   --playerBoardSize: 600px;
   --tileSize: 200px;
   --explorerSize: 175px;
+  --gemSize: 90px;
 
   display: flex;
   flex-direction: column;
@@ -46,11 +47,11 @@
   width: 40px;
 }
 
-.goi_gem {
+.goi_gemIcon {
   background-image: url("img/gems.png");
+  background-size: cover;
   aspect-ratio: 1;
   width: 100%;
-  background-size: cover;
 }
 
 .goi_board {
@@ -158,6 +159,55 @@
   aspect-ratio: 1;
   width: var(--explorerSize);
   z-index: 1;
+}
+
+.goi_cargo {
+  position: relative;
+}
+
+.goi_cargoBox {
+  position: absolute;
+  aspect-ratio: 1;
+  width: var(--gemSize);
+}
+
+.goi_cargoBox[data-box="1"] {
+  top: 10%;
+  left: 19%;
+}
+.goi_cargoBox[data-box="2"] {
+  top: 10%;
+  left: 43%;
+}
+.goi_cargoBox[data-box="3"] {
+  top: 10%;
+  left: 67%;
+}
+.goi_cargoBox[data-box="4"] {
+  top: 50%;
+  left: 8%;
+}
+.goi_cargoBox[data-box="5"] {
+  top: 50%;
+  left: 32%;
+}
+.goi_cargoBox[data-box="6"] {
+  top: 50%;
+  left: 56%;
+}
+.goi_cargoBox[data-box="7"] {
+  top: 50%;
+  left: 80%;
+}
+
+.goi_gem {
+  background-image: url("img/gems.png");
+  aspect-ratio: 1;
+  width: var(--gemSize);
+}
+
+.goi_gem .card-side {
+  box-shadow: none !important;
 }
 
 .goi_tile:hover .goi_explorer {
