@@ -46,21 +46,11 @@
   width: 40px;
 }
 
-.goi_gemIcon {
+.goi_gem {
   background-image: url("img/gems.png");
   aspect-ratio: 1;
   width: 100%;
   background-size: cover;
-}
-
-.goi_gemIcon[data-gem="citrine"] {
-  background-position: -100% 0;
-}
-.goi_gemIcon[data-gem="emerald"] {
-  background-position: -200% 0;
-}
-.goi_gemIcon[data-gem="sapphire"] {
-  background-position: -300% 0;
 }
 
 .goi_board {

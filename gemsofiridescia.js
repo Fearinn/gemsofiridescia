@@ -56,6 +56,22 @@ define([
         },
       });
 
+      this.goiManagers.gems = new CardManager(this, {
+        getId: (card) => `gem-${card.id}-${Math.round(Math.random())}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_gem");
+          div.style.position = "relative";
+
+          const spritePosition = this.goiGlobals.playerBoards[card.type] - 1;
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
+
+          div.style.backgroundPosition = backgroundPosition;
+        },
+        setupFrontDiv: (card, div) => {},
+        setupBackDiv: (card, div) => {},
+      });
+
       this.goiManagers.tiles = new CardManager(this, {
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_tileSelected",
@@ -113,24 +129,7 @@ define([
         document.getElementById(
           `player_board_${player_id}`
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
-            <div id="goi_gemCounters:${player_id}" class="goi_gemCounters">
-              <div class="goi_gemCounter">
-                <div class="goi_gemIcon" data-gem="amethyst"></div>
-                <span id="goi_gemCounter:${player_id}-amethyst">0</span>
-              </div>
-              <div class="goi_gemCounter">
-                <div class="goi_gemIcon" data-gem="citrine"></div>
-                <span id="goi_gemCounter:${player_id}-citrine">0</span>
-              </div>
-              <div class="goi_gemCounter">
-                <div class="goi_gemIcon" data-gem="emerald"></div>
-                <span id="goi_gemCounter:${player_id}-emerald">0</span>
-              </div>
-              <div class="goi_gemCounter">
-                <div class="goi_gemIcon" data-gem="sapphire"></div>
-                <span id="goi_gemCounter:${player_id}-sapphire">0</span>
-              </div>
-            </div>
+            <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
           </div>`;
 
         this.goiCounters.gems[player_id] = {
@@ -141,6 +140,20 @@ define([
         };
 
         const gemCounters = this.goiCounters.gems[player_id];
+
+        let spritePosition = 0;
+        for (const gem in gemCounters) {
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
+          spritePosition++;
+
+          document.getElementById(
+            `goi_gemCounters:${player_id}`
+          ).innerHTML += `<div class="goi_gemCounter">
+                <div class="goi_gem" style="background-position: ${backgroundPosition}"></div>
+                <span id="goi_gemCounter:${player_id}-${gem}"></span>
+              </div>`;
+        }
 
         for (const gem in gemCounters) {
           const gemCounter = gemCounters[gem];

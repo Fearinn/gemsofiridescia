@@ -415,15 +415,17 @@ class GemsOfIridescia extends Table
         return $gems;
     }
 
-    public function incGem(int $delta, int $gem_id, int $player_id, $updateMarket = true): void
+    public function incGem(int $delta, int $gem_id, int $player_id, bool $updateMarket = true, bool $mine = false): void
     {
         $gem = $this->gems_info[$gem_id]["name"];
 
         $this->DbQuery("UPDATE player SET $gem=$gem+$delta WHERE player_id=$player_id");
 
+        $message = $mine ? clienttranslate('${player_name} mines 1 ${delta} ${gem_label}') : clienttranslate('${player_name} collects 1 ${delta} ${gem_label}');
+
         $this->notifyAllPlayers(
             "incGem",
-            clienttranslate('${player_name} gets ${delta} ${gem_label}'),
+            $message,
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
