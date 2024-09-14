@@ -84,7 +84,7 @@ define([
       });
 
       this.goiManagers.tiles = new CardManager(this, {
-        getId: (card) => `tile-${card.id}`,
+        getId: (card) => `goi_tile-${card.id}`,
         selectedCardClass: "goi_tileSelected",
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
@@ -118,7 +118,7 @@ define([
       });
 
       this.goiManagers.explorers = new CardManager(this, {
-        getId: (card) => `explorer-${card.id}`,
+        getId: (card) => `goi_explorer-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
           div.style.position = "relative";
@@ -243,7 +243,7 @@ define([
             {},
             {
               forceToElement: document.getElementById(
-                `tile-${explorerCard["location_arg"]}`
+                `goi_tile-${explorerCard["location_arg"]}`
               ),
             }
           );
@@ -517,7 +517,7 @@ define([
         explorerCard,
         {},
         {
-          forceToElement: document.getElementById(`tile-${tileCard.id}`),
+          forceToElement: document.getElementById(`goi_tile-${tileCard.id}`),
         }
       );
     },
@@ -526,6 +526,7 @@ define([
       const player_id = notif.args.player_id;
       const gem = notif.args.gem;
       const delta = notif.args.delta;
+      const tileCard = notif.args.tileCard;
 
       this.goiCounters.gems[player_id][gem].incValue(delta);
 
@@ -534,22 +535,13 @@ define([
       this.goiStocks[player_id].cargo.addCard(
         { type: gem },
         {
-          fromElement: document.getElementById(
-            `goi_explorerScene:${player_id}`
-          ),
+          fromElement: tileCard ? document.getElementById(`goi_tile-${tileCard.id}`): undefined,
         },
         {
           forceToElement: document.getElementById(
             `goi_cargoBox:${player_id}-${box}`
           ),
         }
-      );
-
-      console.log(
-        this.goiStocks[player_id].cargo.getCardElement(
-          this.goiStocks[player_id].cargo.getCards()[0]
-        ),
-        "cargo"
       );
     },
   });

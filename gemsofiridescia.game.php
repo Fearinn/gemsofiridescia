@@ -130,9 +130,7 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        $tile_id = (int) $tileCard["type_arg"];
-
-        $this->resolveTileEffect($tile_id, $player_id);
+        $this->resolveTileEffect($tileCard, $player_id);
 
         $this->gamestate->nextState("mine");
     }
@@ -384,10 +382,10 @@ class GemsOfIridescia extends Table
         return $explorableTiles;
     }
 
-    public function resolveTileEffect(int $tile_id, int $player_id): void
+    public function resolveTileEffect(array $tileCard, int $player_id): void
     {
+        $tile_id = $tileCard["type_arg"];
         $tileInfo = $this->tiles_info[$tile_id];
-
         $gem_id = (int) $tileInfo["gem"];
 
         if ($gem_id === 0) {
@@ -395,7 +393,7 @@ class GemsOfIridescia extends Table
             return;
         }
 
-        $this->incGem(1, $gem_id, $player_id);
+        $this->incGem(1, $gem_id, $player_id, $tileCard);
     }
 
     public function getGems(?int $player_id): array
@@ -415,7 +413,7 @@ class GemsOfIridescia extends Table
         return $gems;
     }
 
-    public function incGem(int $delta, int $gem_id, int $player_id, bool $updateMarket = true, bool $mine = false): void
+    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false): void
     {
         $gem = $this->gems_info[$gem_id]["name"];
 
@@ -431,14 +429,11 @@ class GemsOfIridescia extends Table
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
                 "gem" => $gem,
+                "tileCard" => $tileCard,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
                 "i18n" => ["gem_label"]
             ]
         );
-
-        if ($updateMarket) {
-            $this->updateMarket($gem_id);
-        }
     }
 
     public function decGem(int $delta, int $gem_id, int $player_id): void
