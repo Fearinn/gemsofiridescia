@@ -29,7 +29,11 @@ define([
 
       this.goiGlobals = {};
       this.goiManagers = {};
-      this.goiStocks = {};
+      this.goiStocks = {
+        gems: {},
+        tiles: {},
+        explorers: {},
+      };
       this.goiCounters = {};
     },
 
@@ -46,7 +50,11 @@ define([
       this.goiGlobals.selectedTile = null;
 
       for (const player_id in this.goiGlobals.players) {
-        this.goiStocks[player_id] = {};
+        this.goiStocks[player_id] = {
+          gems: {},
+          tiles: {},
+          explorers: {},
+        };
       }
 
       this.goiManagers.zoom = new ZoomManager({
@@ -139,8 +147,6 @@ define([
         setupBackDiv: (card, div) => {},
       });
 
-      this.goiStocks.gems = {};
-
       this.goiStocks.gems.rainbowOptions = new CardStock(
         this.goiManagers.gems,
         document.getElementById("goi_rainbowOptions")
@@ -207,15 +213,18 @@ define([
       /* BOARDS */
       for (let row = 1; row <= 9; row++) {
         /* tiles */
-        const tileRow = `tileRow-${row}`;
+        const tileRow = `row-${row}`;
 
-        this.goiStocks[tileRow] = new CardStock(
+        this.goiStocks.tiles[tileRow] = new CardStock(
           this.goiManagers.tiles,
           document.getElementById(`goi_tileRow-${row}`),
           {}
         );
 
-        this.goiStocks[tileRow].onSelectionChange = (selected, lastChange) => {
+        this.goiStocks.tiles[tileRow].onSelectionChange = (
+          selected,
+          lastChange
+        ) => {
           const stateName = this.getStateName();
 
           if (stateName === "revealTile" || stateName) {
@@ -225,7 +234,7 @@ define([
               this.goiGlobals.selectedTile = lastChange;
               this.unselectAllStocks(
                 this.goiManagers.tiles,
-                this.goiStocks[tileRow]
+                this.goiStocks.tiles[tileRow]
               );
             }
 
@@ -240,20 +249,20 @@ define([
           if (tileCard.location == row) {
             delete tileBoard[tileCard_id];
 
-            this.goiStocks[tileRow].addCard(tileCard).then(() => {
-              this.goiStocks[tileRow].setCardVisible(tileCard, false);
+            this.goiStocks.tiles[tileRow].addCard(tileCard).then(() => {
+              this.goiStocks.tiles[tileRow].setCardVisible(tileCard, false);
 
               const revealedTileCard =
                 this.goiGlobals.revealedTiles[tileCard_id];
               if (revealedTileCard) {
-                this.goiStocks[tileRow].flipCard(revealedTileCard);
+                this.goiStocks.tiles[tileRow].flipCard(revealedTileCard);
               }
             });
           }
         }
       }
 
-      this.goiStocks.explorersGrid = new CardStock(
+      this.goiStocks.explorers.grid = new CardStock(
         this.goiManagers.explorers,
         document.getElementById("goi_explorersGrid"),
         {}
@@ -263,7 +272,7 @@ define([
         const explorerCard = this.goiGlobals.explorers[explorerCard_id];
 
         if (explorerCard["location"] === "board") {
-          this.goiStocks.explorersGrid.addCard(
+          this.goiStocks.explorers.grid.addCard(
             explorerCard,
             {},
             {
@@ -294,13 +303,13 @@ define([
           </div>
         </div>`;
 
-        this.goiStocks[player_id].cargo = new CardStock(
+        this.goiStocks[player_id].gems.cargo = new CardStock(
           this.goiManagers.gems,
           document.getElementById(`goi_cargo:${player_id}`),
           {}
         );
 
-        this.goiStocks[player_id].explorerScene = new CardStock(
+        this.goiStocks[player_id].explorers.scene = new CardStock(
           this.goiManagers.explorers,
           document.getElementById(`goi_explorerScene:${player_id}`),
           {}
@@ -313,7 +322,7 @@ define([
             explorer["location"] === "scene" &&
             explorer["type_arg"] == player_id
           ) {
-            this.goiStocks[player_id].explorerScene.addCard(explorer);
+            this.goiStocks[player_id].explorers.scene.addCard(explorer);
           }
         }
 
@@ -324,8 +333,12 @@ define([
           const gemCount = gems[gem];
 
           for (let i = 1; i <= gemCount; i++) {
-            this.goiStocks[player_id].cargo.addCard(
-              { id: Date.now() + i, type: gem, type_arg: this.convertGemToId(gem) },
+            this.goiStocks[player_id].gems.cargo.addCard(
+              {
+                id: Date.now() + i,
+                type: gem,
+                type_arg: this.convertGemToId(gem),
+              },
               {},
               {
                 forceToElement: document.getElementById(
@@ -383,10 +396,10 @@ define([
           this.toggleRowsSelection();
 
           for (const row in revealableTiles) {
-            const tileRow = `tileRow-${row}`;
+            const tileRow = `row-${row}`;
             const tileCards = revealableTiles[row];
 
-            this.goiStocks[tileRow].setSelectableCards(tileCards);
+            this.goiStocks.tiles[tileRow].setSelectableCards(tileCards);
           }
           return;
         }
@@ -409,10 +422,10 @@ define([
           this.toggleRowsSelection();
 
           for (const row in explorableTiles) {
-            const tileRow = `tileRow-${row}`;
+            const tileRow = `row-${row}`;
             const tileCards = explorableTiles[row];
 
-            this.goiStocks[tileRow].setSelectableCards(tileCards);
+            this.goiStocks.tiles[tileRow].setSelectableCards(tileCards);
           }
         }
 
@@ -529,8 +542,8 @@ define([
 
     toggleRowsSelection: function (selection = "single") {
       for (let row = 1; row <= 9; row++) {
-        const tileRow = `tileRow-${row}`;
-        this.goiStocks[tileRow].setSelectionMode(selection, []);
+        const tileRow = `row-${row}`;
+        this.goiStocks.tiles[tileRow].setSelectionMode(selection, []);
       }
     },
 
@@ -591,8 +604,8 @@ define([
     notif_revealTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      const tileRow = `tileRow-${tileCard.location}`;
-      this.goiStocks[tileRow].flipCard(tileCard);
+      const tileRow = `row-${tileCard.location}`;
+      this.goiStocks.tiles[tileRow].flipCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
@@ -600,7 +613,7 @@ define([
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
-      this.goiStocks.explorersGrid.addCard(
+      this.goiStocks.explorers.grid.addCard(
         explorerCard,
         {},
         {
@@ -613,7 +626,7 @@ define([
       const player_id = notif.args.player_id;
       const explorerCard = notif.args.explorerCard;
 
-      this.goiStocks[player_id].explorerScene.addCard(explorerCard);
+      this.goiStocks[player_id].explorers.scene.addCard(explorerCard);
     },
 
     notif_incGem: function (notif) {
@@ -624,9 +637,9 @@ define([
 
       this.goiCounters.gems[player_id][gem].incValue(delta);
 
-      const box = this.goiStocks[player_id].cargo.getCards().length + 1;
+      const box = this.goiStocks[player_id].gems.cargo.getCards().length + 1;
 
-      this.goiStocks[player_id].cargo.addCard(
+      this.goiStocks[player_id].gems.cargo.addCard(
         {
           id: Date.now() + Math.random(),
           type: gem,
