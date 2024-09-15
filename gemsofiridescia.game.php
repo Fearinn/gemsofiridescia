@@ -20,6 +20,9 @@ declare(strict_types=1);
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+use \Bga\GameFramework\Actions\Types\IntParam;
+use \Bga\GameFramework\Actions\Types\StringParam;
+
 class GemsOfIridescia extends Table
 {
     public function __construct()
@@ -47,7 +50,7 @@ class GemsOfIridescia extends Table
      * @see action_gemsofiridescia::actMyAction
      */
 
-    public function actRevealTile(int $tileCard_id): void
+    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -107,7 +110,7 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("back");
     }
 
-    public function actMoveExplorer(int $tileCard_id): void
+    public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -143,7 +146,7 @@ class GemsOfIridescia extends Table
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
-    public function actPickRainbowGem(int $gem_id): void
+    public function actPickRainbowGem(#[IntParam(min: 1, max: 4)] int $gem_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
