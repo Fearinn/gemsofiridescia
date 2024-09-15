@@ -141,6 +141,13 @@ class GemsOfIridescia extends Table
         );
 
         $this->resolveTileEffect($tileCard, $player_id);
+    }
+
+    public function actPickRainbowGem(int $gem_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $this->incGem(1, $gem_id, $player_id);
 
         $this->gamestate->nextState("mine");
     }
@@ -401,11 +408,13 @@ class GemsOfIridescia extends Table
         $gem_id = (int) $tileInfo["gem"];
 
         if ($gem_id === 0) {
-            $this->gamestate->nextState("wildTile");
+            $this->gamestate->nextState("rainbowTile");
             return;
         }
 
         $this->incGem(1, $gem_id, $player_id, $tileCard);
+
+        $this->gamestate->nextState("mine");
     }
 
     public function getGems(?int $player_id): array

@@ -49,10 +49,19 @@ $machinestates = [
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "mine" => 31]
+        "transitions" => ["back" => 2, "rainbowTile" => 31, "mine" => 32]
     ],
 
     31 => [
+        "name" => "rainbowTile",
+        "description" => clienttranslate('${actplayer} must pick a Gem to collect from the Rainbow'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a Gem to collect from the Rainbow'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actPickRainbowGem"],
+        "transitions" => ["mine" => 32]
+    ],
+
+    32 => [
         "name" => "mine",
         "description" => clienttranslate('${actplayer} may spend 3 coins to mine this tile'),
         "descriptionmyturn" => clienttranslate('${you} may spend 3 coins to mine this tile'),

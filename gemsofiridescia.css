@@ -54,6 +54,21 @@
   width: 100%;
 }
 
+.goi_rainbowOptions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.goi_rainbowOptions:empty {
+  display: none;
+} 
+
+.goi_gemSelected {
+  border: 4px solid red;
+}
+
 .goi_board {
   display: flex;
   position: relative;

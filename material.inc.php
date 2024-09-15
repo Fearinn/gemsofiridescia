@@ -113,7 +113,7 @@ $this->tileEffects_info = [
 $this->tiles_info = [
     1 => [
         "region" => 1,
-        "gem" => 0,
+        "gem" => 1,
         "effect" => 0,
     ],
 
@@ -129,7 +129,7 @@ $this->tiles_info = [
     ],
     4 => [
         "region" => 1,
-        "gem" => 1,
+        "gem" => 2,
         "effect" => 0,
     ],
     5 => [
@@ -144,7 +144,7 @@ $this->tiles_info = [
     ],
     7 => [
         "region" => 1,
-        "gem" => 2,
+        "gem" => 3,
         "effect" => 0,
     ],
     8 => [
@@ -159,7 +159,7 @@ $this->tiles_info = [
     ],
     10 => [
         "region" => 1,
-        "gem" => 3,
+        "gem" => 4,
         "effect" => 0,
     ],
     11 => [
@@ -174,13 +174,13 @@ $this->tiles_info = [
     ],
     13 => [
         "region" => 1,
-        "gem" => 4,
+        "gem" => 0,
         "effect" => 0,
     ],
 
     14 => [
         "region" => 2,
-        "gem" => 0,
+        "gem" => 1,
         "effect" => 0
     ],
     15 => [
@@ -195,7 +195,7 @@ $this->tiles_info = [
     ],
     17 => [
         "region" => 2,
-        "gem" => 1,
+        "gem" => 2,
         "effect" => 3
     ],
     18 => [
@@ -210,7 +210,7 @@ $this->tiles_info = [
     ],
     20 => [
         "region" => 2,
-        "gem" => 2,
+        "gem" => 3,
         "effect" => 3
     ],
     21 => [
@@ -225,7 +225,7 @@ $this->tiles_info = [
     ],
     23 => [
         "region" => 2,
-        "gem" => 3,
+        "gem" => 4,
         "effect" => 3
     ],
     24 => [
@@ -240,12 +240,12 @@ $this->tiles_info = [
     ],
     26 => [
         "region" => 2,
-        "gem" => 4,
+        "gem" => 0,
         "effect" => 3
     ],
     27 => [
         "region" => 3,
-        "gem" => 0,
+        "gem" => 1,
         "effect" => 0
     ],
     28 => [
@@ -260,7 +260,7 @@ $this->tiles_info = [
     ],
     30 => [
         "region" => 3,
-        "gem" => 1,
+        "gem" => 2,
         "effect" => 3
     ],
     31 => [
@@ -275,7 +275,7 @@ $this->tiles_info = [
     ],
     33 => [
         "region" => 3,
-        "gem" => 2,
+        "gem" => 3,
         "effect" => 3
     ],
     34 => [
@@ -290,7 +290,7 @@ $this->tiles_info = [
     ],
     36 => [
         "region" => 3,
-        "gem" => 3,
+        "gem" => 4,
         "effect" => 3
     ],
     37 => [
@@ -305,12 +305,12 @@ $this->tiles_info = [
     ],
     39 => [
         "region" => 3,
-        "gem" => 4,
+        "gem" => 0,
         "effect" => 3
     ],
     40 => [
         "region" => 4,
-        "gem" => 0,
+        "gem" => 1,
         "effect" => 0
     ],
     41 => [
@@ -325,7 +325,7 @@ $this->tiles_info = [
     ],
     43 => [
         "region" => 4,
-        "gem" => 1,
+        "gem" => 2,
         "effect" => 3
     ],
     44 => [
@@ -340,7 +340,7 @@ $this->tiles_info = [
     ],
     46 => [
         "region" => 4,
-        "gem" => 2,
+        "gem" => 3,
         "effect" => 3
     ],
     47 => [
@@ -355,7 +355,7 @@ $this->tiles_info = [
     ],
     49 => [
         "region" => 4,
-        "gem" => 3,
+        "gem" => 4,
         "effect" => 3
     ],
     50 => [
@@ -370,32 +370,32 @@ $this->tiles_info = [
     ],
     52 => [
         "region" => 4,
-        "gem" => 4,
+        "gem" => 0,
         "effect" => 3
     ],
     53 => [
         "region" => 5,
-        "gem" => 0,
+        "gem" => 1,
         "effect" => 2,
     ],
     54 => [
         "region" => 5,
-        "gem" => 1,
+        "gem" => 2,
         "effect" => 2,
     ],
     55 => [
         "region" => 5,
-        "gem" => 2,
+        "gem" => 3,
         "effect" => 2,
     ],
     56 => [
         "region" => 5,
-        "gem" => 3,
+        "gem" => 4,
         "effect" => 2,
     ],
     57 => [
         "region" => 5,
-        "gem" => 4,
+        "gem" => 0,
         "effect" => 2,
     ],
     58 => [

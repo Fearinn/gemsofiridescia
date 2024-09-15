@@ -60,9 +60,14 @@ define([
         },
       });
 
+      this.goiGlobals.createdGems = 1;
+
       this.goiManagers.gems = new CardManager(this, {
-        getId: (card) => `gem-${card.type}-${Date.now()}`,
+        getId: (card) => `gem-${card.id}-${card.type}`,
+        selectedCardClass: "goi_gemSelected",
         setupDiv: (card, div) => {
+          this.goiGlobals.createdGems++;
+
           div.classList.add("goi_gem");
           div.style.position = "relative";
 
@@ -134,7 +139,27 @@ define([
         setupBackDiv: (card, div) => {},
       });
 
-      this.goiStocks.gemVoid = new VoidStock(
+      this.goiStocks.gems = {};
+
+      this.goiStocks.gems.rainbowOptions = new CardStock(
+        this.goiManagers.gems,
+        document.getElementById("goi_rainbowOptions")
+      );
+
+      this.goiStocks.gems.rainbowOptions.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        if (selection.length > 0) {
+          this.goiGlobals.selectedGem = lastChange;
+        } else {
+          this.goiGlobals.selectedGem = null;
+        }
+
+        this.handleConfirmationButton();
+      };
+
+      this.goiStocks.gems.void = new VoidStock(
         this.goiManagers.gems,
         document.getElementById("player_boards"),
         {}
@@ -300,7 +325,7 @@ define([
 
           for (let i = 1; i <= gemCount; i++) {
             this.goiStocks[player_id].cargo.addCard(
-              { type: gem },
+              { id: Date.now() + i, type: gem, type_arg: this.convertGemToId(gem) },
               {},
               {
                 forceToElement: document.getElementById(
@@ -390,6 +415,22 @@ define([
             this.goiStocks[tileRow].setSelectableCards(tileCards);
           }
         }
+
+        if (stateName === "rainbowTile") {
+          for (const gem in this.goiGlobals.gems[this.player_id]) {
+            this.goiStocks.gems.rainbowOptions.addCard({
+              id: Date.now() + Math.random(),
+              type: gem,
+              type_arg: this.convertGemToId(gem),
+            });
+          }
+
+          const gemCards = this.goiStocks.gems.rainbowOptions.getCards();
+          this.goiStocks.gems.rainbowOptions.setSelectionMode(
+            "single",
+            gemCards
+          );
+        }
       }
     },
 
@@ -405,6 +446,10 @@ define([
 
       if (stateName === "moveExplorer") {
         this.toggleRowsSelection("none");
+      }
+
+      if (stateName === "rainbowTile") {
+        this.goiStocks.gems.rainbowOptions.removeAll();
       }
     },
 
@@ -446,6 +491,15 @@ define([
           return;
         }
       }
+
+      if (stateName === "rainbowTile") {
+        const selectedGem = this.goiGlobals.selectedGem;
+
+        if (selectedGem) {
+          this.addActionButton(elementId, message, "actPickRainbowGem");
+          return;
+        }
+      }
     },
 
     calcBackgroundPosition: function (spritePosition) {
@@ -460,6 +514,17 @@ define([
 
         stock.unselectAll(true);
       });
+    },
+
+    convertGemToId: function (gem) {
+      const idsMap = {
+        amethyst: 1,
+        citrine: 2,
+        emerald: 3,
+        sapphire: 4,
+      };
+
+      return idsMap[gem];
     },
 
     toggleRowsSelection: function (selection = "single") {
@@ -503,6 +568,12 @@ define([
     actMoveExplorer: function () {
       this.performAction("actMoveExplorer", {
         tileCard_id: this.goiGlobals.selectedTile.id,
+      });
+    },
+
+    actPickRainbowGem: function () {
+      this.performAction("actPickRainbowGem", {
+        gem_id: this.goiGlobals.selectedGem.type_arg,
       });
     },
 
@@ -556,7 +627,11 @@ define([
       const box = this.goiStocks[player_id].cargo.getCards().length + 1;
 
       this.goiStocks[player_id].cargo.addCard(
-        { type: gem },
+        {
+          id: Date.now() + Math.random(),
+          type: gem,
+          type_arg: this.convertGemToId(gem),
+        },
         {
           fromElement: tileCard
             ? document.getElementById(`goi_tile-${tileCard.id}`)
