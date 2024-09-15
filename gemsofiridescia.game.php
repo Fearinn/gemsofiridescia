@@ -422,7 +422,7 @@ class GemsOfIridescia extends Table
 
     public function getGems(?int $player_id): array
     {
-        $sql = "SELECT amethyst, citrine, emerald, sapphire FROM player WHERE player_id=";
+        $sql = "SELECT amethyst, citrine, emerald, sapphire, coin FROM player WHERE player_id=";
         if ($player_id) {
             return $this->getObjectFromDB("$sql$player_id");
         }

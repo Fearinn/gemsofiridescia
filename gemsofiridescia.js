@@ -40,6 +40,15 @@ define([
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
+      this.goiGlobals.gemIds = {
+        iridescia: 0,
+        amethyst: 1,
+        citrine: 2,
+        emerald: 3,
+        sapphire: 4,
+        coin: 5,
+      };
+
       this.goiGlobals.players = gamedatas.players;
       this.goiGlobals.player = gamedatas.players[this.player_id];
       this.goiGlobals.tileBoard = gamedatas.tileBoard;
@@ -68,28 +77,14 @@ define([
         },
       });
 
-      this.goiGlobals.createdGems = 1;
-
       this.goiManagers.gems = new CardManager(this, {
         getId: (card) => `gem-${card.id}-${card.type}`,
         selectedCardClass: "goi_gemSelected",
         setupDiv: (card, div) => {
-          this.goiGlobals.createdGems++;
-
           div.classList.add("goi_gem");
           div.style.position = "relative";
 
-          const spritePositions = {
-            amethyst: 0,
-            citrine: 1,
-            emerald: 2,
-            sapphire: 3,
-          };
-
-          const spritePosition = spritePositions[card.type];
-          const backgroundPosition =
-            this.calcBackgroundPosition(spritePosition);
-
+          const backgroundPosition = this.calcBackgroundPosition(card.type);
           div.style.backgroundPosition = backgroundPosition;
         },
         setupFrontDiv: (card, div) => {},
@@ -185,11 +180,12 @@ define([
           citrine: new ebg.counter(),
           emerald: new ebg.counter(),
           sapphire: new ebg.counter(),
+          coin: new ebg.counter(),
         };
 
         const gemCounters = this.goiCounters.gems[player_id];
 
-        let spritePosition = 0;
+        let spritePosition = 1;
         for (const gem in gemCounters) {
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
@@ -330,6 +326,10 @@ define([
 
         let box = 1;
         for (const gem in gems) {
+          if (gem === "coin") {
+            continue;
+          }
+
           const gemCount = gems[gem];
 
           for (let i = 1; i <= gemCount; i++) {
@@ -337,7 +337,7 @@ define([
               {
                 id: Date.now() + i,
                 type: gem,
-                type_arg: this.convertGemToId(gem),
+                type_arg: this.goiGlobals.gemIds[gem],
               },
               {},
               {
@@ -434,7 +434,7 @@ define([
             this.goiStocks.gems.rainbowOptions.addCard({
               id: Date.now() + Math.random(),
               type: gem,
-              type_arg: this.convertGemToId(gem),
+              type_arg: this.goiGlobals.gemIds[gem],
             });
           }
 
@@ -527,17 +527,6 @@ define([
 
         stock.unselectAll(true);
       });
-    },
-
-    convertGemToId: function (gem) {
-      const idsMap = {
-        amethyst: 1,
-        citrine: 2,
-        emerald: 3,
-        sapphire: 4,
-      };
-
-      return idsMap[gem];
     },
 
     toggleRowsSelection: function (selection = "single") {
@@ -643,7 +632,7 @@ define([
         {
           id: Date.now() + Math.random(),
           type: gem,
-          type_arg: this.convertGemToId(gem),
+          type_arg: this.goiGlobals.gemIds[gem],
         },
         {
           fromElement: tileCard
