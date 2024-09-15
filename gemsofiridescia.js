@@ -22,6 +22,7 @@ define([
   "ebg/counter",
   g_gamethemeurl + "modules/bga-zoom.js",
   g_gamethemeurl + "modules/bga-cards.js",
+  g_gamethemeurl + "modules/bga-dice.js",
 ], function (dojo, declare) {
   return declare("bgagame.gemsofiridescia", ebg.core.gamegui, {
     constructor: function () {
@@ -63,6 +64,7 @@ define([
           gems: {},
           tiles: {},
           explorers: {},
+          dice: {},
         };
       }
 
@@ -74,6 +76,17 @@ define([
         },
         autoZoom: {
           expectedWidth: 740,
+        },
+      });
+
+      this.goiManagers.dice = new DiceManager(this, {
+        dieTypes: {
+          // amethyst: new GemDie(),
+          // citrine: new GemDie(),
+          // emerald: new GemDie(),
+          // sapphire: new GemDie(),
+          // stone: new StoneDie(),
+          mining: new MiningDie(),
         },
       });
 
@@ -287,7 +300,10 @@ define([
         document.getElementById(
           "goi_playerBoards"
         ).innerHTML += `<div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
-        <div id="goi_explorerScene:${player_id}" class="goi_explorerScene"></div>
+        <div id="goi_scene" class="goi_scene">
+          <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
+          <div id="goi_explorerDice:${player_id}" class="goi_explorerDice"></div>
+        </div>
           <div id="goi_cargo:${player_id}" class="goi_cargo">
             <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
             <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
@@ -299,6 +315,29 @@ define([
           </div>
         </div>`;
 
+        const player_color = this.goiGlobals.players[player_id].color;
+
+        this.goiStocks[player_id].dice = new DiceStock(
+          this.goiManagers.dice,
+          document.getElementById(`goi_explorerDice:${player_id}`),
+          {}
+        );
+
+        this.goiStocks[player_id].dice.addDice([
+          {
+            id: `die:${player_id}-1`,
+            face: 1,
+            type: "mining",
+            color: player_color,
+          },
+          {
+            id: `die:${player_id}-2`,
+            face: 5,
+            type: "mining",
+            color: player_color,
+          },
+        ]);
+
         this.goiStocks[player_id].gems.cargo = new CardStock(
           this.goiManagers.gems,
           document.getElementById(`goi_cargo:${player_id}`),
@@ -307,7 +346,7 @@ define([
 
         this.goiStocks[player_id].explorers.scene = new CardStock(
           this.goiManagers.explorers,
-          document.getElementById(`goi_explorerScene:${player_id}`),
+          document.getElementById(`goi_sceneExplorer:${player_id}`),
           {}
         );
 
