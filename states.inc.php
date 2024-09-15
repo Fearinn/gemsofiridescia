@@ -38,7 +38,7 @@ $machinestates = [
         "args" => "argRevealTile",
         "action" => "stRevealTile",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["revealTileAgain" => 2, "moveExplorer" => 3]
+        "transitions" => ["repeat" => 2, "moveExplorer" => 3, "skip" => 3]
     ],
 
     3 => [
@@ -48,8 +48,8 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
-        "possibleactions" => ["actMoveExplorer"],
-        "transitions" => ["mine" => 31]
+        "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
+        "transitions" => ["back" => 2, "mine" => 31]
     ],
 
     31 => [

@@ -275,8 +275,7 @@ define([
           {}
         );
 
-        const explorerScene = `explorerScene:${player_id}`;
-        this.goiStocks[explorerScene] = new CardStock(
+        this.goiStocks[player_id].explorerScene = new CardStock(
           this.goiManagers.explorers,
           document.getElementById(`goi_explorerScene:${player_id}`),
           {}
@@ -289,7 +288,7 @@ define([
             explorer["location"] === "scene" &&
             explorer["type_arg"] == player_id
           ) {
-            this.goiStocks[explorerScene].addCard(explorer);
+            this.goiStocks[player_id].explorerScene.addCard(explorer);
           }
         }
 
@@ -369,6 +368,18 @@ define([
 
         if (stateName === "moveExplorer") {
           const explorableTiles = args.args.explorableTiles;
+          const revealsLimit = args.args.revealsLimit;
+
+          if (revealsLimit < 2) {
+            this.addActionButton(
+              "goi_undoBtn",
+              _("Change mind (reveal other tile)"),
+              "actUndoSkipRevealTile",
+              null,
+              false,
+              "gray"
+            );
+          }
 
           this.toggleRowsSelection();
 
@@ -415,7 +426,7 @@ define([
 
     handleConfirmationButton: function (
       message = _("Confirm selection"),
-      elementId = "goiConfirmationBtn"
+      elementId = "goi_confirmationBtn"
     ) {
       document.getElementById(elementId)?.remove();
       const stateName = this.getStateName();
@@ -485,6 +496,10 @@ define([
       this.performAction("actSkipRevealTile");
     },
 
+    actUndoSkipRevealTile: function () {
+      this.performAction("actUndoSkipRevealTile");
+    },
+
     actMoveExplorer: function () {
       this.performAction("actMoveExplorer", {
         tileCard_id: this.goiGlobals.selectedTile.id,
@@ -498,6 +513,7 @@ define([
       console.log("notifications subscriptions setup");
       dojo.subscribe("revealTile", this, "notif_revealTile");
       dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
+      dojo.subscribe("resetExplorer", this, "notif_resetExplorer");
       dojo.subscribe("incGem", this, "notif_incGem");
     },
 
@@ -522,6 +538,13 @@ define([
       );
     },
 
+    notif_resetExplorer: function (notif) {
+      const player_id = notif.args.player_id;
+      const explorerCard = notif.args.explorerCard;
+
+      this.goiStocks[player_id].explorerScene.addCard(explorerCard);
+    },
+
     notif_incGem: function (notif) {
       const player_id = notif.args.player_id;
       const gem = notif.args.gem;
@@ -535,7 +558,9 @@ define([
       this.goiStocks[player_id].cargo.addCard(
         { type: gem },
         {
-          fromElement: tileCard ? document.getElementById(`goi_tile-${tileCard.id}`): undefined,
+          fromElement: tileCard
+            ? document.getElementById(`goi_tile-${tileCard.id}`)
+            : undefined,
         },
         {
           forceToElement: document.getElementById(

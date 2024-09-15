@@ -81,7 +81,7 @@ class GemsOfIridescia extends Table
 
         $this->globals->inc("revealsLimit", 1);
 
-        $this->gamestate->nextState("revealTileAgain");
+        $this->gamestate->nextState("repeat");
     }
 
     public function actSkipRevealTile()
@@ -93,9 +93,18 @@ class GemsOfIridescia extends Table
             throw new BgaVisibleSystemException("You must reveal a tile now: actSkipRevealTile");
         }
 
-        $this->globals->set("revealsLimit", 0);
+        $this->gamestate->nextState("skip");
+    }
 
-        $this->gamestate->nextState("moveExplorer");
+    public function actUndoSkipRevealTile()
+    {
+        $revealsLimit = (int) $this->globals->get("revealsLimit");
+
+        if ($revealsLimit === 2) {
+            throw new BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
+        }
+
+        $this->gamestate->nextState("back");
     }
 
     public function actMoveExplorer(int $tileCard_id): void
@@ -114,6 +123,7 @@ class GemsOfIridescia extends Table
         $region_id = (int) $tileCard["type"];
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
+
         $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["id"]);
 
         $this->notifyAllPlayers(
@@ -174,9 +184,11 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $explorableTiles = $this->explorableTiles($player_id);
+        $revealsLimit = $this->globals->get("revealsLimit");
 
         return [
             "explorableTiles" => $explorableTiles,
+            "revealsLimit" => $revealsLimit,
             "_no_notify" => !$explorableTiles
         ];
     }
@@ -590,7 +602,7 @@ class GemsOfIridescia extends Table
                 if ($player_color === $explorer["type"]) {
                     $playerBoards[$player_id] = $explorer["type_arg"];
 
-                    $this->explorer_cards->moveCard($card_id, "scene");
+                    $this->explorer_cards->moveCard($card_id, "scene", $player_id);
                     $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$card_id'");
                 }
             }
