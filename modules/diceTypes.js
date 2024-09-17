@@ -64,13 +64,13 @@ function calcBackgroundPosition(face, type, type_arg) {
 class Die extends BgaDie6 {
   constructor() {
     super();
+    this.size = 80;
   }
 
   setupDieDiv(die, element) {
     super.setupDieDiv(die, element);
     element.style.position = "relative";
     element.classList.add("goi_die");
-    element.style.backgroundColor = `#${die.color}`;
   }
 
   setupFaceDiv(die, element, face) {

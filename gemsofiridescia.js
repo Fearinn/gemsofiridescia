@@ -321,7 +321,7 @@ define([
           {}
         );
 
-        this.goiStocks[player_id].dice.scene.addDice([
+        const dice = [
           {
             id: `die:${player_id}-1`,
             face: 1,
@@ -330,11 +330,13 @@ define([
           },
           {
             id: `die:${player_id}-2`,
-            face: 2,
+            face: 6,
             type: "mining",
             color: player_color,
           },
-        ]);
+        ];
+
+        this.goiStocks[player_id].dice.scene.addDice(dice);
 
         this.goiStocks[player_id].gems.cargo = new CardStock(
           this.goiManagers.gems,
