@@ -73,7 +73,18 @@
 .goi_miningDice {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
+  height: var(--dieSize);
+}
+
+.goi_stoneDice {
+  position: absolute;
+  bottom: 33%;
+  right: 14%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  height: var(--dieSize);
 }
 
 .goi_dieFace {

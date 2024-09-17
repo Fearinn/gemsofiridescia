@@ -35,6 +35,7 @@ define([
         gems: {},
         tiles: {},
         explorers: {},
+        dice: {},
       };
       this.goiCounters = {};
     },
@@ -81,6 +82,7 @@ define([
       });
 
       this.goiManagers.dice = new DiceManager(this, {
+        perspective: "none",
         dieTypes: {
           gem: new GemDie(),
           stone: new StoneDie(),
@@ -89,7 +91,7 @@ define([
       });
 
       this.goiManagers.gems = new CardManager(this, {
-        getId: (card) => `gem-${card.id}-${card.type}`,
+        getId: (card) => `goi_gem-${card.id}-${card.type}`,
         selectedCardClass: "goi_gemSelected",
         setupDiv: (card, div) => {
           div.classList.add("goi_gem");
@@ -291,6 +293,20 @@ define([
         }
       }
 
+      this.goiStocks.dice.stone = new DiceStock(
+        this.goiManagers.dice,
+        document.getElementById("goi_stoneDice"),
+        {}
+      );
+
+      for (let die = 1; die <= 4; die++) {
+        this.goiStocks.dice.stone.addDie({
+          id: `${die}`,
+          type: "stone",
+          face: 6,
+        });
+      }
+
       for (const player_id in this.goiGlobals.players) {
         const spritePosition = this.goiGlobals.playerBoards[player_id] - 1;
         const backgroundPosition = this.calcBackgroundPosition(spritePosition);
@@ -323,13 +339,13 @@ define([
 
         const dice = [
           {
-            id: `die:${player_id}-1`,
-            face: 1,
+            id: `${player_id}-1`,
+            face: 6,
             type: "mining",
             color: player_color,
           },
           {
-            id: `die:${player_id}-2`,
+            id: `${player_id}-2`,
             face: 6,
             type: "mining",
             color: player_color,
