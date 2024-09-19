@@ -406,13 +406,34 @@ class GemsOfIridescia extends Table
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
     {
-        $tile_id = $tileCard["type_arg"];
+        $tile_id = (int) $tileCard["type_arg"];
+        $region_id = (int) $tileCard["type"];
+
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
         if ($gem_id === 0) {
             $this->gamestate->nextState("rainbowTile");
             return;
+        }
+
+        $tileEffect_id = (int) $tileInfo["effect"];
+
+        if ($tileEffect_id) {
+            $tileEffect = $this->tileEffects_info[$tileEffect_id];
+            $effectValue = $tileEffect["values"][$region_id];
+
+            if ($tileEffect_id === 1) {
+                $this->incCoin($effectValue, $player_id);
+            }
+
+            if ($tileEffect_id === 2) {
+                $this->incRoyaltyPoints($effectValue, $player_id);
+            }
+
+            if ($tileEffect_id === 3) {
+                $this->obtainStoneDie($player_id);
+            }
         }
 
         $this->incGem(1, $gem_id, $player_id, $tileCard);
@@ -503,6 +524,58 @@ class GemsOfIridescia extends Table
         return $marketValues;
     }
 
+    public function incCoin(int $delta, int $player_id): void
+    {
+        $this->dbQuery("UPDATE player SET coin=coin+$delta WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "incCoin",
+            clienttranslate('${player_name} obtains ${delta} coin(s)'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "delta" => $delta
+            ]
+        );
+    }
+
+    public function incRoyaltyPoints(int $delta, int $player_id): void
+    {
+        $this->dbQuery("UPDATE player SET player_score=player_score+$delta WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "incRoyaltyPoints",
+            clienttranslate('${player_name} obtains ${delta} Royalty Point(s)'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "delta" => $delta
+            ]
+        );
+    }
+
+    public function obtainStoneDie(int $player_id): bool
+    {
+        if ($this->globals->get("publicStoneDice") === 0) {
+            return false;
+        }
+
+        $this->dbQuery("UPDATE player SET stone_die=stone_die+1 WHERE player_id=$player_id");
+        $this->globals->inc("publicStoneDice", -1);
+
+        $this->notifyAllPlayers(
+            "obtainStoneDie",
+            clienttranslate('${player_name} obtains a Stone Die'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "die_id" => 4 - $this->globals->get("publicStoneDie")
+            ]
+        );
+
+        return true;
+    }
+
     /**
      * Migrate database.
      *
@@ -557,6 +630,7 @@ class GemsOfIridescia extends Table
         $result["explorers"] = $this->getExplorers();
         $result["gems"] = $this->getGems(null);
         $result["marketValues"] = $this->getMarketValues(null);
+        $result["publicStoneDice"] = $this->globals->get("publicStoneDice");
 
         return $result;
     }
@@ -655,6 +729,7 @@ class GemsOfIridescia extends Table
         }
 
         $this->globals->set("revealsLimit", 0);
+        $this->globals->set("publicStoneDice", 4);
 
         foreach ($this->gems_info as $gem_info) {
             $gem = $gem_info["name"];

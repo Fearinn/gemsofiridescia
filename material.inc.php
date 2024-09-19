@@ -41,19 +41,19 @@ $this->explorers_info = [
 $this->gems_info = [
     1 => [
         "name" => "amethyst",
-        "tr_label" => clienttranslate("Amethyst")
+        "tr_label" => clienttranslate("Amethyst(s)")
     ],
     2 => [
         "name" => "citrine",
-        "tr_label" => clienttranslate("Citrine")
+        "tr_label" => clienttranslate("Citrine(s)")
     ],
     3 => [
         "name" => "emerald",
-        "tr_label" => clienttranslate("Emerald")
+        "tr_label" => clienttranslate("Emerald(s)")
     ],
     4 => [
         "name" => "sapphire",
-        "tr_label" => clienttranslate("Sapphire")
+        "tr_label" => clienttranslate("Sapphire(s)")
     ],
 ];
 

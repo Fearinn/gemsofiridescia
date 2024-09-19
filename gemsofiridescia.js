@@ -60,6 +60,7 @@ define([
       this.goiGlobals.explorers = gamedatas.explorers;
       this.goiGlobals.gems = gamedatas.gems;
       this.goiGlobals.marketValues = gamedatas.marketValues;
+      this.goiGlobals.publicStoneDice = gamedatas.publicStoneDice;
       this.goiGlobals.selectedTile = null;
 
       for (const player_id in this.goiGlobals.players) {
@@ -98,7 +99,7 @@ define([
           div.classList.add("goi_gem");
           div.style.position = "relative";
 
-          const backgroundPosition = this.calcBackgroundPosition(card.type);
+          const backgroundPosition = this.calcBackgroundPosition(card.type_arg);
           div.style.backgroundPosition = backgroundPosition;
         },
         setupFrontDiv: (card, div) => {},
@@ -316,7 +317,7 @@ define([
         {}
       );
 
-      for (let die = 1; die <= 4; die++) {
+      for (let die = 1; die <= this.goiGlobals.publicStoneDice; die++) {
         this.goiStocks.dice.stone.addDie({
           id: die,
           type: "stone",
@@ -384,13 +385,13 @@ define([
         );
 
         for (const card_id in this.goiGlobals.explorers) {
-          const explorer = this.goiGlobals.explorers[card_id];
+          const explorerCard = this.goiGlobals.explorers[card_id];
 
           if (
-            explorer["location"] === "scene" &&
-            explorer["type_arg"] == player_id
+            explorerCard["location"] === "scene" &&
+            explorerCard["type_arg"] == player_id
           ) {
-            this.goiStocks[player_id].explorers.scene.addCard(explorer);
+            this.goiStocks[player_id].explorers.scene.addCard(explorerCard);
           }
         }
 
@@ -660,6 +661,9 @@ define([
       dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
       dojo.subscribe("resetExplorer", this, "notif_resetExplorer");
       dojo.subscribe("incGem", this, "notif_incGem");
+      dojo.subscribe("incCoin", this, "notif_incCoin");
+      dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
+      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
     },
 
     notif_revealTile: function (notif) {
@@ -717,6 +721,30 @@ define([
           ),
         }
       );
+    },
+
+    notif_incCoin: function (notif) {
+      const player_id = notif.args.player_id;
+      const delta = notif.args.delta;
+
+      this.goiCounters.gems[player_id].coin.incValue(delta);
+    },
+
+    notif_incRoyaltyPoints: function (notif) {
+      const player_id = notif.args.player_id;
+      const delta = notif.args.delta;
+
+      this.scoreCtrl[player_id].incValue(delta);
+    },
+
+    notif_obtainStoneDie: function (notif) {
+      const player_id = notif.args.player_id;
+      const die_id = notif.args.die_id;
+
+      this.goiStocks[player_id].dice.scene.addDie({
+        id: die_id,
+        type: "stone",
+      });
     },
   });
 });
