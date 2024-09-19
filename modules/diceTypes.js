@@ -93,7 +93,7 @@ class GemDie extends Die {
     element.style.backgroundPosition = calcBackgroundPosition(
       face,
       die.type,
-      die.gem
+      die.id
     );
   }
 }

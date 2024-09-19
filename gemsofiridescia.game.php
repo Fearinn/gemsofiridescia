@@ -660,7 +660,7 @@ class GemsOfIridescia extends Table
             $gem = $gem_info["name"];
             $marketValueCode = "$gem:MarketValue";
 
-            $this->globals->set($marketValueCode, 0);
+            $this->globals->set($marketValueCode, 1);
         }
 
         $this->activeNextPlayer();

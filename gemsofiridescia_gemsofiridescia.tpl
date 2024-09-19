@@ -24,7 +24,8 @@
       <div id="goi_tileRow-2" class="goi_tileRow"></div>
       <div id="goi_tileRow-1" class="goi_tileRow"></div>
     </div>
-    <div id="goi_explorersGrid" class="goi_explorersGrid"></div>
+    <div id="goi_gemDice" class="goi_gemDice"></div>
+    <div id="goi_explorersBoard" class="goi_explorersBoard"></div>
     <div id="goi_stoneDice" class="goi_stoneDice"></div>
   </div>
   <div id="goi_playerBoards" class="goi_playerBoards"></div>

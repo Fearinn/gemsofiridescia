@@ -59,6 +59,7 @@ define([
       this.goiGlobals.revealedTiles = gamedatas.revealedTiles;
       this.goiGlobals.explorers = gamedatas.explorers;
       this.goiGlobals.gems = gamedatas.gems;
+      this.goiGlobals.marketValues = gamedatas.marketValues;
       this.goiGlobals.selectedTile = null;
 
       for (const player_id in this.goiGlobals.players) {
@@ -82,7 +83,7 @@ define([
       });
 
       this.goiManagers.dice = new DiceManager(this, {
-        perspective: "none",
+        perspective: 0,
         dieTypes: {
           gem: new GemDie(),
           stone: new StoneDie(),
@@ -271,9 +272,9 @@ define([
         }
       }
 
-      this.goiStocks.explorers.grid = new CardStock(
+      this.goiStocks.explorers.board = new CardStock(
         this.goiManagers.explorers,
-        document.getElementById("goi_explorersGrid"),
+        document.getElementById("goi_explorersBoard"),
         {}
       );
 
@@ -281,7 +282,7 @@ define([
         const explorerCard = this.goiGlobals.explorers[explorerCard_id];
 
         if (explorerCard["location"] === "board") {
-          this.goiStocks.explorers.grid.addCard(
+          this.goiStocks.explorers.board.addCard(
             explorerCard,
             {},
             {
@@ -293,6 +294,22 @@ define([
         }
       }
 
+      this.goiStocks.dice.gems = new DiceStock(
+        this.goiManagers.dice,
+        document.getElementById("goi_gemDice"),
+        {}
+      );
+
+      for (const gem in this.goiGlobals.marketValues) {
+        const value = this.goiGlobals.marketValues[gem];
+
+        this.goiStocks.dice.gems.addDie({
+          id: gem,
+          face: value,
+          type: "gem",
+        });
+      }
+
       this.goiStocks.dice.stone = new DiceStock(
         this.goiManagers.dice,
         document.getElementById("goi_stoneDice"),
@@ -301,7 +318,7 @@ define([
 
       for (let die = 1; die <= 4; die++) {
         this.goiStocks.dice.stone.addDie({
-          id: `${die}`,
+          id: die,
           type: "stone",
           face: 6,
         });
@@ -657,7 +674,7 @@ define([
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
-      this.goiStocks.explorers.grid.addCard(
+      this.goiStocks.explorers.board.addCard(
         explorerCard,
         {},
         {
