@@ -62,12 +62,13 @@ $machinestates = [
     ],
 
     32 => [
-        "name" => "mine",
-        "description" => clienttranslate('${actplayer} may spend 3 coins to mine this tile'),
-        "descriptionmyturn" => clienttranslate('${you} may spend 3 coins to mine this tile'),
+        "name" => "optionalActions",
+        "description" => clienttranslate('${actplayer} may do any available optional actions, in any order'),
+        "descriptionmyturn" => clienttranslate('${you} may do any available optional actions, in any order'),
         "type" => "activeplayer",
-        "possibleactions" => ["actMine", "actSkipMine"],
-        "transitions" => ["" => 4]
+        "args" => "argOptionalActions",
+        "possibleactions" => ["actMine", "finishTurn"],
+        "transitions" => ["repeat" => 32, "finishTurn" => 4]
     ],
 
     // Final state.

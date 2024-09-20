@@ -35,8 +35,8 @@ var BgaDie6 = /** @class */ (function () {
 const faceToBackgroundPosition = {
   1: { x: 0, y: 100 },
   2: { x: 0, y: 0 },
-  3: { x: 100, y: 0 },
-  4: { x: 100, y: 100 },
+  3: { x: 100, y: 100 },
+  4: { x: 100, y: 0 },
   5: { x: 200, y: 0 },
   6: { x: 200, y: 100 },
 };

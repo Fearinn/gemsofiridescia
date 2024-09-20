@@ -155,6 +155,50 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("mine");
     }
 
+    public function actMine()
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $this->decCoin(3, $player_id, true);
+
+        $explorer = $this->getExplorerByPlayerId($player_id);
+
+        $tileCard = $this->tile_cards->getCard($explorer["location_arg"]);
+        $tile_id = $tileCard["type_arg"];
+
+        $gem_id = $this->tiles_info[$tile_id]["gem"];
+        $gem = $this->gems_info[$gem_id]["name"];
+        $gemMarketValue = $this->globals->get("$gem:MarketValue");
+
+        $die1 = $this->rollDie(1, $player_id);
+        $die2 = $this->rollDie(2, $player_id);
+
+        $mined = 0;
+
+        if ($die1 >= $gemMarketValue) {
+            $mined++;
+        }
+
+        if ($die2 >= $gemMarketValue) {
+            $mined++;
+        }
+
+        if ($mined === 0) {
+            $this->notifyAllPlayers(
+                "failToMine",
+                clienttranslate('${player_name} fails to mine his tile'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id)
+                ]
+            );
+        } else {
+            $this->incGem($mined, $gem_id, $player_id, $tileCard, true);
+        }
+
+        $this->gamestate->nextState("repeat");
+    }
+
     /**
      * Game state arguments, example content.
      *
@@ -212,6 +256,15 @@ class GemsOfIridescia extends Table
         }
     }
 
+    public function argOptionalActions(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        return [
+            "can_mine" => $this->hasEnoughCoins(3, $player_id),
+        ];
+    }
+
     /**
      * Compute and return the current game progression.
      *
@@ -230,6 +283,24 @@ class GemsOfIridescia extends Table
     }
 
     /*   Utility functions */
+
+    public function rollDie(int $die_id, int $player_id): int
+    {
+        $face = bga_rand(1, 6);
+
+        $this->notifyAllPlayers(
+            'rollDie',
+            clienttranslate('${player_name} rolls a ${face}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "die_id" => $die_id,
+                "face" => $face,
+            ]
+        );
+
+        return $face;
+    }
 
     public function hideCard(array $card): array
     {
@@ -524,6 +595,13 @@ class GemsOfIridescia extends Table
         return $marketValues;
     }
 
+    public function hasEnoughCoins(int $delta, int $player_id)
+    {
+        $currentCoins = $this->getUniqueValueFromDB("SELECT coin from player WHERE player_id=$player_id");
+
+        return $currentCoins >= $delta;
+    }
+
     public function incCoin(int $delta, int $player_id): void
     {
         $this->dbQuery("UPDATE player SET coin=coin+$delta WHERE player_id=$player_id");
@@ -535,6 +613,26 @@ class GemsOfIridescia extends Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta
+            ]
+        );
+    }
+
+    public function decCoin(int $delta, int $player_id): void
+    {
+        if (!$this->hasEnoughCoins($delta, $player_id)) {
+            throw new BgaVisibleSystemException("You don't have enough coins: decCoin, $delta");
+        }
+
+        $this->dbQuery("UPDATE player SET coin=coin-$delta WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "incCoin",
+            clienttranslate('${player_name} spends ${abs_delta} coin(s)'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "abs_delta" => $delta,
+                "delta" => -$delta
             ]
         );
     }
@@ -735,7 +833,7 @@ class GemsOfIridescia extends Table
             $gem = $gem_info["name"];
             $marketValueCode = "$gem:MarketValue";
 
-            $this->globals->set($marketValueCode, 1);
+            $this->globals->set($marketValueCode, 2);
         }
 
         $this->activeNextPlayer();

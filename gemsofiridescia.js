@@ -397,7 +397,6 @@ define([
 
         const gems = this.goiGlobals.gems[player_id];
 
-        let box = 1;
         for (const gem in gems) {
           if (gem === "coin") {
             continue;
@@ -405,10 +404,10 @@ define([
 
           const gemCount = gems[gem];
 
-          for (let i = 1; i <= gemCount; i++) {
+          for (let box = 1; box <= gemCount; box++) {
             this.goiStocks[player_id].gems.cargo.addCard(
               {
-                id: Date.now() + i,
+                id: `${box}:${player_id}`,
                 type: gem,
                 type_arg: this.goiGlobals.gemIds[gem],
               },
@@ -419,8 +418,6 @@ define([
                 ),
               }
             );
-
-            box++;
           }
         }
       }
@@ -516,6 +513,14 @@ define([
             "single",
             gemCards
           );
+        }
+
+        if (stateName === "optionalActions") {
+          const can_mine = args.args.can_mine;
+
+          if (can_mine) {
+            this.addActionButton("goi_mineBtn", _("Mine"), "actMine");
+          }
         }
       }
     },
@@ -652,6 +657,10 @@ define([
       });
     },
 
+    actMine: function () {
+      this.performAction("actMine");
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -664,6 +673,7 @@ define([
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
       dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
+      dojo.subscribe("rollDie", this, "notif_rollDie");
     },
 
     notif_revealTile: function (notif) {
@@ -702,25 +712,29 @@ define([
 
       this.goiCounters.gems[player_id][gem].incValue(delta);
 
-      const box = this.goiStocks[player_id].gems.cargo.getCards().length + 1;
+      const freeBox =
+        this.goiStocks[player_id].gems.cargo.getCards().length + 1;
 
-      this.goiStocks[player_id].gems.cargo.addCard(
-        {
-          id: Date.now() + Math.random(),
-          type: gem,
-          type_arg: this.goiGlobals.gemIds[gem],
-        },
-        {
-          fromElement: tileCard
-            ? document.getElementById(`goi_tile-${tileCard.id}`)
-            : undefined,
-        },
-        {
-          forceToElement: document.getElementById(
-            `goi_cargoBox:${player_id}-${box}`
-          ),
-        }
-      );
+      for (let box = freeBox; box < freeBox + delta; box++) {
+        console.log(box);
+        this.goiStocks[player_id].gems.cargo.addCard(
+          {
+            id: `${box}:${player_id}`,
+            type: gem,
+            type_arg: this.goiGlobals.gemIds[gem],
+          },
+          {
+            fromElement: tileCard
+              ? document.getElementById(`goi_tile-${tileCard.id}`)
+              : undefined,
+          },
+          {
+            forceToElement: document.getElementById(
+              `goi_cargoBox:${player_id}-${box}`
+            ),
+          }
+        );
+      }
     },
 
     notif_incCoin: function (notif) {
@@ -744,6 +758,18 @@ define([
       this.goiStocks[player_id].dice.scene.addDie({
         id: die_id,
         type: "stone",
+      });
+    },
+
+    notif_rollDie: function (notif) {
+      const player_id = notif.args.player_id;
+      const die_id = notif.args.die_id;
+      const face = notif.args.face;
+
+      this.goiStocks[player_id].dice.scene.rollDie({
+        id: `${player_id}-${die_id}`,
+        face: face,
+        type: "mining",
       });
     },
   });
