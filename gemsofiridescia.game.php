@@ -155,7 +155,7 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("mine");
     }
 
-    public function actMine()
+    public function actMine(#[IntParam(min: 0, max: 4)] int $stoneDiceCount): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -170,17 +170,38 @@ class GemsOfIridescia extends Table
         $gem = $this->gems_info[$gem_id]["name"];
         $gemMarketValue = $this->globals->get("$gem:MarketValue");
 
-        $die1 = $this->rollDie(1, $player_id);
-        $die2 = $this->rollDie(2, $player_id);
+        $roll1 = $this->rollDie("$player_id-1", $player_id, "mining");
+        $roll2 = $this->rollDie("$player_id-2", $player_id, "mining");
 
         $mined = 0;
 
-        if ($die1 >= $gemMarketValue) {
+        if ($roll1 >= $gemMarketValue) {
             $mined++;
         }
 
-        if ($die2 >= $gemMarketValue) {
+        if ($roll2 >= $gemMarketValue) {
             $mined++;
+        }
+
+        if ($stoneDiceCount > 0) {
+            $this->notifyAllPlayers(
+                "activateStoneDie",
+                clienttranslate('${player_name} has ${count} Stone Dice'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "count" => $this->globals->get("activatedStoneDice"),
+                ]
+            );
+        }
+
+        for ($die = $stoneDiceCount; $die > 0; $die--) {
+            $roll = $this->rollDie($die, $player_id, "stone");
+            $this->globals->inc("activatedStoneDice", 1);
+
+            if ($roll >= $gemMarketValue) {
+                $mined++;
+            }
         }
 
         if ($mined === 0) {
@@ -284,18 +305,20 @@ class GemsOfIridescia extends Table
 
     /*   Utility functions */
 
-    public function rollDie(int $die_id, int $player_id): int
+    public function rollDie(int | string $die_id, int $player_id, string $type): int
     {
         $face = bga_rand(1, 6);
 
         $this->notifyAllPlayers(
             'rollDie',
-            clienttranslate('${player_name} rolls a ${face}'),
+            clienttranslate('${player_name} rolls a ${face} with a ${type} die'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "die_id" => $die_id,
                 "face" => $face,
+                "type" => $this->dice_info[$type],
+                "i18n" => ["type"]
             ]
         );
 
@@ -828,6 +851,7 @@ class GemsOfIridescia extends Table
 
         $this->globals->set("revealsLimit", 0);
         $this->globals->set("publicStoneDice", 4);
+        $this->globals->set("activatedStoneDice", 0);
 
         foreach ($this->gems_info as $gem_info) {
             $gem = $gem_info["name"];

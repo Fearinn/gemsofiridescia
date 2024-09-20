@@ -62,6 +62,7 @@ define([
       this.goiGlobals.marketValues = gamedatas.marketValues;
       this.goiGlobals.publicStoneDice = gamedatas.publicStoneDice;
       this.goiGlobals.selectedTile = null;
+      this.goiGlobals.selectedDiceCount = 0;
 
       for (const player_id in this.goiGlobals.players) {
         this.goiStocks[player_id] = {
@@ -355,6 +356,20 @@ define([
           {}
         );
 
+        this.goiStocks[player_id].dice.scene.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          const selectedDiceCount = selection.length;
+          this.goiGlobals.selectedDiceCount = selectedDiceCount;
+
+          const message = this.format_string(
+            _("Mine (with ${count} Stone Dice"),
+            { count: selectedDiceCount }
+          );
+          this.handleConfirmationButton("goi_mineBtn", _(`Mine`));
+        };
+
         const dice = [
           {
             id: `${player_id}-1`,
@@ -502,7 +517,7 @@ define([
         if (stateName === "rainbowTile") {
           for (const gem in this.goiGlobals.gems[this.player_id]) {
             this.goiStocks.gems.rainbowOptions.addCard({
-              id: Date.now() + Math.random(),
+              id: `${Date.now()}${Math.random()}`,
               type: gem,
               type_arg: this.goiGlobals.gemIds[gem],
             });
@@ -520,6 +535,19 @@ define([
 
           if (can_mine) {
             this.addActionButton("goi_mineBtn", _("Mine"), "actMine");
+            this.goiStocks[this.player_id].dice.scene.setSelectionMode(
+              "multiple"
+            );
+
+            const miningDice = this.goiStocks[this.player_id].dice.scene
+              .getDice()
+              .filter((die) => {
+                return die.type === "mining";
+              });
+
+            this.goiStocks[this.player_id].dice.scene.setSelectableDice(
+              miningDice
+            );
           }
         }
       }
@@ -561,8 +589,8 @@ define([
     },
 
     handleConfirmationButton: function (
-      message = _("Confirm selection"),
-      elementId = "goi_confirmationBtn"
+      elementId = "goi_confirmationBtn",
+      message = _("Confirm selection")
     ) {
       document.getElementById(elementId)?.remove();
       const stateName = this.getStateName();
@@ -658,7 +686,9 @@ define([
     },
 
     actMine: function () {
-      this.performAction("actMine");
+      this.performAction("actMine", {
+        stoneDiceCount: this.goiGlobals.selectedDiceCount,
+      });
     },
 
     ///////////////////////////////////////////////////
@@ -716,7 +746,6 @@ define([
         this.goiStocks[player_id].gems.cargo.getCards().length + 1;
 
       for (let box = freeBox; box < freeBox + delta; box++) {
-        console.log(box);
         this.goiStocks[player_id].gems.cargo.addCard(
           {
             id: `${box}:${player_id}`,
@@ -765,11 +794,12 @@ define([
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
       const face = notif.args.face;
+      const type = notif.args.type;
 
       this.goiStocks[player_id].dice.scene.rollDie({
-        id: `${player_id}-${die_id}`,
+        id: die_id,
         face: face,
-        type: "mining",
+        type: type,
       });
     },
   });

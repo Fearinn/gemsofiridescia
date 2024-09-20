@@ -19,6 +19,14 @@
  * are available everywhere in your game logic code.
  *
  */
+
+$this->dice_info = [
+    "mining" => clienttranslate("Mining"),
+    "stone" => clienttranslate("Stone"),
+    "gem" => clienttranslate("Gem")
+];
+
+
 $this->explorers_info = [
     1 => [
         "name" => "Kito",
@@ -82,7 +90,6 @@ $this->regions_info = [
 
 $this->tileEffects_info = [
     1 => [
-        "label" => clienttranslate("coin(s)"),
         "values" => [
             1 => 1,
             2 => 2,
@@ -91,7 +98,6 @@ $this->tileEffects_info = [
         ],
     ],
     2 => [
-        "label" => clienttranslate("Royalt point(s)"),
         "values" => [
             1 => 1,
             2 => 2,
@@ -100,7 +106,6 @@ $this->tileEffects_info = [
         ],
     ],
     3 => [
-        "label" => clienttranslate("Stone die"),
         "values" => [
             1 => 1,
             2 => 1,
