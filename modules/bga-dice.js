@@ -1391,7 +1391,11 @@ var DiceStock = /** @class */ (function () {
     }
     var element = this.getDieElement(die);
     var selectedDiceClass = this.getSelectedDieClass();
-    element.classList.remove(selectedDiceClass);
+
+    if (element) {
+      element.classList.remove(selectedDiceClass);
+    }
+
     var index = this.selectedDice.findIndex(function (c) {
       return _this.manager.getId(c) == _this.manager.getId(die);
     });

@@ -60,7 +60,8 @@ define([
       this.goiGlobals.explorers = gamedatas.explorers;
       this.goiGlobals.gems = gamedatas.gems;
       this.goiGlobals.marketValues = gamedatas.marketValues;
-      this.goiGlobals.publicStoneDice = gamedatas.publicStoneDice;
+      this.goiGlobals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
+      this.goiGlobals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
       this.goiGlobals.selectedTile = null;
       this.goiGlobals.selectedDiceCount = 0;
 
@@ -85,6 +86,7 @@ define([
       });
 
       this.goiManagers.dice = new DiceManager(this, {
+        selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
           gem: new GemDie(),
@@ -95,7 +97,7 @@ define([
 
       this.goiManagers.gems = new CardManager(this, {
         getId: (card) => `goi_gem-${card.id}-${card.type}`,
-        selectedCardClass: "goi_gemSelected",
+        selectedCardClass: "goi_selectedGem",
         setupDiv: (card, div) => {
           div.classList.add("goi_gem");
           div.style.position = "relative";
@@ -109,7 +111,7 @@ define([
 
       this.goiManagers.tiles = new CardManager(this, {
         getId: (card) => `goi_tile-${card.id}`,
-        selectedCardClass: "goi_tileSelected",
+        selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "relative";
@@ -318,7 +320,11 @@ define([
         {}
       );
 
-      for (let die = 1; die <= this.goiGlobals.publicStoneDice; die++) {
+      for (
+        let die = 4;
+        die >= this.goiGlobals.publicStoneDiceCount - 1;
+        die--
+      ) {
         this.goiStocks.dice.stone.addDie({
           id: die,
           type: "stone",
@@ -367,7 +373,7 @@ define([
           const message =
             selectedDiceCount === 0
               ? _("Mine")
-              : this.format_string(_("Mine (with ${count} Stone Dice)"), {
+              : this.format_string(_("Mine (activate ${count} Stone dice)"), {
                   count: selectedDiceCount,
                 });
 
@@ -376,18 +382,25 @@ define([
 
         const dice = [
           {
-            id: `${player_id}-1`,
+            id: `1:${player_id}`,
             face: 6,
             type: "mining",
             color: player_color,
           },
           {
-            id: `${player_id}-2`,
+            id: `2:${player_id}`,
             face: 6,
             type: "mining",
             color: player_color,
           },
         ];
+
+        const privateStoneDiceCount =
+          this.goiGlobals.privateStoneDiceCount[player_id];
+
+        for (let die_id = 1; die_id <= privateStoneDiceCount; die_id++) {
+          dice.push({ id: die_id, type: "stone", face: 6 });
+        }
 
         this.goiStocks[player_id].dice.scene.addDice(dice);
 
@@ -442,9 +455,6 @@ define([
       }
 
       this.setupNotifications();
-
-      //tests
-      console.log(this.goiStocks[this.player_id].dice);
 
       console.log("Ending game setup");
     },
@@ -546,14 +556,14 @@ define([
               "multiple"
             );
 
-            const miningDice = this.goiStocks[this.player_id].dice.scene
+            const selectableDice = this.goiStocks[this.player_id].dice.scene
               .getDice()
               .filter((die) => {
-                return die.type === "stone";
+                return die.type === "stone" && !die.active;
               });
 
             this.goiStocks[this.player_id].dice.scene.setSelectableDice(
-              miningDice
+              selectableDice
             );
           }
         }
@@ -716,8 +726,9 @@ define([
       dojo.subscribe("incGem", this, "notif_incGem");
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
-      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
+      dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
       dojo.subscribe("rollDie", this, "notif_rollDie");
+      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
     },
 
     notif_revealTile: function (notif) {
@@ -728,7 +739,6 @@ define([
     },
 
     notif_moveExplorer: function (notif) {
-      const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
@@ -795,13 +805,28 @@ define([
     },
 
     notif_obtainStoneDie: function (notif) {
-      console.log("obtainStoneDie");
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
 
       this.goiStocks[player_id].dice.scene.addDie({
         id: die_id,
         type: "stone",
+      });
+    },
+
+    notif_activateStoneDie: function (notif) {
+      const player_id = notif.args.player_id;
+      const die_id = notif.args.die_id;
+
+      this.goiStocks[player_id].dice.scene.removeDie({
+        id: die_id,
+        type: "stone",
+      });
+
+      this.goiStocks[player_id].dice.scene.addDie({
+        id: die_id,
+        type: "stone",
+        active: true,
       });
     },
 

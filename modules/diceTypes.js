@@ -105,6 +105,10 @@ class StoneDie extends Die {
 
   setupDieDiv(die, element) {
     super.setupDieDiv(die, element);
+
+    if (die.active) {
+      element.classList.add("goi_activeDie");
+    }
   }
 
   setupFaceDiv(die, element, face) {
