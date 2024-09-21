@@ -333,9 +333,9 @@ define([
         document.getElementById(
           "goi_playerBoards"
         ).innerHTML += `<div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
-        <div id="goi_scene" class="goi_scene">
+        <div id="goi_scene:${player_id}" class="goi_scene">
           <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
-          <div id="goi_miningDice:${player_id}" class="goi_miningDice"></div>
+          <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
         </div>
           <div id="goi_cargo:${player_id}" class="goi_cargo">
             <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
@@ -347,13 +347,14 @@ define([
             <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
           </div>
         </div>`;
+      }
 
+      for (const player_id in this.goiGlobals.players) {
         const player_color = this.goiGlobals.players[player_id].color;
 
         this.goiStocks[player_id].dice.scene = new DiceStock(
           this.goiManagers.dice,
-          document.getElementById(`goi_miningDice:${player_id}`),
-          {}
+          document.getElementById(`goi_sceneDice:${player_id}`)
         );
 
         this.goiStocks[player_id].dice.scene.onSelectionChange = (
@@ -363,11 +364,14 @@ define([
           const selectedDiceCount = selection.length;
           this.goiGlobals.selectedDiceCount = selectedDiceCount;
 
-          const message = this.format_string(
-            _("Mine (with ${count} Stone Dice"),
-            { count: selectedDiceCount }
-          );
-          this.handleConfirmationButton("goi_mineBtn", _(`Mine`));
+          const message =
+            selectedDiceCount === 0
+              ? _("Mine")
+              : this.format_string(_("Mine (with ${count} Stone Dice)"), {
+                  count: selectedDiceCount,
+                });
+
+          this.handleConfirmationButton("goi_mineBtn", message);
         };
 
         const dice = [
@@ -438,6 +442,9 @@ define([
       }
 
       this.setupNotifications();
+
+      //tests
+      console.log(this.goiStocks[this.player_id].dice);
 
       console.log("Ending game setup");
     },
@@ -542,7 +549,7 @@ define([
             const miningDice = this.goiStocks[this.player_id].dice.scene
               .getDice()
               .filter((die) => {
-                return die.type === "mining";
+                return die.type === "stone";
               });
 
             this.goiStocks[this.player_id].dice.scene.setSelectableDice(
@@ -618,6 +625,13 @@ define([
           this.addActionButton(elementId, message, "actPickRainbowGem");
           return;
         }
+      }
+
+      console.log(stateName);
+
+      if (stateName === "optionalActions") {
+        console.log(elementId, message);
+        this.addActionButton(elementId, message, "actMine");
       }
     },
 
@@ -781,6 +795,7 @@ define([
     },
 
     notif_obtainStoneDie: function (notif) {
+      console.log("obtainStoneDie");
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
 

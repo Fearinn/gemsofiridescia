@@ -513,6 +513,10 @@ class GemsOfIridescia extends Table
 
         $tileEffect_id = (int) $tileInfo["effect"];
 
+        //tests
+
+        $tileEffect_id = 3;
+
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];
             $effectValue = $tileEffect["values"][$region_id];
@@ -690,7 +694,7 @@ class GemsOfIridescia extends Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "die_id" => 4 - $this->globals->get("publicStoneDie")
+                "die_id" => 4 - $this->globals->get("publicStoneDice")
             ]
         );
 
