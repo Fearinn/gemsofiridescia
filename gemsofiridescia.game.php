@@ -845,24 +845,25 @@ class GemsOfIridescia extends Table
 
         $this->tile_cards->createCards($tiles, "deck");
 
+        $hex = 1;
         foreach ($this->regions_info as $region_id => $region) {
             $tilesOfregion = $this->tile_cards->getCardsOfTypeInLocation($region_id, null, "deck");
             $k_tilesOfregion = array_keys($tilesOfregion);
 
-            $temporaryLocation = strval($region["name"]);
+            $temporaryLocation = (string) $region["name"];
             $this->tile_cards->moveCards($k_tilesOfregion, $temporaryLocation);
             $this->tile_cards->shuffle($temporaryLocation);
 
-            $hex = 1;
             for ($i = 1; $i <= count($tilesOfregion); $i++) {
-                $finalLocation = $region_id * 2;
-
-                if ($hex <= 6) {
-                    $finalLocation--;
-                }
-
-                $this->tile_cards->pickCardForLocation($temporaryLocation, $finalLocation, $hex);
+                $this->tile_cards->pickCardForLocation($temporaryLocation, "board", $hex);
                 $hex++;
+            }
+
+            $edges = "1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58";
+
+            if (count($players) === 2) {
+                $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
+                WHERE card_location='board' AND card_location_arg IN ($edges)");
             }
         }
 

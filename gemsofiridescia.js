@@ -110,7 +110,7 @@ define([
       });
 
       this.goiManagers.tiles = new CardManager(this, {
-        getId: (card) => `goi_tile-${card.id}`,
+        getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
@@ -225,65 +225,63 @@ define([
       }
 
       /* BOARDS */
-      for (let row = 1; row <= 9; row++) {
-        /* tiles */
-        const tileRow = `row-${row}`;
+      /* tiles */
 
-        this.goiStocks.tiles[tileRow] = new CardStock(
-          this.goiManagers.tiles,
-          document.getElementById(`goi_tileRow-${row}`),
-          {}
-        );
+      this.goiStocks.tiles.board = new CardStock(
+        this.goiManagers.tiles,
+        document.getElementById(`goi_tileBoard`),
+        {}
+      );
 
-        this.goiStocks.tiles[tileRow].onSelectionChange = (
-          selected,
-          lastChange
-        ) => {
-          const stateName = this.getStateName();
+      this.goiStocks.tiles.board.onSelectionChange = (selected, lastChange) => {
+        const stateName = this.getStateName();
 
-          if (stateName === "revealTile" || stateName) {
-            if (selected.length === 0) {
-              this.goiGlobals.selectedTile = null;
-            } else {
-              this.goiGlobals.selectedTile = lastChange;
-              this.unselectAllStocks(
-                this.goiManagers.tiles,
-                this.goiStocks.tiles[tileRow]
-              );
-            }
-
-            this.handleConfirmationButton();
+        if (stateName === "revealTile") {
+          if (selected.length === 0) {
+            this.goiGlobals.selectedTile = null;
+          } else {
+            this.goiGlobals.selectedTile = lastChange;
           }
-        };
 
-        const tileBoard = this.goiGlobals.tileBoard;
-        for (const tileCard_id in tileBoard) {
-          const tileCard = tileBoard[tileCard_id];
-
-          if (tileCard.location == row) {
-            delete tileBoard[tileCard_id];
-
-            this.goiStocks.tiles[tileRow].addCard(tileCard).then(() => {
-              this.goiStocks.tiles[tileRow].setCardVisible(tileCard, false);
-
-              const revealedTileCard =
-                this.goiGlobals.revealedTiles[tileCard_id];
-              if (revealedTileCard) {
-                this.goiStocks.tiles[tileRow].flipCard(revealedTileCard);
-              }
-            });
-          }
+          this.handleConfirmationButton();
         }
+      };
+
+      const tileBoard = this.goiGlobals.tileBoard;
+      for (const tileCard_id in tileBoard) {
+        const tileCard = tileBoard[tileCard_id];
+
+        console.log(tileCard, "tile");
+
+        this.goiStocks.tiles.board
+          .addCard(
+            tileCard,
+            {},
+            {
+              forceToElement: document.getElementById(
+                `goi_tileContainer-${tileCard.location_arg}`
+              ),
+            }
+          )
+          .then(() => {
+            this.goiStocks.tiles.board.setCardVisible(tileCard, false);
+
+            const revealedTileCard = this.goiGlobals.revealedTiles[tileCard_id];
+            if (revealedTileCard) {
+              this.goiStocks.tiles.board.flipCard(revealedTileCard);
+            }
+          });
       }
 
       this.goiStocks.explorers.board = new CardStock(
         this.goiManagers.explorers,
-        document.getElementById("goi_explorersBoard"),
+        document.getElementById("goi_explorerBoard"),
         {}
       );
 
       for (const explorerCard_id in this.goiGlobals.explorers) {
         const explorerCard = this.goiGlobals.explorers[explorerCard_id];
+        const tileHex = explorerCard.location_arg;
 
         if (explorerCard["location"] === "board") {
           this.goiStocks.explorers.board.addCard(
@@ -291,7 +289,7 @@ define([
             {},
             {
               forceToElement: document.getElementById(
-                `goi_tile-${explorerCard["location_arg"]}`
+                `goi_tileContainer-${tileHex}`
               ),
             }
           );
@@ -501,7 +499,7 @@ define([
             const tileRow = `row-${row}`;
             const tileCards = revealableTiles[row];
 
-            this.goiStocks.tiles[tileRow].setSelectableCards(tileCards);
+            this.goiStocks.tiles.board.setSelectableCards(tileCards);
           }
           return;
         }
@@ -527,7 +525,7 @@ define([
             const tileRow = `row-${row}`;
             const tileCards = explorableTiles[row];
 
-            this.goiStocks.tiles[tileRow].setSelectableCards(tileCards);
+            this.goiStocks.tiles.board.setSelectableCards(tileCards);
           }
         }
 
@@ -662,7 +660,7 @@ define([
     toggleRowsSelection: function (selection = "single") {
       for (let row = 1; row <= 9; row++) {
         const tileRow = `row-${row}`;
-        this.goiStocks.tiles[tileRow].setSelectionMode(selection, []);
+        this.goiStocks.tiles.board.setSelectionMode(selection, []);
       }
     },
 
@@ -735,7 +733,7 @@ define([
       const tileCard = notif.args.tileCard;
 
       const tileRow = `row-${tileCard.location}`;
-      this.goiStocks.tiles[tileRow].flipCard(tileCard);
+      this.goiStocks.tiles.board.flipCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
@@ -746,7 +744,9 @@ define([
         explorerCard,
         {},
         {
-          forceToElement: document.getElementById(`goi_tile-${tileCard.id}`),
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${tileCard.location_arg}`
+          ),
         }
       );
     },
@@ -778,7 +778,9 @@ define([
           },
           {
             fromElement: tileCard
-              ? document.getElementById(`goi_tile-${tileCard.id}`)
+              ? document.getElementById(
+                  `goi_tileContainer-${tileCard.location_arg}`
+                )
               : undefined,
           },
           {
