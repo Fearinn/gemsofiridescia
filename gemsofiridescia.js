@@ -115,8 +115,6 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "relative";
-
-          div.style.order = card.location_arg;
         },
         setupFrontDiv: (card, div) => {
           div.classList.add("goi_tileSide");
@@ -225,11 +223,11 @@ define([
       }
 
       /* BOARDS */
-      /* tiles */
 
+      /* tiles */
       this.goiStocks.tiles.board = new CardStock(
         this.goiManagers.tiles,
-        document.getElementById(`goi_tileBoard`),
+        document.getElementById("goi_board"),
         {}
       );
 
@@ -250,8 +248,6 @@ define([
       const tileBoard = this.goiGlobals.tileBoard;
       for (const tileCard_id in tileBoard) {
         const tileCard = tileBoard[tileCard_id];
-
-        console.log(tileCard, "tile");
 
         this.goiStocks.tiles.board
           .addCard(
@@ -318,11 +314,7 @@ define([
         {}
       );
 
-      for (
-        let die = 4;
-        die >= this.goiGlobals.publicStoneDiceCount - 1;
-        die--
-      ) {
+      for (let die = 4; die > 4 - this.goiGlobals.publicStoneDiceCount; die--) {
         this.goiStocks.dice.stone.addDie({
           id: die,
           type: "stone",
@@ -493,14 +485,11 @@ define([
             );
           }
 
-          this.toggleRowsSelection();
+          this.goiStocks.tiles.board.setSelectionMode(
+            "single",
+            revealableTiles
+          );
 
-          for (const row in revealableTiles) {
-            const tileRow = `row-${row}`;
-            const tileCards = revealableTiles[row];
-
-            this.goiStocks.tiles.board.setSelectableCards(tileCards);
-          }
           return;
         }
 
@@ -519,14 +508,10 @@ define([
             );
           }
 
-          this.toggleRowsSelection();
+          this.goiStocks.tiles.board.setSelectionMode("single");
+          this.goiStocks.tiles.board.setSelectableCards(explorableTiles);
 
-          for (const row in explorableTiles) {
-            const tileRow = `row-${row}`;
-            const tileCards = explorableTiles[row];
-
-            this.goiStocks.tiles.board.setSelectableCards(tileCards);
-          }
+          return;
         }
 
         if (stateName === "rainbowTile") {
@@ -543,6 +528,8 @@ define([
             "single",
             gemCards
           );
+
+          return;
         }
 
         if (stateName === "optionalActions") {
@@ -564,6 +551,8 @@ define([
               selectableDice
             );
           }
+
+          return;
         }
       }
     },
@@ -575,11 +564,11 @@ define([
       console.log("Leaving state: " + stateName);
 
       if (stateName === "revealTile") {
-        this.toggleRowsSelection("none");
+        this.goiStocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "moveExplorer") {
-        this.toggleRowsSelection("none");
+        this.goiStocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "rainbowTile") {
@@ -635,43 +624,13 @@ define([
         }
       }
 
-      console.log(stateName);
-
       if (stateName === "optionalActions") {
-        console.log(elementId, message);
         this.addActionButton(elementId, message, "actMine");
       }
     },
 
     calcBackgroundPosition: function (spritePosition) {
       return -spritePosition * 100 + "% 0%";
-    },
-
-    unselectAllStocks: function (manager, exception) {
-      manager.stocks.forEach((stock) => {
-        if (exception?.element.id === stock.element.id) {
-          return;
-        }
-
-        stock.unselectAll(true);
-      });
-    },
-
-    toggleRowsSelection: function (selection = "single") {
-      for (let row = 1; row <= 9; row++) {
-        const tileRow = `row-${row}`;
-        this.goiStocks.tiles.board.setSelectionMode(selection, []);
-      }
-    },
-
-    getTileRow: function (region, hex) {
-      let row = 1 + 2 * (Number(region) - 1);
-
-      if (Number(hex) >= 7) {
-        row++;
-      }
-
-      return row;
     },
 
     ///////////////////////////////////////////////////
@@ -732,7 +691,6 @@ define([
     notif_revealTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      const tileRow = `row-${tileCard.location}`;
       this.goiStocks.tiles.board.flipCard(tileCard);
     },
 

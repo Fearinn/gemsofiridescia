@@ -15,84 +15,83 @@
   <div id="goi_board" class="goi_board">
     <div class="goi_tileGrid">
       <div id="goi_tileRow-9" class="goi_tileRow">
-        <div id="goi_tileContainer-53"></div>
-        <div id="goi_tileContainer-54"></div>
-        <div id="goi_tileContainer-55"></div>
-        <div id="goi_tileContainer-56"></div>
-        <div id="goi_tileContainer-57"></div>
-        <div id="goi_tileContainer-58"></div>
+        <div id="goi_tileContainer-53" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-54" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-55" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-56" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-57" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-58" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-8" class="goi_tileRow">
-        <div id="goi_tileContainer-46"></div>
-        <div id="goi_tileContainer-47"></div>
-        <div id="goi_tileContainer-48"></div>
-        <div id="goi_tileContainer-49"></div>
-        <div id="goi_tileContainer-50"></div>
-        <div id="goi_tileContainer-51"></div>
-        <div id="goi_tileContainer-52"></div>
+        <div id="goi_tileContainer-46" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-47" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-48" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-49" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-50" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-51" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-52" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-7" class="goi_tileRow">
-        <div id="goi_tileContainer-40"></div>
-        <div id="goi_tileContainer-41"></div>
-        <div id="goi_tileContainer-42"></div>
-        <div id="goi_tileContainer-43"></div>
-        <div id="goi_tileContainer-44"></div>
-        <div id="goi_tileContainer-45"></div>
+        <div id="goi_tileContainer-40" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-41" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-42" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-43" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-44" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-45" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-6" class="goi_tileRow">
-        <div id="goi_tileContainer-33"></div>
-        <div id="goi_tileContainer-34"></div>
-        <div id="goi_tileContainer-35"></div>
-        <div id="goi_tileContainer-36"></div>
-        <div id="goi_tileContainer-37"></div>
-        <div id="goi_tileContainer-38"></div>
-        <div id="goi_tileContainer-39"></div>
+        <div id="goi_tileContainer-33" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-34" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-35" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-36" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-37" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-38" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-39" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-5" class="goi_tileRow">
-        <div id="goi_tileContainer-27"></div>
-        <div id="goi_tileContainer-28"></div>
-        <div id="goi_tileContainer-29"></div>
-        <div id="goi_tileContainer-30"></div>
-        <div id="goi_tileContainer-31"></div>
-        <div id="goi_tileContainer-32"></div>
+        <div id="goi_tileContainer-27" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-28" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-29" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-30" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-31" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-32" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-4" class="goi_tileRow">
-        <div id="goi_tileContainer-20"></div>
-        <div id="goi_tileContainer-21"></div>
-        <div id="goi_tileContainer-22"></div>
-        <div id="goi_tileContainer-23"></div>
-        <div id="goi_tileContainer-24"></div>
-        <div id="goi_tileContainer-25"></div>
-        <div id="goi_tileContainer-26"></div>
+        <div id="goi_tileContainer-20" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-21" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-22" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-23" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-24" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-25" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-26" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-3" class="goi_tileRow">
-        <div id="goi_tileContainer-14"></div>
-        <div id="goi_tileContainer-15"></div>
-        <div id="goi_tileContainer-16"></div>
-        <div id="goi_tileContainer-17"></div>
-        <div id="goi_tileContainer-18"></div>
-        <div id="goi_tileContainer-19"></div>
+        <div id="goi_tileContainer-14" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-15" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-16" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-17" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-18" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-19" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-2" class="goi_tileRow">
-        <div id="goi_tileContainer-7"></div>
-        <div id="goi_tileContainer-8"></div>
-        <div id="goi_tileContainer-9"></div>
-        <div id="goi_tileContainer-10"></div>
-        <div id="goi_tileContainer-11"></div>
-        <div id="goi_tileContainer-12"></div>
-        <div id="goi_tileContainer-13"></div>
+        <div id="goi_tileContainer-7" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-8" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-9" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-10" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-11" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-12" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-13" class="goi_tileContainer"></div>
       </div>
       <div id="goi_tileRow-1" class="goi_tileRow">
-        <div id="goi_tileContainer-1"></div>
-        <div id="goi_tileContainer-2"></div>
-        <div id="goi_tileContainer-3"></div>
-        <div id="goi_tileContainer-4"></div>
-        <div id="goi_tileContainer-5"></div>
-        <div id="goi_tileContainer-6"></div>
+        <div id="goi_tileContainer-1" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-2" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-3" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-4" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-5" class="goi_tileContainer"></div>
+        <div id="goi_tileContainer-6" class="goi_tileContainer"></div>
       </div>
     </div>
     <div id="goi_gemDice" class="goi_gemDice"></div>
-    <div id="goi_tileBoard" class="goi_tileBoard"></div>
     <div id="goi_explorerBoard" class="goi_explorerBoard"></div>
     <div id="goi_stoneDice" class="goi_stoneDice"></div>
   </div>

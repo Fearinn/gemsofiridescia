@@ -55,11 +55,10 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
-        $tileRow = (int) $tileCard["location"];
 
         $revealableTiles = $this->revealableTiles($player_id);
 
-        if (!key_exists($tileRow, $revealableTiles) || !in_array($tileCard, $revealableTiles[$tileRow])) {
+        if (!in_array($tileCard, $revealableTiles)) {
             throw new BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
         }
 
@@ -71,13 +70,12 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a tile in the row ${row}, from the ${region_label} region'),
+            clienttranslate('${player_name} reveals a tile from the ${region_label} region'),
             [
                 "i18n" => ["region_label"],
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "region_label" => $this->regions_info[$region_id]["tr_label"],
-                "row" => $tileRow,
                 "tileCard" => $tileCard,
             ]
         );
@@ -115,11 +113,10 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
-        $tileRow = (int) $tileCard["location"];
 
         $explorableTiles = $this->explorableTiles($player_id);
 
-        if (!key_exists($tileRow, $explorableTiles) || !in_array($tileCard, $explorableTiles[$tileRow])) {
+        if (!in_array($tileCard, $explorableTiles)) {
             throw new BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
         }
 
@@ -131,12 +128,11 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to a tile in the row ${row}, from the ${region_label} region'),
+            clienttranslate('${player_name} moves his explorer to a tile from the ${region_label} region'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "region_label" => $this->regions_info[$region_id]["tr_label"],
-                "row" => $tileRow,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
@@ -370,7 +366,7 @@ class GemsOfIridescia extends Table
     public function getTileBoard(): array
     {
         $tileBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
-        FROM tile WHERE card_location<>'hand'");
+        FROM tile WHERE card_location='board'");
 
         return $this->hideCards($tileBoard);
     }
@@ -382,36 +378,32 @@ class GemsOfIridescia extends Table
         $explorer = $this->getExplorerByPlayerId($player_id);
 
         if ($explorer["location"] === "scene") {
-            return $this->getCollectionFromDB($this->deckSelectQuery . "FROM tile WHERE card_location='1' AND card_location_arg<=6");
+            return $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
         }
 
-        $explorerRegion = $explorer["type"];
-        $explorerHex = $explorer["type_arg"];
+        $tileHex = $explorer["location_arg"];
 
-        $leftHex = $explorerHex - 1;
-        $rightHex = $explorerHex + 1;
-        $topLeftHex = $explorerHex <= 6 ? $explorerHex + 6 : $explorerHex - 7;
-        $topRightHex =  $explorerHex <= 6 ? $explorerHex + 7 : $explorerHex - 6;
+        $leftHex = $tileHex - 1;
+        $rightHex = $tileHex + 1;
+        $topLeftHex = $tileHex + 5;
+        $topRightHex = $tileHex + 6;
 
-        if ($explorerHex === 1) {
-            $leftHex = null;
+        $tileRow = ceil(($tileHex + 1) / 7);
+
+        if ($tileRow % 2 === 0) {
+            $topLeftHex++;
+            $topRightHex++;
         }
 
-        if ($explorerHex === 6) {
-            $rightHex = null;
-        }
+        $leftEdges = [1, 7, 14, 20, 27, 33, 40, 46, 53];
+        $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52];
 
-        if ($explorerRegion === 5) {
-            $topLeftHex = null;
-            $topRightHex = null;
-        }
-
-        if ($explorerHex === 7) {
+        if (in_array($tileHex, $leftEdges)) {
             $leftHex = null;
             $topLeftHex = null;
-        }
+        };
 
-        if ($explorerHex === 13) {
+        if (in_array($tileHex, $rightEdges)) {
             $rightHex = null;
             $topRightHex = null;
         }
@@ -428,12 +420,7 @@ class GemsOfIridescia extends Table
                 continue;
             }
 
-            $location = $explorerRegion * 2;
-            if ($hex <= 6) {
-                $location--;
-            }
-
-            $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "FROM tile WHERE card_location='$location' AND card_location_arg=$hex");
+            $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
 
             if ($tileCard) {
                 $tileCard_id = $tileCard["id"];
@@ -453,16 +440,11 @@ class GemsOfIridescia extends Table
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
             if (!key_exists($card_id, $revealedTiles)) {
-                $tileRow = $tileCard["location"];
-                $revealableTiles[$tileRow][] = $tileCard;
+                $revealableTiles[] = $tileCard;
             }
         }
 
-        foreach ($revealableTiles as $tileRow => $cards) {
-            $revealableTiles[$tileRow] = $this->hideCards($cards);
-        }
-
-        return $revealableTiles;
+        return $this->hideCards($revealableTiles);
     }
 
     public function occupiedTiles(): array
@@ -497,16 +479,11 @@ class GemsOfIridescia extends Table
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
             if (key_exists($card_id, $revealedTiles) && !key_exists($card_id, $occupiedTiles)) {
-                $tileRow = $tileCard["location"];
-                $explorableTiles[$tileRow][] = $tileCard;
+                $explorableTiles[] = $tileCard;
             }
-        };
-
-        foreach ($explorableTiles as $tileRow => $cards) {
-            $explorableTiles[$tileRow] = $this->hideCards($cards);
         }
 
-        return $explorableTiles;
+        return $this->hideCards($explorableTiles);
     }
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
@@ -859,11 +836,10 @@ class GemsOfIridescia extends Table
                 $hex++;
             }
 
-            $edges = "1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58";
-
             if (count($players) === 2) {
                 $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-                WHERE card_location='board' AND card_location_arg IN ($edges)");
+                WHERE card_location='board' AND 
+                card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58)");
             }
         }
 

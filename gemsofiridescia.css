@@ -140,7 +140,8 @@
   margin-left: calc(var(--tileSize) / 2);
 }
 
-.goi_tile {
+.goi_tileContainer {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +153,13 @@
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
-.goi_tile .goi_tileSide {
+.goi_tileContainer:empty {
+  visibility: hidden;
+}
+
+.goi_tile {
+  bottom: 2px;
+  left: 2px;
   background-image: url("img/tiles.png");
   box-shadow: none !important;
   aspect-ratio: 100/115;
@@ -163,7 +170,7 @@
   transform: scale(1.025);
 }
 
-.goi_selectedTile::after {
+.goi_tileContainer:has(.goi_selectedTile)::after {
   position: absolute;
   bottom: 24px;
 
