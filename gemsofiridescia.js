@@ -114,11 +114,9 @@ define([
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
-          div.style.position = "relative";
+          div.style.position = "absolute";
         },
         setupFrontDiv: (card, div) => {
-          div.classList.add("goi_tileSide");
-
           let backgroundPosition = this.calcBackgroundPosition(
             (Number(card.type) - 1) * 14
           );
@@ -132,8 +130,6 @@ define([
           div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
-          div.classList.add("goi_tileSide");
-
           const backgroundPosition = this.calcBackgroundPosition(
             (Number(card.type) - 1) * 14
           );
@@ -234,7 +230,7 @@ define([
       this.goiStocks.tiles.board.onSelectionChange = (selected, lastChange) => {
         const stateName = this.getStateName();
 
-        if (stateName === "revealTile") {
+        if (stateName === "revealTile" || stateName === "moveExplorer") {
           if (selected.length === 0) {
             this.goiGlobals.selectedTile = null;
           } else {
@@ -278,6 +274,7 @@ define([
       for (const explorerCard_id in this.goiGlobals.explorers) {
         const explorerCard = this.goiGlobals.explorers[explorerCard_id];
         const tileHex = explorerCard.location_arg;
+        console.log(tileHex);
 
         if (explorerCard["location"] === "board") {
           this.goiStocks.explorers.board.addCard(

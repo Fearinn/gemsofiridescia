@@ -160,10 +160,13 @@
 .goi_tile {
   bottom: 2px;
   left: 2px;
-  background-image: url("img/tiles.png");
   box-shadow: none !important;
   aspect-ratio: 100/115;
   width: var(--tileSize);
+}
+
+.goi_tile .card-side {
+  background-image: url("img/tiles.png");
 }
 
 .goi_selectedTile {

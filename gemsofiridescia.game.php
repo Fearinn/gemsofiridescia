@@ -124,7 +124,7 @@ class GemsOfIridescia extends Table
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-        $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["id"]);
+        $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["location_arg"]);
 
         $this->notifyAllPlayers(
             "moveExplorer",
@@ -158,12 +158,13 @@ class GemsOfIridescia extends Table
         $this->decCoin(3, $player_id, true);
 
         $explorer = $this->getExplorerByPlayerId($player_id);
+        $hex = (int) $explorer["location_arg"];
 
-        $tileCard = $this->tile_cards->getCard($explorer["location_arg"]);
-        $tile_id = $tileCard["type_arg"];
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
+        $tile_id = (int) $tileCard["type_arg"];
 
-        $gem_id = $this->tiles_info[$tile_id]["gem"];
-        $gem = $this->gems_info[$gem_id]["name"];
+        $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+        $gem = (string) $this->gems_info[$gem_id]["name"];
         $gemMarketValue = $this->globals->get("$gem:MarketValue");
 
         $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
