@@ -156,6 +156,12 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $privateStoneDiceCount = $this->globals->get("privateStoneDiceCount")[$player_id];
+
+        if ($stoneDiceCount > $privateStoneDiceCount) {
+            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
+        }
+
         $this->decCoin(3, $player_id, true);
 
         $explorer = $this->getExplorerByPlayerId($player_id);
@@ -228,9 +234,14 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSellGems(#[JsonParam(associative: true, alphanum: false)] array $selectedGems): void
+    public function actSellGems(#[JsonParam(alphanum: false)] array $selectedGems, ): void
     {
         $player_id = (int) $this->getActivePlayerId();
+
+        if ($this->globals->get("hasSoldGems")) {
+            throw new BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
+        }
+
         $playerGems = $this->getGems($player_id);
 
         foreach ($playerGems as $gemName => $gemCount) {
@@ -247,6 +258,8 @@ class GemsOfIridescia extends Table
                 $this->sellGem($soldGemCount, $gemName, $soldGems, $player_id);
             }
         }
+
+        $this->globals->set("hasSoldGems", true);
 
         $this->gamestate->nextState("repeat");
     }
@@ -314,7 +327,7 @@ class GemsOfIridescia extends Table
 
         return [
             "can_mine" => $this->hasEnoughCoins(3, $player_id),
-            "can_sellGems" => $this->getTotalGemCount($player_id) > 0
+            "can_sellGems" => $this->getTotalGemCount($player_id) > 0 && !$this->globals->get("hasSoldGems"),
         ];
     }
 
@@ -633,8 +646,13 @@ class GemsOfIridescia extends Table
     {
         $gem_id = $this->gemIds_info[$gemName];
 
-        $this->decGem($delta, $gem_id, $gemCards, $player_id, true
-    );
+        $this->decGem(
+            $delta,
+            $gem_id,
+            $gemCards,
+            $player_id,
+            true
+        );
 
         $marketValue = $this->globals->get("$gemName:MarketValue");
         $earnedCoins = $marketValue * $delta;

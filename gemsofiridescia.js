@@ -546,9 +546,6 @@ define([
 
           if (can_mine) {
             this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
-            this.goiStocks[this.player_id].dice.scene.setSelectionMode(
-              "multiple"
-            );
 
             const selectableDice = this.goiStocks[this.player_id].dice.scene
               .getDice()
@@ -557,7 +554,8 @@ define([
               });
 
             if (selectableDice.length > 0) {
-              this.goiStocks[this.player_id].dice.scene.setSelectableDice(
+              this.goiStocks[this.player_id].dice.scene.setSelectionMode(
+                "multiple",
                 selectableDice
               );
             }
