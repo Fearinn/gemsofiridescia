@@ -11,6 +11,7 @@
 -->
 
 <div id="goi_gameArea" class="goi_gameArea">
+  <div id="goi_gemVoid"></div>
   <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
   <div id="goi_board" class="goi_board">
     <div class="goi_tileGrid">

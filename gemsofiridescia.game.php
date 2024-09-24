@@ -21,6 +21,7 @@ declare(strict_types=1);
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
+use Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\Types\StringParam;
 
 class GemsOfIridescia extends Table
@@ -164,8 +165,8 @@ class GemsOfIridescia extends Table
         $tile_id = (int) $tileCard["type_arg"];
 
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
-        $gem = (string) $this->gems_info[$gem_id]["name"];
-        $gemMarketValue = $this->globals->get("$gem:MarketValue");
+        $gemName = $this->gems_info[$gem_id]["name"];
+        $gemMarketValue = $this->globals->get("$gemName:MarketValue");
 
         $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
         $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
@@ -222,6 +223,29 @@ class GemsOfIridescia extends Table
             );
         } else {
             $this->incGem($mined, $gem_id, $player_id, $tileCard, true);
+        }
+
+        $this->gamestate->nextState("repeat");
+    }
+
+    public function actSellGems(#[JsonParam(associative: true, alphanum: false)] array $selectedGems): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        $playerGems = $this->getGems($player_id);
+
+        foreach ($playerGems as $gemName => $gemCount) {
+            $soldGems = [];
+
+            foreach ($selectedGems as $gemCard) {
+                if ($gemName === $gemCard["type"]) {
+                    $soldGems[] = $gemCard;
+                }
+            }
+
+            $soldGemCount = count($soldGems);
+            if ($soldGemCount > 0) {
+                $this->sellGem($soldGemCount, $gemName, $soldGems, $player_id);
+            }
         }
 
         $this->gamestate->nextState("repeat");
@@ -290,6 +314,7 @@ class GemsOfIridescia extends Table
 
         return [
             "can_mine" => $this->hasEnoughCoins(3, $player_id),
+            "can_sellGems" => $this->getTotalGemCount($player_id) > 0
         ];
     }
 
@@ -541,11 +566,23 @@ class GemsOfIridescia extends Table
         return $gems;
     }
 
+    public function getTotalGemCount(int $player_id): int
+    {
+        $gems = $this->getGems($player_id);
+
+        $totalGemCount = 0;
+        foreach ($gems as $gemCount) {
+            $totalGemCount += $gemCount;
+        }
+
+        return $totalGemCount;
+    }
+
     public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false): void
     {
-        $gem = $this->gems_info[$gem_id]["name"];
+        $gemName = $this->gems_info[$gem_id]["name"];
 
-        $this->DbQuery("UPDATE player SET $gem=$gem+$delta WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET $gemName=$gemName+$delta WHERE player_id=$player_id");
 
         $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') : clienttranslate('${player_name} collects ${delta} ${gem_label}');
 
@@ -556,7 +593,7 @@ class GemsOfIridescia extends Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
-                "gem" => $gem,
+                "gem" => $gemName,
                 "tileCard" => $tileCard,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
                 "i18n" => ["gem_label"]
@@ -564,24 +601,52 @@ class GemsOfIridescia extends Table
         );
     }
 
-    public function decGem(int $delta, int $gem_id, int $player_id): void
+    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, $sell = false): void
     {
-        $gem = $this->gems_info[$gem_id]["name"];
+        $gemName = $this->gems_info[$gem_id]["name"];
 
-        $gemCount = $this->getUniqueValueFromDB("SELECT $gem FROM player WHERE player_id=$player_id");
+        $gemCount = $this->getUniqueValueFromDB("SELECT $gemName FROM player WHERE player_id=$player_id");
 
         if ($gemCount < $delta) {
-            throw new BgaVisibleSystemException("Not enough gems: incGem, $gem, $delta, $gemCount");
+            throw new BgaVisibleSystemException("Not enough gems: decGem, $gemName, $delta, $gemCount");
         }
 
-        $this->DbQuery("UPDATE player SET $gem=$gem-$delta WHERE player_id=$player_id");
+        $this->notifyAllPlayers(
+            "decGem",
+            $sell ? clienttranslate('${player_name} sells ${abs_delta} ${gem_label}') : "",
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "abs_delta" => $delta,
+                "delta" => -$delta,
+                "gem" => $gemName,
+                "gemCards" => $gemCards,
+                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "i18n" => ["gem_label"]
+            ]
+        );
+
+        $this->DbQuery("UPDATE player SET $gemName=$gemName-$delta WHERE player_id=$player_id");
+    }
+
+    public function sellGem(int $delta, string $gemName, array $gemCards, int $player_id)
+    {
+        $gem_id = $this->gemIds_info[$gemName];
+
+        $this->decGem($delta, $gem_id, $gemCards, $player_id, true
+    );
+
+        $marketValue = $this->globals->get("$gemName:MarketValue");
+        $earnedCoins = $marketValue * $delta;
+
+        $this->incCoin($earnedCoins, $player_id);
     }
 
     public function updateMarket(int $gem_id): void
     {
-        $gem = $this->gems_info[$gem_id]["name"];
+        $gemName = $this->gems_info[$gem_id]["name"];
 
-        $marketValueCode = "$gem:MarketValue";
+        $marketValueCode = "$gemName:MarketValue";
         $marketValue = $this->globals->get($marketValueCode);
 
         if ($marketValue === 6) {
@@ -595,13 +660,13 @@ class GemsOfIridescia extends Table
     public function getMarketValues(?int $gem_id): array | int
     {
         if ($gem_id) {
-            $gem = $this->gems_info[$gem_id]["name"];
-            return $this->globals->get("$gem:MarketValue");
+            $gemName = $this->gems_info[$gem_id]["name"];
+            return $this->globals->get("$gemName:MarketValue");
         };
 
         foreach ($this->gems_info as $gem_id => $gem_info) {
-            $gem = $gem_info["name"];
-            $marketValues[$gem] = $this->globals->get("$gem:MarketValue");
+            $gemName = $gem_info["name"];
+            $marketValues[$gemName] = $this->globals->get("$gemName:MarketValue");
         }
 
         return $marketValues;
@@ -855,8 +920,8 @@ class GemsOfIridescia extends Table
         }
 
         foreach ($this->gems_info as $gem_info) {
-            $gem = $gem_info["name"];
-            $marketValueCode = "$gem:MarketValue";
+            $gemName = $gem_info["name"];
+            $marketValueCode = "$gemName:MarketValue";
 
             $this->globals->set($marketValueCode, 2);
         }

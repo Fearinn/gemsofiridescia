@@ -62,7 +62,10 @@ define([
       this.goiGlobals.marketValues = gamedatas.marketValues;
       this.goiGlobals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
       this.goiGlobals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
+
       this.goiGlobals.selectedTile = null;
+      this.goiGlobals.selectedGem = null;
+      this.goiGlobals.selectedGems = [];
       this.goiGlobals.selectedDiceCount = 0;
 
       for (const player_id in this.goiGlobals.players) {
@@ -174,7 +177,7 @@ define([
 
       this.goiStocks.gems.void = new VoidStock(
         this.goiManagers.gems,
-        document.getElementById("player_boards"),
+        document.getElementById("goi_gemVoid"),
         {}
       );
 
@@ -274,7 +277,6 @@ define([
       for (const explorerCard_id in this.goiGlobals.explorers) {
         const explorerCard = this.goiGlobals.explorers[explorerCard_id];
         const tileHex = explorerCard.location_arg;
-        console.log(tileHex);
 
         if (explorerCard["location"] === "board") {
           this.goiStocks.explorers.board.addCard(
@@ -364,7 +366,7 @@ define([
                   count: selectedDiceCount,
                 });
 
-          this.handleConfirmationButton("goi_mineBtn", message);
+          this.handleConfirmationButton("goi_mine_btn", message);
         };
 
         const dice = [
@@ -388,7 +390,6 @@ define([
         for (let die_id = 1; die_id <= privateStoneDiceCount; die_id++) {
           dice.push({ id: die_id, type: "stone", face: 6 });
         }
-
         this.goiStocks[player_id].dice.scene.addDice(dice);
 
         this.goiStocks[player_id].gems.cargo = new CardStock(
@@ -396,13 +397,23 @@ define([
           document.getElementById(`goi_cargo:${player_id}`),
           {}
         );
+        this.goiStocks[player_id].gems.cargo.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          this.goiGlobals.selectedGems = selection;
+
+          this.handleConfirmationButton(
+            "goi_sellGems_btn",
+            _("Sell selected gems")
+          );
+        };
 
         this.goiStocks[player_id].explorers.scene = new CardStock(
           this.goiManagers.explorers,
           document.getElementById(`goi_sceneExplorer:${player_id}`),
           {}
         );
-
         for (const card_id in this.goiGlobals.explorers) {
           const explorerCard = this.goiGlobals.explorers[card_id];
 
@@ -473,7 +484,7 @@ define([
 
           if (skippable) {
             this.addActionButton(
-              "goi_skipBtn",
+              "goi_skip_btn",
               _("Skip"),
               "actSkipRevealTile",
               null,
@@ -496,7 +507,7 @@ define([
 
           if (revealsLimit < 2) {
             this.addActionButton(
-              "goi_undoBtn",
+              "goi_undo_btn",
               _("Change mind (reveal other tile)"),
               "actUndoSkipRevealTile",
               null,
@@ -531,9 +542,10 @@ define([
 
         if (stateName === "optionalActions") {
           const can_mine = args.args.can_mine;
+          const can_sellGems = args.args.can_sellGems;
 
           if (can_mine) {
-            this.addActionButton("goi_mineBtn", _("Mine"), "actMine");
+            this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
             this.goiStocks[this.player_id].dice.scene.setSelectionMode(
               "multiple"
             );
@@ -544,8 +556,17 @@ define([
                 return die.type === "stone" && !die.active;
               });
 
-            this.goiStocks[this.player_id].dice.scene.setSelectableDice(
-              selectableDice
+            if (selectableDice.length > 0) {
+              this.goiStocks[this.player_id].dice.scene.setSelectableDice(
+                selectableDice
+              );
+            }
+          }
+
+          if (can_sellGems) {
+            this.goiStocks[this.player_id].gems.cargo.setSelectionMode(
+              "multiple",
+              this.goiStocks[this.player_id].gems.cargo.getCards()
             );
           }
 
@@ -590,7 +611,7 @@ define([
     },
 
     handleConfirmationButton: function (
-      elementId = "goi_confirmationBtn",
+      elementId = "goi_confirmation_btn",
       message = _("Confirm selection")
     ) {
       document.getElementById(elementId)?.remove();
@@ -622,7 +643,17 @@ define([
       }
 
       if (stateName === "optionalActions") {
-        this.addActionButton(elementId, message, "actMine");
+        if (
+          elementId === "goi_sellGems_btn" &&
+          this.goiGlobals.selectedGems.length > 0
+        ) {
+          this.addActionButton(elementId, message, "actSellGems");
+          return;
+        }
+
+        if (elementId === "goi_mine_btn") {
+          this.addActionButton(elementId, message, "actMine");
+        }
       }
     },
 
@@ -669,6 +700,12 @@ define([
       });
     },
 
+    actSellGems: function () {
+      this.performAction("actSellGems", {
+        selectedGems: JSON.stringify(this.goiGlobals.selectedGems),
+      });
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -678,6 +715,7 @@ define([
       dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
       dojo.subscribe("resetExplorer", this, "notif_resetExplorer");
       dojo.subscribe("incGem", this, "notif_incGem");
+      dojo.subscribe("decGem", this, "notif_decGem");
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
       dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
@@ -725,12 +763,14 @@ define([
         this.goiStocks[player_id].gems.cargo.getCards().length + 1;
 
       for (let box = freeBox; box < freeBox + delta; box++) {
+        const gemCard = {
+          id: `${box}:${player_id}`,
+          type: gem,
+          type_arg: this.goiGlobals.gemIds[gem],
+        };
+
         this.goiStocks[player_id].gems.cargo.addCard(
-          {
-            id: `${box}:${player_id}`,
-            type: gem,
-            type_arg: this.goiGlobals.gemIds[gem],
-          },
+          gemCard,
           {
             fromElement: tileCard
               ? document.getElementById(
@@ -745,6 +785,16 @@ define([
           }
         );
       }
+    },
+
+    notif_decGem: function (notif) {
+      const player_id = notif.args.player_id;
+      const gem = notif.args.gem;
+      const gemCards = notif.args.gemCards;
+      const delta = notif.args.delta;
+
+      this.goiCounters.gems[player_id][gem].incValue(delta);
+      this.goiStocks.gems.void.addCards(gemCards);
     },
 
     notif_incCoin: function (notif) {

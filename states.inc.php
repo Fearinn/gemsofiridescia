@@ -67,8 +67,8 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may do any available optional actions, in any order'),
         "type" => "activeplayer",
         "args" => "argOptionalActions",
-        "possibleactions" => ["actMine", "finishTurn"],
-        "transitions" => ["repeat" => 32, "finishTurn" => 4]
+        "possibleactions" => ["actMine", "actSellGems", "actFinishTurn"],
+        "transitions" => ["repeat" => 32, "actFinishTurn" => 4]
     ],
 
     // Final state.

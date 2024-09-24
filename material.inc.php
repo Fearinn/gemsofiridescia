@@ -46,6 +46,13 @@ $this->explorers_info = [
     ],
 ];
 
+$this->gemIds_info = [
+    "amethyst" => 1,
+    "citrine" => 2,
+    "emerald" => 3,
+    "sapphire" => 4
+];
+
 $this->gems_info = [
     1 => [
         "name" => "amethyst",

@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
@@ -20,6 +21,7 @@
  * this.bgaPerformAction("actMyAction", ...)
  *
  */
+
 declare(strict_types=1);
 
 /**
@@ -32,13 +34,10 @@ class action_gemsofiridescia extends APP_GameAction
      */
     public function __default()
     {
-        if ($this->isArg("notifwindow"))
-        {
+        if ($this->isArg("notifwindow")) {
             $this->view = "common_notifwindow";
             $this->viewArgs["table"] = $this->getArg("table", AT_posint, true);
-        }
-        else
-        {
+        } else {
             $this->view = "gemsofiridescia_gemsofiridescia";
             $this->trace("Complete re-initialization of board game.");
         }
@@ -50,29 +49,4 @@ class action_gemsofiridescia extends APP_GameAction
      *
      * @throws BgaSystemException
      */
-    public function actPlayCard(): void
-    {
-        $this->setAjaxMode();
-
-        // Retrieve arguments.
-        // NOTE: These arguments correspond to what has been sent through the JS `bgaPerformAction` method.
-        $card_id = (int) $this->getArg("card_id", AT_posint, true);
-
-        // Then, call the appropriate method in your game logic.
-        $this->game->actPlayCard($card_id);
-
-        $this->ajaxResponse();
-    }
-
-    public function actPass(): void
-    {
-        $this->setAjaxMode();
-        
-        // Call the appropriate method in your game logic.
-        $this->game->actPass();
-
-        $this->ajaxResponse();
-    }
 }
-
-
