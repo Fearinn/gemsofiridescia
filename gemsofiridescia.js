@@ -394,8 +394,7 @@ define([
 
         this.goiStocks[player_id].gems.cargo = new CardStock(
           this.goiManagers.gems,
-          document.getElementById(`goi_cargo:${player_id}`),
-          {}
+          document.getElementById(`goi_cargo:${player_id}`)
         );
         this.goiStocks[player_id].gems.cargo.onSelectionChange = (
           selection,
@@ -448,6 +447,7 @@ define([
                 id: `${box}:${player_id}`,
                 type: gem,
                 type_arg: this.goiGlobals.gemIds[gem],
+                box: box,
               },
               {},
               {
@@ -598,6 +598,11 @@ define([
       if (stateName === "rainbowTile") {
         this.goiStocks.gems.rainbowOptions.removeAll();
       }
+
+      if (stateName === "optionalActions") {
+        this.goiStocks[this.player_id].gems.cargo.setSelectionMode("none");
+        this.goiStocks[this.player_id].dice.scene.setSelectionMode("none");
+      }
     },
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -665,6 +670,19 @@ define([
 
     calcBackgroundPosition: function (spritePosition) {
       return -spritePosition * 100 + "% 0%";
+    },
+
+    findFreeBox: function (player_id) {
+      const occupiedBoxes = [];
+      this.goiStocks[player_id].gems.cargo.getCards().forEach((gemCard) => {
+        occupiedBoxes.push(gemCard.box);
+      });
+
+      for (let box = 1; box <= 7; box++) {
+        if (!occupiedBoxes.includes(box)) {
+          return box;
+        }
+      }
     },
 
     ///////////////////////////////////////////////////
@@ -761,20 +779,20 @@ define([
 
     notif_incGem: function (notif) {
       const player_id = notif.args.player_id;
-      const gem = notif.args.gem;
+      const gemName = notif.args.gem;
       const delta = notif.args.delta;
       const tileCard = notif.args.tileCard;
 
-      this.goiCounters.gems[player_id][gem].incValue(delta);
+      this.goiCounters.gems[player_id][gemName].incValue(delta);
 
-      const freeBox =
-        this.goiStocks[player_id].gems.cargo.getCards().length + 1;
+      for (let gem = 1; gem <= delta; gem++) {
+        const box = this.findFreeBox(player_id);
 
-      for (let box = freeBox; box < freeBox + delta; box++) {
         const gemCard = {
           id: `${box}:${player_id}`,
-          type: gem,
-          type_arg: this.goiGlobals.gemIds[gem],
+          type: gemName,
+          type_arg: this.goiGlobals.gemIds[gemName],
+          box: box,
         };
 
         this.goiStocks[player_id].gems.cargo.addCard(
@@ -797,11 +815,11 @@ define([
 
     notif_decGem: function (notif) {
       const player_id = notif.args.player_id;
-      const gem = notif.args.gem;
+      const gemName = notif.args.gem;
       const gemCards = notif.args.gemCards;
       const delta = notif.args.delta;
 
-      this.goiCounters.gems[player_id][gem].incValue(delta);
+      this.goiCounters.gems[player_id][gemName].incValue(delta);
       this.goiStocks.gems.void.addCards(gemCards);
     },
 
