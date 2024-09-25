@@ -401,7 +401,15 @@ define([
           selection,
           lastChange
         ) => {
-          this.goiGlobals.selectedGems = selection;
+          if (selection.length > 0) {
+            if (selection[0].type === lastChange.type) {
+              this.goiGlobals.selectedGems.push(lastChange);
+            } else {
+              this.goiStocks[player_id].gems.cargo.unselectAll(true);
+              this.goiStocks[player_id].gems.cargo.selectCard(lastChange, true);
+              this.goiGlobals.selectedGems = [lastChange];
+            }
+          }
 
           this.handleConfirmationButton(
             "goi_sellGems_btn",
@@ -699,8 +707,10 @@ define([
     },
 
     actSellGems: function () {
+      const selectedGems = this.goiGlobals.selectedGems;
       this.performAction("actSellGems", {
-        selectedGems: JSON.stringify(this.goiGlobals.selectedGems),
+        gem_id: selectedGems[0].type_arg,
+        selectedGems: JSON.stringify(selectedGems),
       });
     },
 

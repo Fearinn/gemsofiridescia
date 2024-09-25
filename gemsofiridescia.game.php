@@ -234,7 +234,7 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSellGems(#[JsonParam(alphanum: false)] array $selectedGems, ): void
+    public function actSellGems(#[IntParam(min: 1, max: 4)] int $gem_id, #[JsonParam(alphanum: false)] array $selectedGems): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -242,23 +242,16 @@ class GemsOfIridescia extends Table
             throw new BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
         }
 
-        $playerGems = $this->getGems($player_id);
-
-        foreach ($playerGems as $gemName => $gemCount) {
-            $soldGems = [];
-
-            foreach ($selectedGems as $gemCard) {
-                if ($gemName === $gemCard["type"]) {
-                    $soldGems[] = $gemCard;
-                }
+        $soldGems = [];
+        foreach ($selectedGems as $gemCard) {
+            if ($gem_id !== (int) $gemCard["type_arg"]) {
+                throw new BgaVisibleSystemException("You must sell gems of the same type: actSellGems, $gem_id");
             }
 
-            $soldGemCount = count($soldGems);
-            if ($soldGemCount > 0) {
-                $this->sellGem($soldGemCount, $gemName, $soldGems, $player_id);
-            }
+            $soldGems[] = $gemCard;
         }
 
+        $this->sellGem(count($soldGems), $gem_id, $soldGems, $player_id);
         $this->globals->set("hasSoldGems", true);
 
         $this->gamestate->nextState("repeat");
@@ -642,9 +635,9 @@ class GemsOfIridescia extends Table
         $this->DbQuery("UPDATE player SET $gemName=$gemName-$delta WHERE player_id=$player_id");
     }
 
-    public function sellGem(int $delta, string $gemName, array $gemCards, int $player_id)
+    public function sellGem(int $delta, int $gem_id, array $gemCards, int $player_id)
     {
-        $gem_id = $this->gemIds_info[$gemName];
+        $gemName = $this->gems_info[$gem_id]["name"];
 
         $this->decGem(
             $delta,
