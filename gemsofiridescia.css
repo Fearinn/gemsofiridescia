@@ -229,7 +229,6 @@
   bottom: 12px;
 
   background-image: url("img/explorers.png");
-  transition: 1s;
   aspect-ratio: 1;
   width: var(--explorerSize);
   z-index: 1;
@@ -284,8 +283,9 @@
   box-shadow: none !important;
 }
 
-.goi_tile:hover .goi_explorer {
-  opacity: 0.3;
+.goi_tileContainer:hover > .goi_explorer {
+  opacity: 0.4;
+  transition: 2s;
 }
 
 .goi_explorer .card-side {
