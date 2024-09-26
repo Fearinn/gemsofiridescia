@@ -20,6 +20,7 @@ define([
   "dojo/_base/declare",
   "ebg/core/gamegui",
   "ebg/counter",
+  g_gamethemeurl + "modules/bga-help.js",
   g_gamethemeurl + "modules/bga-zoom.js",
   g_gamethemeurl + "modules/bga-cards.js",
   g_gamethemeurl + "modules/bga-dice.js",
@@ -29,9 +30,9 @@ define([
     constructor: function () {
       console.log("gemsofiridescia constructor");
 
-      this.goiGlobals = {};
-      this.goiManagers = {};
-      this.goiStocks = {
+      this.goi_globals = {};
+      this.goi_managers = {};
+      this.goi_stocks = {
         gems: {},
         tiles: {},
         explorers: {},
@@ -43,7 +44,7 @@ define([
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
-      this.goiGlobals.gemIds = {
+      this.goi_globals.gemIds = {
         iridescia: 0,
         amethyst: 1,
         citrine: 2,
@@ -52,24 +53,24 @@ define([
         coin: 5,
       };
 
-      this.goiGlobals.players = gamedatas.players;
-      this.goiGlobals.player = gamedatas.players[this.player_id];
-      this.goiGlobals.tileBoard = gamedatas.tileBoard;
-      this.goiGlobals.playerBoards = gamedatas.playerBoards;
-      this.goiGlobals.revealedTiles = gamedatas.revealedTiles;
-      this.goiGlobals.explorers = gamedatas.explorers;
-      this.goiGlobals.gems = gamedatas.gems;
-      this.goiGlobals.marketValues = gamedatas.marketValues;
-      this.goiGlobals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
-      this.goiGlobals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
+      this.goi_globals.players = gamedatas.players;
+      this.goi_globals.player = gamedatas.players[this.player_id];
+      this.goi_globals.tileBoard = gamedatas.tileBoard;
+      this.goi_globals.playerBoards = gamedatas.playerBoards;
+      this.goi_globals.revealedTiles = gamedatas.revealedTiles;
+      this.goi_globals.explorers = gamedatas.explorers;
+      this.goi_globals.gems = gamedatas.gems;
+      this.goi_globals.marketValues = gamedatas.marketValues;
+      this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
+      this.goi_globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
 
-      this.goiGlobals.selectedTile = null;
-      this.goiGlobals.selectedGem = null;
-      this.goiGlobals.selectedGems = [];
-      this.goiGlobals.selectedDiceCount = 0;
+      this.goi_globals.selectedTile = null;
+      this.goi_globals.selectedGem = null;
+      this.goi_globals.selectedGems = [];
+      this.goi_globals.selectedDiceCount = 0;
 
-      for (const player_id in this.goiGlobals.players) {
-        this.goiStocks[player_id] = {
+      for (const player_id in this.goi_globals.players) {
+        this.goi_stocks[player_id] = {
           gems: {},
           tiles: {},
           explorers: {},
@@ -77,7 +78,22 @@ define([
         };
       }
 
-      this.goiManagers.zoom = new ZoomManager({
+      const aidBackgroundPosition = this.calcBackgroundPosition(
+        this.goi_globals.playerBoards[this.player_id] - 1
+      );
+
+      this.goi_managers.help = new HelpManager(this, {
+        buttons: [
+          new BgaHelpExpandableButton({
+            title: _("Player aid"),
+            expandedHeight: "273px",
+            foldedHtml: `<span class="goi_playerAid-folded">?</span>`,
+            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}"></div>`,
+          }),
+        ],
+      });
+
+      this.goi_managers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
         zoomControls: {
@@ -88,7 +104,7 @@ define([
         },
       });
 
-      this.goiManagers.dice = new DiceManager(this, {
+      this.goi_managers.dice = new DiceManager(this, {
         selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
@@ -98,7 +114,7 @@ define([
         },
       });
 
-      this.goiManagers.gems = new CardManager(this, {
+      this.goi_managers.gems = new CardManager(this, {
         getId: (card) => `goi_gem-${card.id}-${card.type}`,
         selectedCardClass: "goi_selectedGem",
         setupDiv: (card, div) => {
@@ -112,7 +128,7 @@ define([
         setupBackDiv: (card, div) => {},
       });
 
-      this.goiManagers.tiles = new CardManager(this, {
+      this.goi_managers.tiles = new CardManager(this, {
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -140,14 +156,14 @@ define([
         },
       });
 
-      this.goiManagers.explorers = new CardManager(this, {
+      this.goi_managers.explorers = new CardManager(this, {
         getId: (card) => `goi_explorer-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
           div.style.position = "relative";
 
           const spritePosition =
-            this.goiGlobals.playerBoards[card.type_arg] - 1;
+            this.goi_globals.playerBoards[card.type_arg] - 1;
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
 
@@ -157,33 +173,33 @@ define([
         setupBackDiv: (card, div) => {},
       });
 
-      this.goiStocks.gems.rainbowOptions = new CardStock(
-        this.goiManagers.gems,
+      this.goi_stocks.gems.rainbowOptions = new CardStock(
+        this.goi_managers.gems,
         document.getElementById("goi_rainbowOptions")
       );
 
-      this.goiStocks.gems.rainbowOptions.onSelectionChange = (
+      this.goi_stocks.gems.rainbowOptions.onSelectionChange = (
         selection,
         lastChange
       ) => {
         if (selection.length > 0) {
-          this.goiGlobals.selectedGem = lastChange;
+          this.goi_globals.selectedGem = lastChange;
         } else {
-          this.goiGlobals.selectedGem = null;
+          this.goi_globals.selectedGem = null;
         }
 
         this.handleConfirmationButton();
       };
 
-      this.goiStocks.gems.void = new VoidStock(
-        this.goiManagers.gems,
+      this.goi_stocks.gems.void = new VoidStock(
+        this.goi_managers.gems,
         document.getElementById("goi_gemVoid"),
         {}
       );
 
       /* PLAYER PANELS */
       this.goiCounters.gems = {};
-      for (const player_id in this.goiGlobals.players) {
+      for (const player_id in this.goi_globals.players) {
         document.getElementById(
           `player_board_${player_id}`
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
@@ -217,38 +233,41 @@ define([
         for (const gem in gemCounters) {
           const gemCounter = gemCounters[gem];
           gemCounter.create(`goi_gemCounter:${player_id}-${gem}`);
-          gemCounter.setValue(this.goiGlobals.gems[player_id][gem]);
+          gemCounter.setValue(this.goi_globals.gems[player_id][gem]);
         }
       }
 
       /* BOARDS */
 
       /* tiles */
-      this.goiStocks.tiles.board = new CardStock(
-        this.goiManagers.tiles,
+      this.goi_stocks.tiles.board = new CardStock(
+        this.goi_managers.tiles,
         document.getElementById("goi_board"),
         {}
       );
 
-      this.goiStocks.tiles.board.onSelectionChange = (selected, lastChange) => {
+      this.goi_stocks.tiles.board.onSelectionChange = (
+        selected,
+        lastChange
+      ) => {
         const stateName = this.getStateName();
 
         if (stateName === "revealTile" || stateName === "moveExplorer") {
           if (selected.length === 0) {
-            this.goiGlobals.selectedTile = null;
+            this.goi_globals.selectedTile = null;
           } else {
-            this.goiGlobals.selectedTile = lastChange;
+            this.goi_globals.selectedTile = lastChange;
           }
 
           this.handleConfirmationButton();
         }
       };
 
-      const tileBoard = this.goiGlobals.tileBoard;
+      const tileBoard = this.goi_globals.tileBoard;
       for (const tileCard_id in tileBoard) {
         const tileCard = tileBoard[tileCard_id];
 
-        this.goiStocks.tiles.board
+        this.goi_stocks.tiles.board
           .addCard(
             tileCard,
             {},
@@ -259,27 +278,28 @@ define([
             }
           )
           .then(() => {
-            this.goiStocks.tiles.board.setCardVisible(tileCard, false);
+            this.goi_stocks.tiles.board.setCardVisible(tileCard, false);
 
-            const revealedTileCard = this.goiGlobals.revealedTiles[tileCard_id];
+            const revealedTileCard =
+              this.goi_globals.revealedTiles[tileCard_id];
             if (revealedTileCard) {
-              this.goiStocks.tiles.board.flipCard(revealedTileCard);
+              this.goi_stocks.tiles.board.flipCard(revealedTileCard);
             }
           });
       }
 
-      this.goiStocks.explorers.board = new CardStock(
-        this.goiManagers.explorers,
+      this.goi_stocks.explorers.board = new CardStock(
+        this.goi_managers.explorers,
         document.getElementById("goi_explorerBoard"),
         {}
       );
 
-      for (const explorerCard_id in this.goiGlobals.explorers) {
-        const explorerCard = this.goiGlobals.explorers[explorerCard_id];
+      for (const explorerCard_id in this.goi_globals.explorers) {
+        const explorerCard = this.goi_globals.explorers[explorerCard_id];
         const tileHex = explorerCard.location_arg;
 
         if (explorerCard["location"] === "board") {
-          this.goiStocks.explorers.board.addCard(
+          this.goi_stocks.explorers.board.addCard(
             explorerCard,
             {},
             {
@@ -291,38 +311,42 @@ define([
         }
       }
 
-      this.goiStocks.dice.gems = new DiceStock(
-        this.goiManagers.dice,
+      this.goi_stocks.dice.gems = new DiceStock(
+        this.goi_managers.dice,
         document.getElementById("goi_gemDice"),
         {}
       );
 
-      for (const gem in this.goiGlobals.marketValues) {
-        const value = this.goiGlobals.marketValues[gem];
+      for (const gem in this.goi_globals.marketValues) {
+        const value = this.goi_globals.marketValues[gem];
 
-        this.goiStocks.dice.gems.addDie({
+        this.goi_stocks.dice.gems.addDie({
           id: gem,
           face: value,
           type: "gem",
         });
       }
 
-      this.goiStocks.dice.stone = new DiceStock(
-        this.goiManagers.dice,
+      this.goi_stocks.dice.stone = new DiceStock(
+        this.goi_managers.dice,
         document.getElementById("goi_stoneDice"),
         {}
       );
 
-      for (let die = 4; die > 4 - this.goiGlobals.publicStoneDiceCount; die--) {
-        this.goiStocks.dice.stone.addDie({
+      for (
+        let die = 4;
+        die > 4 - this.goi_globals.publicStoneDiceCount;
+        die--
+      ) {
+        this.goi_stocks.dice.stone.addDie({
           id: die,
           type: "stone",
           face: 6,
         });
       }
 
-      for (const player_id in this.goiGlobals.players) {
-        const spritePosition = this.goiGlobals.playerBoards[player_id] - 1;
+      for (const player_id in this.goi_globals.players) {
+        const spritePosition = this.goi_globals.playerBoards[player_id] - 1;
         const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
         document.getElementById(
@@ -344,20 +368,20 @@ define([
         </div>`;
       }
 
-      for (const player_id in this.goiGlobals.players) {
-        const player_color = this.goiGlobals.players[player_id].color;
+      for (const player_id in this.goi_globals.players) {
+        const player_color = this.goi_globals.players[player_id].color;
 
-        this.goiStocks[player_id].dice.scene = new DiceStock(
-          this.goiManagers.dice,
+        this.goi_stocks[player_id].dice.scene = new DiceStock(
+          this.goi_managers.dice,
           document.getElementById(`goi_sceneDice:${player_id}`)
         );
 
-        this.goiStocks[player_id].dice.scene.onSelectionChange = (
+        this.goi_stocks[player_id].dice.scene.onSelectionChange = (
           selection,
           lastChange
         ) => {
           const selectedDiceCount = selection.length;
-          this.goiGlobals.selectedDiceCount = selectedDiceCount;
+          this.goi_globals.selectedDiceCount = selectedDiceCount;
 
           const message =
             selectedDiceCount === 0
@@ -385,29 +409,34 @@ define([
         ];
 
         const privateStoneDiceCount =
-          this.goiGlobals.privateStoneDiceCount[player_id];
+          this.goi_globals.privateStoneDiceCount[player_id];
 
         for (let die_id = 1; die_id <= privateStoneDiceCount; die_id++) {
           dice.push({ id: die_id, type: "stone", face: 6 });
         }
-        this.goiStocks[player_id].dice.scene.addDice(dice);
+        this.goi_stocks[player_id].dice.scene.addDice(dice);
 
-        this.goiStocks[player_id].gems.cargo = new CardStock(
-          this.goiManagers.gems,
+        this.goi_stocks[player_id].gems.cargo = new CardStock(
+          this.goi_managers.gems,
           document.getElementById(`goi_cargo:${player_id}`)
         );
-        this.goiStocks[player_id].gems.cargo.onSelectionChange = (
+        this.goi_stocks[player_id].gems.cargo.onSelectionChange = (
           selection,
           lastChange
         ) => {
           if (selection.length > 0) {
             if (selection[0].type === lastChange.type) {
-              this.goiGlobals.selectedGems.push(lastChange);
+              this.goi_globals.selectedGems.push(lastChange);
             } else {
-              this.goiStocks[player_id].gems.cargo.unselectAll(true);
-              this.goiStocks[player_id].gems.cargo.selectCard(lastChange, true);
-              this.goiGlobals.selectedGems = [lastChange];
+              this.goi_stocks[player_id].gems.cargo.unselectAll(true);
+              this.goi_stocks[player_id].gems.cargo.selectCard(
+                lastChange,
+                true
+              );
+              this.goi_globals.selectedGems = [lastChange];
             }
+          } else {
+            this.goi_globals.selectedGems = [];
           }
 
           this.handleConfirmationButton(
@@ -416,23 +445,23 @@ define([
           );
         };
 
-        this.goiStocks[player_id].explorers.scene = new CardStock(
-          this.goiManagers.explorers,
+        this.goi_stocks[player_id].explorers.scene = new CardStock(
+          this.goi_managers.explorers,
           document.getElementById(`goi_sceneExplorer:${player_id}`),
           {}
         );
-        for (const card_id in this.goiGlobals.explorers) {
-          const explorerCard = this.goiGlobals.explorers[card_id];
+        for (const card_id in this.goi_globals.explorers) {
+          const explorerCard = this.goi_globals.explorers[card_id];
 
           if (
             explorerCard["location"] === "scene" &&
             explorerCard["type_arg"] == player_id
           ) {
-            this.goiStocks[player_id].explorers.scene.addCard(explorerCard);
+            this.goi_stocks[player_id].explorers.scene.addCard(explorerCard);
           }
         }
 
-        const gems = this.goiGlobals.gems[player_id];
+        const gems = this.goi_globals.gems[player_id];
 
         for (const gem in gems) {
           if (gem === "coin") {
@@ -442,11 +471,11 @@ define([
           const gemCount = gems[gem];
 
           for (let box = 1; box <= gemCount; box++) {
-            this.goiStocks[player_id].gems.cargo.addCard(
+            this.goi_stocks[player_id].gems.cargo.addCard(
               {
                 id: `${box}:${player_id}`,
                 type: gem,
-                type_arg: this.goiGlobals.gemIds[gem],
+                type_arg: this.goi_globals.gemIds[gem],
                 box: box,
               },
               {},
@@ -501,7 +530,7 @@ define([
             );
           }
 
-          this.goiStocks.tiles.board.setSelectionMode(
+          this.goi_stocks.tiles.board.setSelectionMode(
             "single",
             revealableTiles
           );
@@ -524,23 +553,23 @@ define([
             );
           }
 
-          this.goiStocks.tiles.board.setSelectionMode("single");
-          this.goiStocks.tiles.board.setSelectableCards(explorableTiles);
+          this.goi_stocks.tiles.board.setSelectionMode("single");
+          this.goi_stocks.tiles.board.setSelectableCards(explorableTiles);
 
           return;
         }
 
         if (stateName === "rainbowTile") {
-          for (const gem in this.goiGlobals.gems[this.player_id]) {
-            this.goiStocks.gems.rainbowOptions.addCard({
+          for (const gem in this.goi_globals.gems[this.player_id]) {
+            this.goi_stocks.gems.rainbowOptions.addCard({
               id: `${Date.now()}${Math.random()}`,
               type: gem,
-              type_arg: this.goiGlobals.gemIds[gem],
+              type_arg: this.goi_globals.gemIds[gem],
             });
           }
 
-          const gemCards = this.goiStocks.gems.rainbowOptions.getCards();
-          this.goiStocks.gems.rainbowOptions.setSelectionMode(
+          const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
+          this.goi_stocks.gems.rainbowOptions.setSelectionMode(
             "single",
             gemCards
           );
@@ -555,14 +584,14 @@ define([
           if (can_mine) {
             this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
 
-            const selectableDice = this.goiStocks[this.player_id].dice.scene
+            const selectableDice = this.goi_stocks[this.player_id].dice.scene
               .getDice()
               .filter((die) => {
                 return die.type === "stone" && !die.active;
               });
 
             if (selectableDice.length > 0) {
-              this.goiStocks[this.player_id].dice.scene.setSelectionMode(
+              this.goi_stocks[this.player_id].dice.scene.setSelectionMode(
                 "multiple",
                 selectableDice
               );
@@ -570,9 +599,9 @@ define([
           }
 
           if (can_sellGems) {
-            this.goiStocks[this.player_id].gems.cargo.setSelectionMode(
+            this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
               "multiple",
-              this.goiStocks[this.player_id].gems.cargo.getCards()
+              this.goi_stocks[this.player_id].gems.cargo.getCards()
             );
           }
 
@@ -588,20 +617,20 @@ define([
       console.log("Leaving state: " + stateName);
 
       if (stateName === "revealTile") {
-        this.goiStocks.tiles.board.setSelectionMode("none");
+        this.goi_stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "moveExplorer") {
-        this.goiStocks.tiles.board.setSelectionMode("none");
+        this.goi_stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "rainbowTile") {
-        this.goiStocks.gems.rainbowOptions.removeAll();
+        this.goi_stocks.gems.rainbowOptions.removeAll();
       }
 
       if (stateName === "optionalActions") {
-        this.goiStocks[this.player_id].gems.cargo.setSelectionMode("none");
-        this.goiStocks[this.player_id].dice.scene.setSelectionMode("none");
+        this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
+        this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
       }
     },
 
@@ -629,7 +658,7 @@ define([
       const stateName = this.getStateName();
 
       if (stateName === "revealTile") {
-        const selectedTile = this.goiGlobals.selectedTile;
+        const selectedTile = this.goi_globals.selectedTile;
         if (selectedTile) {
           this.addActionButton(elementId, message, "actRevealTile");
           return;
@@ -637,7 +666,7 @@ define([
       }
 
       if (stateName === "moveExplorer") {
-        const selectedTile = this.goiGlobals.selectedTile;
+        const selectedTile = this.goi_globals.selectedTile;
         if (selectedTile) {
           this.addActionButton(elementId, message, "actMoveExplorer");
           return;
@@ -645,7 +674,7 @@ define([
       }
 
       if (stateName === "rainbowTile") {
-        const selectedGem = this.goiGlobals.selectedGem;
+        const selectedGem = this.goi_globals.selectedGem;
 
         if (selectedGem) {
           this.addActionButton(elementId, message, "actPickRainbowGem");
@@ -656,7 +685,7 @@ define([
       if (stateName === "optionalActions") {
         if (
           elementId === "goi_sellGems_btn" &&
-          this.goiGlobals.selectedGems.length > 0
+          this.goi_globals.selectedGems.length > 0
         ) {
           this.addActionButton(elementId, message, "actSellGems");
           return;
@@ -674,7 +703,7 @@ define([
 
     findFreeBox: function (player_id) {
       const occupiedBoxes = [];
-      this.goiStocks[player_id].gems.cargo.getCards().forEach((gemCard) => {
+      this.goi_stocks[player_id].gems.cargo.getCards().forEach((gemCard) => {
         occupiedBoxes.push(gemCard.box);
       });
 
@@ -694,7 +723,7 @@ define([
 
     actRevealTile: function () {
       this.performAction("actRevealTile", {
-        tileCard_id: this.goiGlobals.selectedTile.id,
+        tileCard_id: this.goi_globals.selectedTile.id,
       });
     },
 
@@ -708,24 +737,24 @@ define([
 
     actMoveExplorer: function () {
       this.performAction("actMoveExplorer", {
-        tileCard_id: this.goiGlobals.selectedTile.id,
+        tileCard_id: this.goi_globals.selectedTile.id,
       });
     },
 
     actPickRainbowGem: function () {
       this.performAction("actPickRainbowGem", {
-        gem_id: this.goiGlobals.selectedGem.type_arg,
+        gem_id: this.goi_globals.selectedGem.type_arg,
       });
     },
 
     actMine: function () {
       this.performAction("actMine", {
-        stoneDiceCount: this.goiGlobals.selectedDiceCount,
+        stoneDiceCount: this.goi_globals.selectedDiceCount,
       });
     },
 
     actSellGems: function () {
-      const selectedGems = this.goiGlobals.selectedGems;
+      const selectedGems = this.goi_globals.selectedGems;
       this.performAction("actSellGems", {
         gem_id: selectedGems[0].type_arg,
         selectedGems: JSON.stringify(selectedGems),
@@ -752,14 +781,14 @@ define([
     notif_revealTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      this.goiStocks.tiles.board.flipCard(tileCard);
+      this.goi_stocks.tiles.board.flipCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
-      this.goiStocks.explorers.board.addCard(
+      this.goi_stocks.explorers.board.addCard(
         explorerCard,
         {},
         {
@@ -774,7 +803,7 @@ define([
       const player_id = notif.args.player_id;
       const explorerCard = notif.args.explorerCard;
 
-      this.goiStocks[player_id].explorers.scene.addCard(explorerCard);
+      this.goi_stocks[player_id].explorers.scene.addCard(explorerCard);
     },
 
     notif_incGem: function (notif) {
@@ -791,11 +820,11 @@ define([
         const gemCard = {
           id: `${box}:${player_id}`,
           type: gemName,
-          type_arg: this.goiGlobals.gemIds[gemName],
+          type_arg: this.goi_globals.gemIds[gemName],
           box: box,
         };
 
-        this.goiStocks[player_id].gems.cargo.addCard(
+        this.goi_stocks[player_id].gems.cargo.addCard(
           gemCard,
           {
             fromElement: tileCard
@@ -820,7 +849,7 @@ define([
       const delta = notif.args.delta;
 
       this.goiCounters.gems[player_id][gemName].incValue(delta);
-      this.goiStocks.gems.void.addCards(gemCards);
+      this.goi_stocks.gems.void.addCards(gemCards);
     },
 
     notif_incCoin: function (notif) {
@@ -841,7 +870,7 @@ define([
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
 
-      this.goiStocks[player_id].dice.scene.addDie({
+      this.goi_stocks[player_id].dice.scene.addDie({
         id: die_id,
         type: "stone",
       });
@@ -851,12 +880,12 @@ define([
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
 
-      this.goiStocks[player_id].dice.scene.removeDie({
+      this.goi_stocks[player_id].dice.scene.removeDie({
         id: die_id,
         type: "stone",
       });
 
-      this.goiStocks[player_id].dice.scene.addDie({
+      this.goi_stocks[player_id].dice.scene.addDie({
         id: die_id,
         type: "stone",
         active: true,
@@ -869,7 +898,7 @@ define([
       const face = notif.args.face;
       const type = notif.args.type;
 
-      this.goiStocks[player_id].dice.scene.rollDie({
+      this.goi_stocks[player_id].dice.scene.rollDie({
         id: die_id,
         face: face,
         type: type,

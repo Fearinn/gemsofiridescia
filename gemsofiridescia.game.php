@@ -889,7 +889,6 @@ class GemsOfIridescia extends Table
         $this->globals->set("playerBoards", $playerBoards);
         $this->explorer_cards->moveAllCardsInLocation("deck", "box");
 
-        $this->globals->set("playerBoards", $playerBoards);
         $tiles = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
