@@ -82,13 +82,39 @@ define([
         this.goi_globals.playerBoards[this.player_id] - 1
       );
 
+      const aidContent = `
+      <div id="goi_aidContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
+        <div>
+          <h3>${_("Main Actions")}</h3>
+          <span>1 ${_("Reveal up to 2 adjacent tiles")}</span>
+          <span>2 ${_("Move your explorer on to an adjacent tile")}</span>
+        </div>
+        <div>
+          <h3>${_("Optional Actions")}</h3>
+          <span> 3a ${_("Spend 3 coins to Mine Gems (∞)")}</span>
+          <span>3b ${_("Purchase an Item Card (once)")}</span>
+          <span>3c ${_("Play Item Card(s) (∞)")}</span>
+          <span>3d ${_("Sell Gems (once)")}</span>
+        </div>
+        <div>
+          <h3>${_("End of Turn")}</h3>
+          <span>4 ${_("Restore Relic(s) (optional)")}</span>
+          <span>5 ${_("Collect hex tile")}</span>
+          <span>6 ${_("Adjust Market die")}</span>
+        </div>
+      </div>
+      `;
+
       this.goi_managers.help = new HelpManager(this, {
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player aid"),
             expandedHeight: "273px",
             foldedHtml: `<span class="goi_playerAid-folded">?</span>`,
-            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}"></div>`,
+            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}">
+              <span class="goi_cardTitle">${_("Player Aid")}</span>
+              ${aidContent}
+            </div>`,
           }),
         ],
       });
@@ -97,11 +123,9 @@ define([
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
         zoomControls: {
-          color: "white",
+          color: "black",
         },
-        autoZoom: {
-          expectedWidth: 740,
-        },
+        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75],
       });
 
       this.goi_managers.dice = new DiceManager(this, {

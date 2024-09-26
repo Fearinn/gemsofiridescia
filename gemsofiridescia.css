@@ -13,6 +13,11 @@
  *
  */
 
+/* .goi_themedBackground body {
+  background-image: url("img/background.jpg");
+  background-size: cover;
+} */
+
 .goi_gameArea {
   --boardSize: 2500px;
   --playerBoardSize: 600px;
@@ -27,17 +32,59 @@
   gap: 8px;
 }
 
+.goi_cardTitle {
+  font-family: "sketchnote-text", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  color: white;
+
+  position: absolute;
+  top: 5%;
+  left: 0;
+  width: 100%;
+}
+
+.goi_cardContent {
+  font-size: 0.8em;
+
+  position: absolute;
+  top: 17%;
+  left: 2.5%;
+  text-align: left;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: var(--maxHeight);
+  overflow-y: auto;
+  width: 100%;
+}
+
+.goi_cardContent > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.goi_cardContent h3 {
+  font-size: 1.1em;
+  margin: 0;
+}
+
 .goi_playerAid-folded {
+  font-family: "sketchnote-text", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-size: cover;
   font-size: 2rem;
-  font-weight: bold;
   height: 100%;
 }
 
 .goi_helpCard {
+  position: relative;
   background-image: url("img/playerAids.png");
   height: 273px;
   width: 200px;
