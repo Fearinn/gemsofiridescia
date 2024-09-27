@@ -90,6 +90,16 @@
   width: 200px;
 }
 
+.goi_helpCard .goi_coinIcon {
+  display: inline-block;
+  background-image: url("img/mini_coin.png");
+  background-position: -400% 0;
+  height: 12px;
+  width: 12px;
+  border-radius: 100%;
+  background-color: blue;
+}
+
 .goi_playerPanel {
   display: flex;
   flex-wrap: wrap;

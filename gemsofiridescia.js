@@ -82,6 +82,13 @@ define([
         this.goi_globals.playerBoards[this.player_id] - 1
       );
 
+      const sentence3a = this.format_string(
+        _("Spend 3 ${coin_icon} to Mine Gems (∞)"),
+        {
+          coin_icon: `<span class="goi_coinIcon"></span>`,
+        }
+      );
+
       const aidContent = `
       <div id="goi_aidContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
         <div>
@@ -91,7 +98,7 @@ define([
         </div>
         <div>
           <h3>${_("Optional Actions")}</h3>
-          <span> 3a ${_("Spend 3 coins to Mine Gems (∞)")}</span>
+          <span> 3a ${sentence3a}</span>
           <span>3b ${_("Purchase an Item Card (once)")}</span>
           <span>3c ${_("Play Item Card(s) (∞)")}</span>
           <span>3d ${_("Sell Gems (once)")}</span>
