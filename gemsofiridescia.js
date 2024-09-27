@@ -63,6 +63,8 @@ define([
       this.goi_globals.marketValues = gamedatas.marketValues;
       this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
       this.goi_globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
+      this.goi_globals.relicsDeck = gamedatas.relicsDeck;
+      this.goi_globals.relicsMarket = gamedatas.relicsMarket;
 
       this.goi_globals.selectedTile = null;
       this.goi_globals.selectedGem = null;

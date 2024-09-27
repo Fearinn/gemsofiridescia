@@ -22,7 +22,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
-use \Bga\GameFramework\Actions\Types\StringParam;
 
 class GemsOfIridescia extends Table
 {
@@ -37,6 +36,9 @@ class GemsOfIridescia extends Table
 
         $this->explorer_cards = $this->getNew("module.common.deck");
         $this->explorer_cards->init("explorer");
+
+        $this->relic_cards = $this->getNew("module.common.deck");
+        $this->relic_cards->init("relic");
 
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg ";
     }
@@ -767,6 +769,30 @@ class GemsOfIridescia extends Table
         return true;
     }
 
+    function getRelicsDeck(bool $market = false): array
+    {
+        if ($market) {
+            return $this->relic_cards->getCardsInLocation("market");
+        }
+
+        $relicsDeck = $this->relic_cards->getCardsInLocation("deck");
+        return $this->hideCards($relicsDeck);
+    }
+
+    function getRelicsByPlayer(?int $player_id): array
+    {
+        if ($player_id) {
+            return $this->relic_cards->getCardsInLocation("hand", $player_id);
+        }
+
+        $players = $this->loadPlayersBasicInfos();
+        $relicCards = [];
+
+        foreach ($players as $player_id => $player) {
+            $relicCards[$player_id] = $this->relic_cards->getCardsInLocation("hand", $player_id);
+        }
+    }
+
     /**
      * Migrate database.
      *
@@ -823,6 +849,8 @@ class GemsOfIridescia extends Table
         $result["marketValues"] = $this->getMarketValues(null);
         $result["publicStoneDiceCount"] = $this->globals->get("publicStoneDiceCount");
         $result["privateStoneDiceCount"] = $this->globals->get("privateStoneDiceCount");
+        $result["relicsDeck"] = $this->getRelicsDeck(false);
+        $result["relicsMarket"] = $this->getRelicsDeck(true);
 
         return $result;
     }
@@ -918,6 +946,14 @@ class GemsOfIridescia extends Table
                 card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58)");
             }
         }
+
+        $relicCards = [];
+        foreach ($this->relics_info as $relic_id => $relic_info) {
+            $relicCards[] = ["type" => $relic_info["leadGem"], "type_arg" => $relic_id, "nbr" => 1];
+        }
+        $this->relic_cards->createCards($relicCards, "deck");
+        $this->relic_cards->shuffle("deck");
+        $this->relic_cards->pickCardsForLocation(5, "deck", "market");
 
         $this->globals->set("revealsLimit", 0);
         $this->globals->set("publicStoneDiceCount", 4);

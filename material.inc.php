@@ -416,3 +416,176 @@ $this->tiles_info = [
         "effect" => 2,
     ]
 ];
+
+
+$this->relics_info = [
+
+    1 => [
+        "name" => "Amethyst Ring",
+        "tr_name" => clienttranslate("Amethyst Ring"),
+        "leadGem" => 1,
+        "type" => 1,
+        "points" => 5
+    ],
+    2 => [
+        "name" => "Citrine Amulet",
+        "tr_name" => clienttranslate("Citrine Amulet"),
+        "leadGem" => 2,
+        "type" => 1,
+        "points" => 5
+    ],
+    3 => [
+        "name" => "Emerald Brooch",
+        "tr_name" => clienttranslate("Emerald Brooch"),
+        "leadGem" => 3,
+        "type" => 1,
+        "points" => 5
+    ],
+    4 => [
+        "name" => "Sapphire Chatelaine",
+        "tr_name" => clienttranslate("Sapphire Chatelaine"),
+        "leadGem" => 4,
+        "type" => 1,
+        "points" => 5
+    ],
+    5 => [
+        "name" => "Amethyst Bracelet",
+        "tr_name" => clienttranslate("Amethyst Bracelet"),
+        "leadGem" => 1,
+        "type" => 1,
+        "points" => 6
+    ],
+    6 => [
+        "name" => "Emerald Jewelry Box",
+        "tr_name" => clienttranslate("Emerald Jewelry Box"),
+        "leadGem" => 3,
+        "type" => 1,
+        "points" => 6
+    ],
+    7 => [
+        "name" => "Sapphire Pendant",
+        "tr_name" => clienttranslate("Sapphire Pendant"),
+        "leadGem" => 4,
+        "type" => 1,
+        "points" => 6
+    ],
+    8 => [
+        "name" => "Citrine Earrings",
+        "tr_name" => clienttranslate("Citrine Earrings"),
+        "leadGem" => 2,
+        "type" => 1,
+        "points" => 6
+    ],
+    9 => [
+        "name" => "Emerald Goggles",
+        "tr_name" => clienttranslate("Emerald Goggles"),
+        "leadGem" => 3,
+        "type" => 2,
+        "points" => 5
+    ],
+    10 => [
+        "name" => "Sapphire Spyglass",
+        "tr_name" => clienttranslate("Sapphire Spyglass"),
+        "leadGem" => 4,
+        "type" => 2,
+        "points" => 5
+    ],
+    11 => [
+        "name" => "Citrine Miner’s Hat",
+        "tr_name" => clienttranslate("Citrine Miner’s Hat"),
+        "leadGem" => 2,
+        "type" => 2,
+        "points" => 5
+    ],
+    12 => [
+        "name" => "Amethyst Compass",
+        "tr_name" => clienttranslate("Amethyst Compass"),
+        "leadGem" => 1,
+        "type" => 2,
+        "points" => 5
+    ],
+    13 => [
+        "name" => "Sapphire Droid",
+        "tr_name" => clienttranslate("Sapphire Droid"),
+        "leadGem" => 4,
+        "type" => 2,
+        "points" => 7
+    ],
+    14 => [
+        "name" => "Amethyst Power Core",
+        "tr_name" => clienttranslate("Amethyst Power Core"),
+        "leadGem" => 1,
+        "type" => 2,
+        "points" => 9
+    ],
+    15 => [
+        "name" => "Sapphire Sun Dial",
+        "tr_name" => clienttranslate("Sapphire Sun Dial"),
+        "leadGem" => 4,
+        "type" => 3,
+        "points" => 5
+    ],
+    16 => [
+        "name" => "Amethyst Vase",
+        "tr_name" => clienttranslate("Amethyst Vase"),
+        "leadGem" => 1,
+        "type" => 3,
+        "points" => 5
+    ],
+    17 => [
+        "name" => "Emerald Lantern",
+        "tr_name" => clienttranslate("Emerald Lantern"),
+        "leadGem" => 3,
+        "type" => 3,
+        "points" => 6
+    ],
+    18 => [
+        "name" => "Citrine Plate",
+        "tr_name" => clienttranslate("Citrine Plate"),
+        "leadGem" => 2,
+        "type" => 3,
+        "points" => 6
+    ],
+    19 => [
+        "name" => "Citrine Talisman",
+        "tr_name" => clienttranslate("Citrine Talisman"),
+        "leadGem" => 2,
+        "type" => 3,
+        "points" => 9
+    ],
+    20 => [
+        "name" => "Emerald Tablet",
+        "tr_name" => clienttranslate("Emerald Tablet"),
+        "leadGem" => 3,
+        "type" => 3,
+        "points" => 9
+    ],
+    21 => [
+        "name" => "Iridia Chalice",
+        "tr_name" => clienttranslate("Iridia Chalice"),
+        "leadGem" => 0,
+        "type" => 4,
+        "points" => 10
+    ],
+    22 => [
+        "name" => "Iridia Crown",
+        "tr_name" => clienttranslate("Iridia Crown"),
+        "leadGem" => 0,
+        "type" => 4,
+        "points" => 10
+    ],
+    23 => [
+        "name" => "Iridia Tiara",
+        "tr_name" => clienttranslate("Iridia Tiara"),
+        "leadGem" => 0,
+        "type" => 4,
+        "points" => 10
+    ],
+    24 => [
+        "name" => "The Book of Iridescia",
+        "tr_name" => clienttranslate("The Book of Iridescia"),
+        "leadGem" => 0,
+        "type" => 4,
+        "points" => 10
+    ]
+];
