@@ -542,6 +542,16 @@ define([
           const revealsLimit = args.args.revealsLimit;
           const skippable = args.args.skippable;
 
+          if (!skippable) {
+            this.gamedatas.gamestate.description = _(
+              "${actplayer} must reveal a tile"
+            );
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} must reveal a tile"
+            );
+            this.updatePageTitle();
+          }
+
           if (revealsLimit === 1) {
             this.gamedatas.gamestate.description = _(
               "${actplayer} may reveal another tile"
