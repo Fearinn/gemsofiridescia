@@ -9,7 +9,7 @@
 -- See http://en.boardgamearena.com/#!doc/Studio for more information.
 -------
 -->
-
+<link rel="stylesheet" href="https://use.typekit.net/jim0ypy.css">
 <div id="goi_gameArea" class="goi_gameArea">
   <div id="goi_gemVoid"></div>
   <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>

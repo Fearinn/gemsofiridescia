@@ -85,7 +85,7 @@ define([
       );
 
       const sentence3a = this.format_string(
-        _("Spend 3 ${coin_icon} to Mine Gems (∞)"),
+        _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
         {
           coin_icon: `<span class="goi_coinIcon"></span>`,
         }
@@ -95,21 +95,21 @@ define([
       <div id="goi_aidContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
         <div>
           <h3>${_("Main Actions")}</h3>
-          <span>1 ${_("Reveal up to 2 adjacent tiles")}</span>
-          <span>2 ${_("Move your explorer on to an adjacent tile")}</span>
+          <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
+          <span>2 ${_("Move your explorer on to an adjacent tile.")}</span>
         </div>
         <div>
           <h3>${_("Optional Actions")}</h3>
           <span> 3a ${sentence3a}</span>
-          <span>3b ${_("Purchase an Item Card (once)")}</span>
-          <span>3c ${_("Play Item Card(s) (∞)")}</span>
-          <span>3d ${_("Sell Gems (once)")}</span>
+          <span>3b ${_("Purchase an Item Card. (Once)")}</span>
+          <span>3c ${_("Play Item Card(s). (∞)")}</span>
+          <span>3d ${_("Sell Gems. (Once)")}</span>
         </div>
         <div>
           <h3>${_("End of Turn")}</h3>
-          <span>4 ${_("Restore Relic(s) (optional)")}</span>
-          <span>5 ${_("Collect hex tile")}</span>
-          <span>6 ${_("Adjust Market die")}</span>
+          <span>4 ${_("Restore Relic(s). (Optional)")}</span>
+          <span>5 ${_("Collect hex tile.")}</span>
+          <span>6 ${_("Adjust Market die.")}</span>
         </div>
       </div>
       `;

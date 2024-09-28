@@ -33,10 +33,9 @@
 }
 
 .goi_cardTitle {
-  font-family: "sketchnote-text", sans-serif;
-  font-weight: 700;
-  font-style: normal;
+  font-family: "sketchnote-square", sans-serif;
   color: white;
+  font-size: 1.25em;
 
   position: absolute;
   top: 5%;
@@ -45,13 +44,15 @@
 }
 
 .goi_cardContent {
+  font-family: "rooney-web", serif;
+  font-weight: 400;
+  font-style: normal;
   font-size: 0.8em;
 
   position: absolute;
   top: 17%;
   left: 2.5%;
   text-align: left;
-
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -71,9 +72,7 @@
 }
 
 .goi_playerAid-folded {
-  font-family: "sketchnote-text", sans-serif;
-  font-weight: 700;
-  font-style: normal;
+  font-family: "sketchnote-square", serif;
 
   position: relative;
   display: flex;
