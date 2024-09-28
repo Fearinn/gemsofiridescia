@@ -30,6 +30,7 @@ define([
     constructor: function () {
       console.log("gemsofiridescia constructor");
 
+      this.goi_info = {};
       this.goi_globals = {};
       this.goi_managers = {};
       this.goi_stocks = {
@@ -44,6 +45,8 @@ define([
 
     setup: function (gamedatas) {
       console.log("Starting game setup");
+
+      this.goi_info.relics = gamedatas.relicsInfo;
 
       this.goi_globals.gemIds = {
         iridescia: 0,
@@ -209,8 +212,8 @@ define([
       });
 
       this.goi_managers.relics = new CardManager(this, {
-        cardHeight: 545,
-        cardWidth: 400,
+        cardHeight: 409,
+        cardWidth: 300,
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_card");
@@ -218,18 +221,39 @@ define([
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          const backgroudCode = Math.ceil(card.type_arg / 10);
-          const background = `url(${g_gamethemeurl}img/relics-${backgroudCode}.png)`;
-          const backgroundPosition = this.calcBackgroundPosition(
-            card.type_arg + 4
-          );
+          if (!card.type_arg) {
+            div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+            const backgroundPosition = this.calcBackgroundPosition(card.type);
+
+            div.style.backgroundPosition = backgroundPosition;
+            return;
+          }
+
+          const backgroundCode = Math.ceil(card.type_arg / 12);
+          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+
+          const spritePosition =
+            backgroundCode === 1 ? card.type_arg - 1 : card.type_arg - 13;
+
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
 
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          const relicName = this.goi_info.relics[card.type_arg].tr_name;
+
+          const cardTitle = document.createElement("span");
+          cardTitle.textContent = _(relicName);
+          cardTitle.classList.add("goi_cardTitle");
+
+          if (div.childElementCount === 0) {
+            div.appendChild(cardTitle);
+          }
         },
         setupBackDiv: (card, div) => {
-          div.style.backgroundImage = `url(${g_gamethemeurl}img/relics_backs.png)`;
-          const backgroundPosition = this.calcBackgroundPosition(card.type - 1);
+          div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+          const backgroundPosition = this.calcBackgroundPosition(card.type);
 
           div.style.backgroundPosition = backgroundPosition;
         },
@@ -556,15 +580,19 @@ define([
       this.goi_stocks.relics.deck = new Deck(
         this.goi_managers.relics,
         document.getElementById("goi_relicsDeck"),
-        {}
+        {
+          counter: { id: "relicsDeckCounter", position: "top", extraClasses: "goi_deckCounter"},
+        }
       );
 
-      const relicsDeck = this.goi_globals.relicsMarket;
+      const relicsDeck = this.goi_globals.relicsDeck;
       for (const relicCard_id in relicsDeck) {
         const relicCard = relicsDeck[relicCard_id];
 
         this.goi_stocks.relics.deck.addCard(relicCard);
+        this.goi_stocks.relics.deck.setCardVisible(relicCard);
       }
+      console.log(relicsDeck);
 
       this.goi_stocks.relics.market = new LineStock(
         this.goi_managers.relics,
@@ -576,11 +604,7 @@ define([
       for (const relicCard_id in relicsMarket) {
         const relicCard = relicsMarket[relicCard_id];
 
-        this.goi_stocks.relics.market.addCard(
-          relicCard,
-        );
-
-        this.goi_stocks.relics.market.setCardVisible(relicCard, false);
+        this.goi_stocks.relics.market.addCard(relicCard);
       }
 
       this.setupNotifications();
