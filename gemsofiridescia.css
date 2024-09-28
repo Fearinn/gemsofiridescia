@@ -56,6 +56,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  gap: 2px;
   height: var(--maxHeight);
   overflow-y: auto;
   width: 100%;
@@ -66,13 +67,8 @@
   flex-direction: column;
 }
 
-.goi_cardContent h3 {
-  font-size: 1.1em;
-  margin: 0;
-}
-
 .goi_playerAid-folded {
-  font-family: "sketchnote-square", serif;
+  font-family: "sketchnote-square", sans-serif;
 
   position: relative;
   display: flex;
@@ -89,14 +85,18 @@
   width: 200px;
 }
 
+.goi_helpCardSubtitle {
+  line-height: 0.9em;
+  text-indent: 2px;
+  font-family: "sketchnote-square", sans-serif;
+}
+
 .goi_helpCard .goi_coinIcon {
   display: inline-block;
   background-image: url("img/mini_coin.png");
   background-position: -400% 0;
   height: 12px;
   width: 12px;
-  border-radius: 100%;
-  background-color: blue;
 }
 
 .goi_playerPanel {

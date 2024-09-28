@@ -92,21 +92,21 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_aidContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
+      <div id="goi_helpCardContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
         <div>
-          <h3>${_("Main Actions")}</h3>
+          <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
           <span>2 ${_("Move your explorer on to an adjacent tile.")}</span>
         </div>
         <div>
-          <h3>${_("Optional Actions")}</h3>
+          <span class="goi_helpCardSubtitle">${_("Optional Actions")}</span>
           <span> 3a ${sentence3a}</span>
           <span>3b ${_("Purchase an Item Card. (Once)")}</span>
           <span>3c ${_("Play Item Card(s). (∞)")}</span>
           <span>3d ${_("Sell Gems. (Once)")}</span>
         </div>
         <div>
-          <h3>${_("End of Turn")}</h3>
+          <span class="goi_helpCardSubtitle">${_("End of Turn")}</span>
           <span>4 ${_("Restore Relic(s). (Optional)")}</span>
           <span>5 ${_("Collect hex tile.")}</span>
           <span>6 ${_("Adjust Market die.")}</span>
