@@ -37,6 +37,7 @@ define([
         tiles: {},
         explorers: {},
         dice: {},
+        relics: {},
       };
       this.goiCounters = {};
     },
@@ -55,7 +56,7 @@ define([
 
       this.goi_globals.players = gamedatas.players;
       this.goi_globals.player = gamedatas.players[this.player_id];
-      this.goi_globals.tileBoard = gamedatas.tileBoard;
+      this.goi_globals.tilesBoard = gamedatas.tilesBoard;
       this.goi_globals.playerBoards = gamedatas.playerBoards;
       this.goi_globals.revealedTiles = gamedatas.revealedTiles;
       this.goi_globals.explorers = gamedatas.explorers;
@@ -77,6 +78,7 @@ define([
           tiles: {},
           explorers: {},
           dice: {},
+          relics: {},
         };
       }
 
@@ -190,7 +192,7 @@ define([
       });
 
       this.goi_managers.explorers = new CardManager(this, {
-        getId: (card) => `goi_explorer-${card.id}`,
+        getId: (card) => `explorer-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
           div.style.position = "relative";
@@ -204,6 +206,33 @@ define([
         },
         setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
+      });
+
+      this.goi_managers.relics = new CardManager(this, {
+        cardHeight: 545,
+        cardWidth: 400,
+        getId: (card) => `relic-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_card");
+          div.classList.add("goi_relic");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          const backgroudCode = Math.ceil(card.type_arg / 10);
+          const background = `url(${g_gamethemeurl}img/relics-${backgroudCode}.png)`;
+          const backgroundPosition = this.calcBackgroundPosition(
+            card.type_arg + 4
+          );
+
+          div.style.backgroundImage = background;
+          div.style.backgroundPosition = backgroundPosition;
+        },
+        setupBackDiv: (card, div) => {
+          div.style.backgroundImage = `url(${g_gamethemeurl}img/relics_backs.png)`;
+          const backgroundPosition = this.calcBackgroundPosition(card.type - 1);
+
+          div.style.backgroundPosition = backgroundPosition;
+        },
       });
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
@@ -296,9 +325,9 @@ define([
         }
       };
 
-      const tileBoard = this.goi_globals.tileBoard;
-      for (const tileCard_id in tileBoard) {
-        const tileCard = tileBoard[tileCard_id];
+      const tilesBoard = this.goi_globals.tilesBoard;
+      for (const tileCard_id in tilesBoard) {
+        const tileCard = tilesBoard[tileCard_id];
 
         this.goi_stocks.tiles.board
           .addCard(
@@ -323,7 +352,7 @@ define([
 
       this.goi_stocks.explorers.board = new CardStock(
         this.goi_managers.explorers,
-        document.getElementById("goi_explorerBoard"),
+        document.getElementById("goi_explorersBoard"),
         {}
       );
 
@@ -520,6 +549,38 @@ define([
             );
           }
         }
+      }
+
+      /* RELICS */
+
+      this.goi_stocks.relics.deck = new Deck(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsDeck"),
+        {}
+      );
+
+      const relicsDeck = this.goi_globals.relicsMarket;
+      for (const relicCard_id in relicsDeck) {
+        const relicCard = relicsDeck[relicCard_id];
+
+        this.goi_stocks.relics.deck.addCard(relicCard);
+      }
+
+      this.goi_stocks.relics.market = new LineStock(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsMarket"),
+        {}
+      );
+
+      const relicsMarket = this.goi_globals.relicsMarket;
+      for (const relicCard_id in relicsMarket) {
+        const relicCard = relicsMarket[relicCard_id];
+
+        this.goi_stocks.relics.market.addCard(
+          relicCard,
+        );
+
+        this.goi_stocks.relics.market.setCardVisible(relicCard, false);
       }
 
       this.setupNotifications();

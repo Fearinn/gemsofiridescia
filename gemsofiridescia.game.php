@@ -399,10 +399,10 @@ class GemsOfIridescia extends Table
 
     public function getTileBoard(): array
     {
-        $tileBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
+        $tilesBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
         FROM tile WHERE card_location='board'");
 
-        return $this->hideCards($tileBoard);
+        return $this->hideCards($tilesBoard);
     }
 
     public function adjacentTiles(int $player_id): array
@@ -422,9 +422,9 @@ class GemsOfIridescia extends Table
         $topLeftHex = $tileHex + 5;
         $topRightHex = $tileHex + 6;
 
-        $tileRow = ceil(($tileHex + 1) / 7);
+        $tilesRow = ceil(($tileHex + 1) / 7);
 
-        if ($tileRow % 2 === 0) {
+        if ($tilesRow % 2 === 0) {
             $topLeftHex++;
             $topRightHex++;
         }
@@ -841,7 +841,7 @@ class GemsOfIridescia extends Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["tileBoard"] = $this->getTileBoard();
+        $result["tilesBoard"] = $this->getTileBoard();
         $result["playerBoards"] = $this->globals->get("playerBoards");
         $result["revealedTiles"] = $this->globals->get("revealedTiles", []);
         $result["explorers"] = $this->getExplorers();

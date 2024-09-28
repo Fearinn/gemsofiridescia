@@ -194,21 +194,21 @@
   width: var(--boardSize);
 }
 
-.goi_tileGrid {
+.goi_tilesGrid {
   --tileSpacing: 5px;
   position: absolute;
   top: 275px;
   left: 275px;
 }
 
-.goi_tileRow {
+.goi_tilesRow {
   position: relative;
   display: grid;
   grid-template-columns: repeat(7, var(--tileSize));
   gap: 10px;
 }
 
-.goi_tileRow:nth-child(odd) {
+.goi_tilesRow:nth-child(odd) {
   margin-left: calc(var(--tileSize) / 2);
 }
 
@@ -362,6 +362,20 @@
 
 .goi_explorer .card-side {
   box-shadow: none !important;
+}
+
+.goi_card {
+  height: 545px;
+  width: 400px;
+}
+
+.goi_card .card-side {
+  border-radius: 12px;
+}
+
+.goi_relicsContainer {
+  display: flex;
+  gap: 8px;
 }
 
 /* END OF CUSTOM STYLES */
