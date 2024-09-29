@@ -59,9 +59,9 @@ class GemsOfIridescia extends Table
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
-        $revealableTiles = $this->revealableTiles($player_id);
+        $revealableTiles = $this->revealableTiles($player_id, true);
 
-        if (!in_array($tileCard, $revealableTiles)) {
+        if (!array_key_exists($tileCard_id, $revealableTiles)) {
             throw new BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
         }
 
@@ -117,9 +117,9 @@ class GemsOfIridescia extends Table
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
-        $explorableTiles = $this->explorableTiles($player_id);
+        $explorableTiles = $this->explorableTiles($player_id, true);
 
-        if (!in_array($tileCard, $explorableTiles)) {
+        if (!array_key_exists($tileCard_id, $explorableTiles)) {
             throw new BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
         }
 
@@ -472,7 +472,7 @@ class GemsOfIridescia extends Table
         return $adjacentTiles;
     }
 
-    public function revealableTiles(int $player_id): array
+    public function revealableTiles(int $player_id, bool $associative = false): array
     {
         $revealableTiles = [];
 
@@ -481,6 +481,11 @@ class GemsOfIridescia extends Table
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
             if (!key_exists($card_id, $revealedTiles)) {
+                if ($associative) {
+                    $revealableTiles[$card_id] = $tileCard;
+                    continue;
+                }
+
                 $revealableTiles[] = $tileCard;
             }
         }
@@ -510,7 +515,7 @@ class GemsOfIridescia extends Table
         return $occupiedTiles;
     }
 
-    public function explorableTiles(int $player_id): array
+    public function explorableTiles(int $player_id, bool $associative = false): array
     {
         $explorableTiles = [];
 
@@ -520,6 +525,11 @@ class GemsOfIridescia extends Table
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
             if (key_exists($card_id, $revealedTiles) && !key_exists($card_id, $occupiedTiles)) {
+                if ($associative) {
+                    $explorableTiles[$card_id] = $tileCard;
+                    continue;
+                }
+
                 $explorableTiles[] = $tileCard;
             }
         }

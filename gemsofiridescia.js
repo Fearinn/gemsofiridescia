@@ -592,7 +592,6 @@ define([
         this.goi_stocks.relics.deck.addCard(relicCard);
         this.goi_stocks.relics.deck.setCardVisible(relicCard);
       }
-      console.log(relicsDeck);
 
       this.goi_stocks.relics.market = new LineStock(
         this.goi_managers.relics,
