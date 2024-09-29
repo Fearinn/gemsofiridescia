@@ -250,10 +250,6 @@
   width: var(--tileSize);
 }
 
-.goi_tile .card-side {
-  background-image: url("img/tiles.png");
-}
-
 .goi_selectedTile {
   transform: scale(1.025);
 }

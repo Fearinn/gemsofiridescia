@@ -174,22 +174,21 @@ define([
           div.style.position = "absolute";
         },
         setupFrontDiv: (card, div) => {
-          let backgroundPosition = this.calcBackgroundPosition(
-            (Number(card.type) - 1) * 14
+          const backgroundCode = card.type;
+          const background = `url(${g_gamethemeurl}/img/tiles-${backgroundCode}.png)`;
+
+          const backgroundPosition = this.calcBackgroundPosition(
+            card.type_arg - 13 * (card.type - 1) - 1
           );
 
-          if (card.type_arg) {
-            backgroundPosition = this.calcBackgroundPosition(
-              Number(card.type_arg) + (Number(card.type) - 1)
-            );
-          }
-
+          div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
-          const backgroundPosition = this.calcBackgroundPosition(
-            (Number(card.type) - 1) * 14
-          );
+          const background = `url(${g_gamethemeurl}/img/tilesBacks.png)`;
+          const backgroundPosition = this.calcBackgroundPosition(card.type - 1);
+
+          div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
         },
       });
