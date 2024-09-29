@@ -63,12 +63,22 @@ $machinestates = [
 
     32 => [
         "name" => "optionalActions",
-        "description" => clienttranslate('${actplayer} may do any available optional actions, in any order'),
-        "descriptionmyturn" => clienttranslate('${you} may do any available optional actions, in any order'),
+        "description" => clienttranslate('${actplayer} may perform any available optional actions, in any order'),
+        "descriptionmyturn" => clienttranslate('${you} may perform any available optional actions, in any order'),
         "type" => "activeplayer",
         "args" => "argOptionalActions",
-        "possibleactions" => ["actMine", "actSellGems", "actFinishTurn"],
-        "transitions" => ["repeat" => 32, "actFinishTurn" => 4]
+        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions"],
+        "transitions" => ["repeat" => 32, "skip" => 4, "restoreRelic" => 4]
+    ],
+
+    4 => [
+        "name" => "restoreRelic",
+        "description" => clienttranslate('${actplayer} may restore a Relic'),
+        "descriptionmyturn" => clienttranslate('${you} may restore a Relic'),
+        "type" => "activeplayer",
+        // "args" => "argRestoreRelic",
+        "possibleactions" => ["actUndoSkipOptionalActions"],
+        "transitions" => ["back" => 32]
     ],
 
     // Final state.

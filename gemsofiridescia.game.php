@@ -259,6 +259,16 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("repeat");
     }
 
+    public function actSkipOptionalActions(): void
+    {
+        $this->gamestate->nextState("skip");
+    }
+
+    public function actUndoSkipOptionalActions(): void
+    {
+        $this->gamestate->nextState("back");
+    }
+
     /**
      * Game state arguments, example content.
      *
@@ -320,10 +330,22 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $can_mine = $this->hasEnoughCoins(3, $player_id);
+        $can_sellGems = $this->getTotalGemCount($player_id) > 0 && !$this->globals->get("hasSoldGems");
+
         return [
-            "can_mine" => $this->hasEnoughCoins(3, $player_id),
-            "can_sellGems" => $this->getTotalGemCount($player_id) > 0 && !$this->globals->get("hasSoldGems"),
+            "can_mine" => $can_mine,
+            "can_sellGems" => $can_sellGems,
+            "_no_notify" => !$can_mine && !$can_sellGems,
         ];
+    }
+
+    public function stOptionalActions(): void {
+        $args = $this->argOptionalActions();
+
+        if ($args["_no_notify"]) {
+            $this->gamestate->nextState("restoreRelic");
+        }
     }
 
     /**

@@ -576,12 +576,15 @@ define([
       }
 
       /* RELICS */
-
       this.goi_stocks.relics.deck = new Deck(
         this.goi_managers.relics,
         document.getElementById("goi_relicsDeck"),
         {
-          counter: { id: "relicsDeckCounter", position: "top", extraClasses: "goi_deckCounter"},
+          counter: {
+            id: "relicsDeckCounter",
+            position: "top",
+            extraClasses: "goi_deckCounter",
+          },
         }
       );
 
@@ -672,7 +675,7 @@ define([
           if (revealsLimit < 2) {
             this.addActionButton(
               "goi_undo_btn",
-              _("Change mind (reveal other tile)"),
+              _("Change mind (reveal another tile)"),
               "actUndoSkipRevealTile",
               null,
               false,
@@ -708,6 +711,15 @@ define([
           const can_mine = args.args.can_mine;
           const can_sellGems = args.args.can_sellGems;
 
+          this.addActionButton(
+            "goi_skip_btn",
+            _("Skip"),
+            "actSkipOptionalActions",
+            null,
+            false,
+            "red"
+          );
+
           if (can_mine) {
             this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
 
@@ -733,6 +745,17 @@ define([
           }
 
           return;
+        }
+
+        if (stateName === "restoreRelic") {
+          this.addActionButton(
+            "goi_undo_btn",
+            _("Change mind (perform another optional action)"),
+            "actUndoSkipOptionalActions",
+            null,
+            false,
+            "gray"
+          );
         }
       }
     },
@@ -886,6 +909,14 @@ define([
         gem_id: selectedGems[0].type_arg,
         selectedGems: JSON.stringify(selectedGems),
       });
+    },
+
+    actSkipOptionalActions: function () {
+      this.performAction("actSkipOptionalActions");
+    },
+
+    actUndoSkipOptionalActions: function () {
+      this.performAction("actUndoSkipOptionalActions");
     },
 
     ///////////////////////////////////////////////////
