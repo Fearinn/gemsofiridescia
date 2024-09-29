@@ -340,12 +340,25 @@ class GemsOfIridescia extends Table
         ];
     }
 
-    public function stOptionalActions(): void {
+    public function stOptionalActions(): void
+    {
         $args = $this->argOptionalActions();
 
         if ($args["_no_notify"]) {
             $this->gamestate->nextState("restoreRelic");
         }
+    }
+
+    public function argRestoreRelic(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $restorableRelics = $this->restorableRelics($player_id);
+
+        return [
+            "restorableRelics" => $restorableRelics,
+            "_no_notify" => !$restorableRelics
+        ];
     }
 
     /**
@@ -830,6 +843,50 @@ class GemsOfIridescia extends Table
         foreach ($players as $player_id => $player) {
             $relicCards[$player_id] = $this->relic_cards->getCardsInLocation("hand", $player_id);
         }
+    }
+
+    function canPayRelicCost(int $relic_id, int $player_id): bool
+    {
+        $canPayRelicCost = true;
+
+        $relicCost = $this->relics_info[$relic_id]["cost"];
+        $playerGems = $this->getGems($player_id);
+
+        foreach ($playerGems as $gemName => $gemCount) {
+            if ($gemName === "coin") {
+                continue;
+            }
+            
+            $gem_id = $this->gemsIds_info[$gemName];
+            if ($gemCount < $relicCost[$gem_id]) {
+                $canPayRelicCost = false;
+                break;
+            }
+        }
+
+        return $canPayRelicCost;
+    }
+
+    function restorableRelics(int $player_id, bool $associative = false): array
+    {
+        $relicCards = $this->relic_cards->getCardsInLocation("market");
+
+        $restorableRelics = [];
+        foreach ($relicCards as $relicCard_id => $relicCard) {
+            $relic_id = (int) $relicCard["type_arg"];
+            $canPayRelicCost =  $this->canPayRelicCost($relic_id, $player_id);
+
+            if ($canPayRelicCost) {
+                if ($associative) {
+                    $restorableRelics[$relicCard_id] = $relicCard;
+                    continue;
+                }
+
+                $restorableRelics[] = $relicCard;
+            }
+        }
+
+        return $restorableRelics;
     }
 
     /**

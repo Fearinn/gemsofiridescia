@@ -48,7 +48,7 @@ define([
 
       this.goi_info.relics = gamedatas.relicsInfo;
 
-      this.goi_globals.gemIds = {
+      this.goi_globals.gemsIds = {
         iridescia: 0,
         amethyst: 1,
         citrine: 2,
@@ -213,6 +213,7 @@ define([
       this.goi_managers.relics = new CardManager(this, {
         cardHeight: 409,
         cardWidth: 300,
+        selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_card");
@@ -560,7 +561,7 @@ define([
               {
                 id: `${box}:${player_id}`,
                 type: gem,
-                type_arg: this.goi_globals.gemIds[gem],
+                type_arg: this.goi_globals.gemsIds[gem],
                 box: box,
               },
               {},
@@ -693,7 +694,7 @@ define([
             this.goi_stocks.gems.rainbowOptions.addCard({
               id: `${Date.now()}${Math.random()}`,
               type: gem,
-              type_arg: this.goi_globals.gemIds[gem],
+              type_arg: this.goi_globals.gemsIds[gem],
             });
           }
 
@@ -747,6 +748,8 @@ define([
         }
 
         if (stateName === "restoreRelic") {
+          const restorableRelics = args.args.restorableRelics;
+
           this.addActionButton(
             "goi_undo_btn",
             _("Change mind (perform another optional action)"),
@@ -755,6 +758,9 @@ define([
             false,
             "gray"
           );
+
+          this.goi_stocks.relics.market.setSelectionMode("single");
+          this.goi_stocks.relics.market.setSelectableCards(restorableRelics);
         }
       }
     },
@@ -977,7 +983,7 @@ define([
         const gemCard = {
           id: `${box}:${player_id}`,
           type: gemName,
-          type_arg: this.goi_globals.gemIds[gemName],
+          type_arg: this.goi_globals.gemsIds[gemName],
           box: box,
         };
 
