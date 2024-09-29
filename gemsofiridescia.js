@@ -527,7 +527,7 @@ define([
 
           this.handleConfirmationButton(
             "goi_sellGems_btn",
-            _("Sell selected gems")
+            _("Sell selected Gem(s)")
           );
         };
 
@@ -549,19 +549,21 @@ define([
 
         const gems = this.goi_globals.gems[player_id];
 
-        for (const gem in gems) {
-          if (gem === "coin") {
+        for (const gemName in gems) {
+          if (gemName === "coin") {
             continue;
           }
 
-          const gemCount = gems[gem];
+          const gemCount = gems[gemName];
 
-          for (let box = 1; box <= gemCount; box++) {
+          for (let gem = 1; gem <= gemCount; gem++) {
+            const box = this.findFreeBox(player_id);
+
             this.goi_stocks[player_id].gems.cargo.addCard(
               {
                 id: `${box}:${player_id}`,
-                type: gem,
-                type_arg: this.goi_globals.gemsIds[gem],
+                type: gemName,
+                type_arg: this.goi_globals.gemsIds[gemName],
                 box: box,
               },
               {},
