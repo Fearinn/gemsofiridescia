@@ -25,6 +25,7 @@
   --explorerSize: 175px;
   --gemSize: 90px;
   --dieSize: 80px;
+  --cardSize: 300px;
 
   text-rendering: optimizeLegibility;
 
@@ -277,10 +278,35 @@
 .goi_playerBoards {
   display: grid;
   justify-content: center;
-  grid-template-columns: repeat(auto-fit, minmax(var(--playerBoardSize), auto));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(calc(var(--playerBoardSize) * 1.5), auto)
+  );
   gap: 8px;
-
   width: var(--boardSize);
+}
+
+.goi_playerBoardContainer {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.goi_playerHand {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+}
+
+.goi_relicsPile {
+  position: relative !important;
+  display: flex;
+}
+
+.goi_relicsPile:empty {
+  display: none;
 }
 
 .goi_playerBoard {
@@ -374,11 +400,12 @@
 }
 
 .goi_card {
-  height: 409px;
-  width: 300px;
+  aspect-ratio: 300 / 409;
+  width: var(--cardSize);
 }
 
-.goi_card, .goi_card .card-side {
+.goi_card,
+.goi_card .card-side {
   border-radius: 12px;
 }
 

@@ -77,8 +77,8 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may restore a Relic'),
         "type" => "activeplayer",
         "args" => "argRestoreRelic",
-        "possibleactions" => ["actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 32]
+        "possibleactions" => ["actRestoreRelic", "actUndoSkipOptionalActions"],
+        "transitions" => ["repeat" => 4, "back" => 32]
     ],
 
     // Final state.

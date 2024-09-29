@@ -435,21 +435,25 @@ define([
         const spritePosition = this.goi_globals.playerBoards[player_id] - 1;
         const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
-        document.getElementById(
-          "goi_playerBoards"
-        ).innerHTML += `<div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
-        <div id="goi_scene:${player_id}" class="goi_scene">
-          <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
-          <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
-        </div>
-          <div id="goi_cargo:${player_id}" class="goi_cargo">
-            <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
-            <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
-            <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
-            <div id="goi_cargoBox:${player_id}-4" class="goi_cargoBox" data-box=4></div> 
-            <div id="goi_cargoBox:${player_id}-5" class="goi_cargoBox" data-box=5></div> 
-            <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
-            <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
+        document.getElementById("goi_playerBoards").innerHTML += `
+        <div id="goi_playerBoardContainer:${player_id}" class="goi_playerBoardContainer whiteblock">
+          <div id="goi_playerHand:${player_id}" class="goi_playerHand">
+            <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
+          </div>
+          <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
+            <div id="goi_scene:${player_id}" class="goi_scene">
+              <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
+              <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
+            </div>
+              <div id="goi_cargo:${player_id}" class="goi_cargo">
+                <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
+                <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
+                <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
+                <div id="goi_cargoBox:${player_id}-4" class="goi_cargoBox" data-box=4></div> 
+                <div id="goi_cargoBox:${player_id}-5" class="goi_cargoBox" data-box=5></div> 
+                <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
+                <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
+              </div>
           </div>
         </div>`;
       }
@@ -575,6 +579,14 @@ define([
             );
           }
         }
+
+        /* RELICS */
+        console.log(document.getElementById(`goi_relicsPile:${player_id}`));
+        this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
+          this.goi_managers.relics,
+          document.getElementById(`goi_relicsPile:${player_id}`),
+          {}
+        );
       }
 
       /* RELICS */
@@ -603,6 +615,19 @@ define([
         document.getElementById("goi_relicsMarket"),
         {}
       );
+
+      this.goi_stocks.relics.market.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        if (selection.length > 0) {
+          this.goi_globals.selectedRelic = lastChange;
+        } else {
+          this.goi_globals.selectedRelic = null;
+        }
+
+        this.handleConfirmationButton();
+      };
 
       const relicsMarket = this.goi_globals.relicsMarket;
       for (const relicCard_id in relicsMarket) {
@@ -852,6 +877,15 @@ define([
           this.addActionButton(elementId, message, "actMine");
         }
       }
+
+      if (stateName === "restoreRelic") {
+        const selectedRelic = this.goi_globals.selectedRelic;
+
+        if (selectedRelic) {
+          this.addActionButton(elementId, message, "actRestoreRelic");
+          return;
+        }
+      }
     },
 
     calcBackgroundPosition: function (spritePosition) {
@@ -926,6 +960,12 @@ define([
       this.performAction("actUndoSkipOptionalActions");
     },
 
+    actRestoreRelic: function () {
+      this.performAction("actRestoreRelic", {
+        relicCard_id: this.goi_globals.selectedRelic.id,
+      });
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -937,10 +977,11 @@ define([
       dojo.subscribe("incGem", this, "notif_incGem");
       dojo.subscribe("decGem", this, "notif_decGem");
       dojo.subscribe("incCoin", this, "notif_incCoin");
+      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
       dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
       dojo.subscribe("rollDie", this, "notif_rollDie");
-      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
+      dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
     },
 
     notif_revealTile: function (notif) {
@@ -1009,11 +1050,23 @@ define([
 
     notif_decGem: function (notif) {
       const player_id = notif.args.player_id;
-      const gemName = notif.args.gem;
-      const gemCards = notif.args.gemCards;
+      const gemName = notif.args.gemName;
       const delta = notif.args.delta;
+      const gem_id = notif.args.gem_id;
+      let gemCards = notif.args.gemCards;
 
-      this.goiCounters.gems[player_id][gemName].incValue(delta);
+      this.goiCounters.gems[player_id][gemName].incValue(-delta);
+
+      if (!gemCards) {
+        gemCards = this.goi_stocks[player_id].gems.cargo
+          .getCards()
+          .filter((gemCard) => {
+            return gemCard.type_arg == gem_id;
+          });
+
+        gemCards = gemCards.slice(-delta);
+      }
+
       this.goi_stocks.gems.void.addCards(gemCards);
     },
 
@@ -1068,6 +1121,13 @@ define([
         face: face,
         type: type,
       });
+    },
+
+    notif_restoreRelic: function (notif) {
+      const player_id = notif.args.player_id;
+      const relicCard = notif.args.relicCard;
+
+      this.goi_stocks[player_id].relics.victoryPile.addCard(relicCard);
     },
   });
 });

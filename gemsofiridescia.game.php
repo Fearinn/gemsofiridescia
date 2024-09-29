@@ -269,6 +269,21 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("back");
     }
 
+    public function actRestoreRelic(#[IntParam(min: 1, max: 24)] int $relicCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $restorableRelics = $this->restorableRelics($player_id, true);
+
+        if (!array_key_exists($relicCard_id, $restorableRelics)) {
+            throw new BgaVisibleSystemException("You can't restore this Relic now: actRestoreRelic, $relicCard_id");
+        }
+
+        $this->restoreRelic($relicCard_id, $player_id);
+
+        $this->gamestate->nextState("repeat");
+    }
+
     /**
      * Game state arguments, example content.
      *
@@ -661,8 +676,12 @@ class GemsOfIridescia extends Table
         );
     }
 
-    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, $sell = false): void
+    public function decGem(int $delta, int $gem_id, int $player_id, array $gemCards = null, bool $sell = false): void
     {
+        if ($delta <= 0) {
+            return;
+        }
+
         $gemName = $this->gems_info[$gem_id]["name"];
 
         $gemCount = $this->getUniqueValueFromDB("SELECT $gemName FROM player WHERE player_id=$player_id");
@@ -673,13 +692,13 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "decGem",
-            $sell ? clienttranslate('${player_name} sells ${abs_delta} ${gem_label}') : "",
+            $sell ? clienttranslate('${player_name} sells ${delta} ${gem_label}') : "",
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "abs_delta" => $delta,
-                "delta" => -$delta,
-                "gem" => $gemName,
+                "delta" => $delta,
+                "gem_id" => $gem_id,
+                "gemName" => $gemName,
                 "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
                 "i18n" => ["gem_label"]
@@ -696,8 +715,8 @@ class GemsOfIridescia extends Table
         $this->decGem(
             $delta,
             $gem_id,
-            $gemCards,
             $player_id,
+            $gemCards,
             true
         );
 
@@ -856,7 +875,7 @@ class GemsOfIridescia extends Table
             if ($gemName === "coin") {
                 continue;
             }
-            
+
             $gem_id = $this->gemsIds_info[$gemName];
             if ($gemCount < $relicCost[$gem_id]) {
                 $canPayRelicCost = false;
@@ -887,6 +906,35 @@ class GemsOfIridescia extends Table
         }
 
         return $restorableRelics;
+    }
+
+    function restoreRelic(int $relicCard_id, int $player_id): void
+    {
+        $relicCard = $this->relic_cards->getCard($relicCard_id);
+        $relic_id = (int) $relicCard["type_arg"];
+
+        $relic_info = $this->relics_info[$relic_id];
+        $relicCost = $relic_info["cost"];
+        $relicPoints = $relic_info["points"];
+
+        foreach ($relicCost as $gem_id => $gemCost) {
+                $this->decGem($gemCost, $gem_id, $player_id);
+        }
+
+        $this->relic_cards->moveCard($relicCard_id, "hand", $player_id);
+        $this->notifyAllPlayers(
+            "restoreRelic",
+            clienttranslate('${player_name} restores the ${relic_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "relic_name" => $relic_info["tr_name"],
+                "relicCard" => $relicCard,
+                "i18n" => ["relic_name"]
+            ]
+        );
+
+        $this->incRoyaltyPoints($relicPoints, $player_id);
     }
 
     /**
