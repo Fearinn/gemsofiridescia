@@ -302,7 +302,7 @@
 
 .goi_relicsPile {
   position: relative !important;
-  display: flex;
+  pointer-events: none;
 }
 
 .goi_relicsPile:empty {

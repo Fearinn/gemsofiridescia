@@ -433,22 +433,27 @@ class GemsOfIridescia extends Table
         return $face;
     }
 
-    public function hideCard(array $card, string | int $fakeId = null): array
+    public function hideCard(array $card, bool $hideOrder = false, string | int $fakeId = null): array
     {
         if ($fakeId) {
             $card["id"] = $fakeId;
         }
+
+        if ($hideOrder) {
+            $card["location_arg"] = null;
+        }
+
         $card["type_arg"] = null;
         return $card;
     }
 
-    public function hideCards(array $cards, bool $fakeIds = false): array
+    public function hideCards(array $cards, bool $hideOrder = false, bool $fakeIds = false): array
     {
         $hiddenCards = [];
         $fakeId = -count($cards);
         foreach ($cards as $card_id => $card) {
             $fakeId = $fakeIds ? $fakeId : null;
-            $hiddenCards[$card_id] = $this->hideCard($card, $fakeId);
+            $hiddenCards[$card_id] = $this->hideCard($card, $hideOrder, $fakeId);
 
             $fakeId++;
         }
@@ -857,17 +862,23 @@ class GemsOfIridescia extends Table
         return true;
     }
 
-    function getRelicsDeck(bool $market = false): array
+    public function getRelicsDeck(bool $onlyTop = false): array
     {
-        if ($market) {
-            return $this->relic_cards->getCardsInLocation("market");
+        if ($onlyTop) {
+            $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+            return $this->hideCard($relicsDeckTop, true, "fake");
         }
 
         $relicsDeck = $this->relic_cards->getCardsInLocation("deck");
-        return $this->hideCards($relicsDeck, true);
+        return $this->hideCards($relicsDeck, true, true);
     }
 
-    function getRelicsByPlayer(?int $player_id): array
+    public function getRelicsMarket(): array
+    {
+        return $this->relic_cards->getCardsInLocation("market");
+    }
+
+    public function getRelicsByPlayer(?int $player_id): array
     {
         if ($player_id) {
             return $this->relic_cards->getCardsInLocation("hand", $player_id);
@@ -961,6 +972,7 @@ class GemsOfIridescia extends Table
         $relicCard = $this->relic_cards->pickCardForLocation("deck", "market");
         $relic_id = $relicCard["type_arg"];
 
+        $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
         $relic_info = $this->relics_info[$relic_id];
 
         $this->notifyAllPlayers(
@@ -968,6 +980,7 @@ class GemsOfIridescia extends Table
             clienttranslate('A new Relic is revealed: the ${relic_name}'),
             [
                 "relicCard" => $relicCard,
+                "relicsDeckTop" => $this->hideCard($relicsDeckTop, true, "fake"),
                 "relic_name" => $relic_info["tr_name"],
                 "i18n" => ["relic_name"]
             ]
@@ -1031,8 +1044,9 @@ class GemsOfIridescia extends Table
         $result["publicStoneDiceCount"] = $this->globals->get("publicStoneDiceCount");
         $result["privateStoneDiceCount"] = $this->globals->get("privateStoneDiceCount");
         $result["relicsInfo"] = $this->relics_info;
-        $result["relicsDeck"] = $this->getRelicsDeck(false);
-        $result["relicsMarket"] = $this->getRelicsDeck(true);
+        $result["relicsDeck"] = $this->getRelicsDeck();
+        $result["relicsDeckTop"] = $this->getRelicsDeck(true);
+        $result["relicsMarket"] = $this->getRelicsMarket();
 
         return $result;
     }

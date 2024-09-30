@@ -68,6 +68,7 @@ define([
       this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
       this.goi_globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
       this.goi_globals.relicsDeck = gamedatas.relicsDeck;
+      this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
 
       this.goi_globals.selectedTile = null;
@@ -221,7 +222,7 @@ define([
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          if (!card.type_arg) {
+          if (!card.type_arg || card.id === "fake") {
             div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
             const backgroundPosition = this.calcBackgroundPosition(card.type);
 
@@ -606,8 +607,12 @@ define([
         const relicCard = relicsDeck[relicCard_id];
 
         this.goi_stocks.relics.deck.addCard(relicCard);
-        this.goi_stocks.relics.deck.setCardVisible(relicCard);
+        this.goi_stocks.relics.deck.setCardVisible(relicCard, false);
       }
+
+      const relicsDeckTop = this.goi_globals.relicsDeckTop;
+      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
 
       this.goi_stocks.relics.market = new LineStock(
         this.goi_managers.relics,
@@ -1136,10 +1141,14 @@ define([
 
     notif_replaceRelic: function (notif) {
       const relicCard = notif.args.relicCard;
+      const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi_stocks.relics.market.addCard(relicCard, {
-        fromStock: this.goi_stocks.relics.deck,
+        fromElement: document.getElementById("goi_relicsDeck"),
       });
+
+      this.goi_stocks.relics.deck.removeCard({ id: "fake" });
+      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
     },
   });
 });
