@@ -67,6 +67,7 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may perform any available optional actions, in any order'),
         "type" => "activeplayer",
         "args" => "argOptionalActions",
+        "action" => "stOptionalActions",
         "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions"],
         "transitions" => ["repeat" => 32, "skip" => 4, "restoreRelic" => 4]
     ],
@@ -77,8 +78,17 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} may restore a Relic'),
         "type" => "activeplayer",
         "args" => "argRestoreRelic",
+        "action" => "stRestoreRelic",
         "possibleactions" => ["actRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["repeat" => 4, "back" => 32]
+        "transitions" => ["back" => 32, "repeat" => 4, "betweenTurns" => 5]
+    ],
+
+    5 => [
+        "name" => "betweenTurns",
+        "description" => clienttranslate("Ending turn..."),
+        "type" => "game",
+        "action" => "stBetweenTurns",
+        "transitions" => ["nextTurn" => 2]
     ],
 
     // Final state.

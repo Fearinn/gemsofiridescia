@@ -581,7 +581,6 @@ define([
         }
 
         /* RELICS */
-        console.log(document.getElementById(`goi_relicsPile:${player_id}`));
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
@@ -814,6 +813,10 @@ define([
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
         this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
       }
+
+      if (stateName === "restoreRelic") {
+        this.goi_stocks.relics.market.setSelectionMode("none");
+      }
     },
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -982,6 +985,7 @@ define([
       dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
       dojo.subscribe("rollDie", this, "notif_rollDie");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
+      dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
     },
 
     notif_revealTile: function (notif) {
@@ -1128,6 +1132,14 @@ define([
       const relicCard = notif.args.relicCard;
 
       this.goi_stocks[player_id].relics.victoryPile.addCard(relicCard);
+    },
+
+    notif_replaceRelic: function (notif) {
+      const relicCard = notif.args.relicCard;
+
+      this.goi_stocks.relics.market.addCard(relicCard, {
+        fromStock: this.goi_stocks.relics.deck,
+      });
     },
   });
 });

@@ -376,6 +376,23 @@ class GemsOfIridescia extends Table
         ];
     }
 
+    public function stRestoreRelic(): void
+    {
+        $args = $this->argRestoreRelic();
+
+        if ($args["_no_notify"]) {
+            $this->gamestate->nextState("betweenTurns");
+        }
+    }
+
+    public function stBetweenTurns(): void
+    {
+        $this->globals->set("revealsLimit", 0);
+        $this->activeNextPlayer();
+
+        $this->gamestate->nextState("nextTurn");
+    }
+
     /**
      * Compute and return the current game progression.
      *
@@ -908,7 +925,7 @@ class GemsOfIridescia extends Table
         return $restorableRelics;
     }
 
-    function restoreRelic(int $relicCard_id, int $player_id): void
+    public function restoreRelic(int $relicCard_id, int $player_id): void
     {
         $relicCard = $this->relic_cards->getCard($relicCard_id);
         $relic_id = (int) $relicCard["type_arg"];
@@ -918,7 +935,7 @@ class GemsOfIridescia extends Table
         $relicPoints = $relic_info["points"];
 
         foreach ($relicCost as $gem_id => $gemCost) {
-                $this->decGem($gemCost, $gem_id, $player_id);
+            $this->decGem($gemCost, $gem_id, $player_id);
         }
 
         $this->relic_cards->moveCard($relicCard_id, "hand", $player_id);
@@ -935,6 +952,26 @@ class GemsOfIridescia extends Table
         );
 
         $this->incRoyaltyPoints($relicPoints, $player_id);
+
+        $this->replaceRelic();
+    }
+
+    public function replaceRelic(): void
+    {
+        $relicCard = $this->relic_cards->pickCardForLocation("deck", "market");
+        $relic_id = $relicCard["type_arg"];
+
+        $relic_info = $this->relics_info[$relic_id];
+
+        $this->notifyAllPlayers(
+            "replaceRelic",
+            clienttranslate('A new Relic is revealed: the ${relic_name}'),
+            [
+                "relicCard" => $relicCard,
+                "relic_name" => $relic_info["tr_name"],
+                "i18n" => ["relic_name"]
+            ]
+        );
     }
 
     /**
