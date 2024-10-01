@@ -864,12 +864,16 @@ class GemsOfIridescia extends Table
 
     public function getRelicsDeck(bool $onlyTop = false): array
     {
+        $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+        $relicsDeckTop_id = $relicsDeckTop["id"];
+
         if ($onlyTop) {
-            $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
             return $this->hideCard($relicsDeckTop, true, "fake");
         }
 
         $relicsDeck = $this->relic_cards->getCardsInLocation("deck");
+        unset($relicsDeck[$relicsDeckTop_id]);
+
         return $this->hideCards($relicsDeck, true, true);
     }
 

@@ -259,19 +259,25 @@
   position: absolute;
   bottom: 24px;
 
-  animation: pulse infinite 0.75s;
-  content: "\25b2";
-  font-size: 40px;
+  animation: pickaxe infinite 2s;
+  content: "";
+  background: url("img/pickaxe.png");
+  height: calc(var(--tileSize) / 5);
+  width: calc(var(--tileSize) / 5);
   z-index: 1;
 }
 
-@keyframes pulse {
+@keyframes pickaxe {
   0% {
-    font-size: 40px;
+    transform: rotate(90deg);
+  }
+
+  50% {
+    transform: rotate(-90deg);
   }
 
   100% {
-    font-size: 48px;
+    transform: rotate(90deg);
   }
 }
 
