@@ -991,6 +991,8 @@ define([
       dojo.subscribe("rollDie", this, "notif_rollDie");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
       dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
+
+      this.notifqueue.setSynchronous("replaceRelic", 1000);
     },
 
     notif_revealTile: function (notif) {
