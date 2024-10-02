@@ -23,6 +23,14 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
 
+const PLAYER_BOARDS = "playerBoards";
+const HAS_SOLD_GEMS = "hasSoldGems";
+const REVEALED_TILES = "revealedTiles";
+const REVEALS_LIMIT = "revealsLimit";
+const ACTIVE_STONE_DICE = "activeStoneDice";
+const PRIVATE_STONE_DICE_COUNT = "privateStoneDiceCount";
+const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
+
 class GemsOfIridescia extends Table
 {
     public function __construct()
@@ -65,9 +73,9 @@ class GemsOfIridescia extends Table
             throw new BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
         }
 
-        $revealedTiles = $this->globals->get("revealedTiles", []);
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
         $revealedTiles[$tileCard_id] = $tileCard;
-        $this->globals->set("revealedTiles", $revealedTiles);
+        $this->globals->set(REVEALED_TILES, $revealedTiles);
 
         $region_id = $tileCard["type"];
 
@@ -83,7 +91,7 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        $this->globals->inc("revealsLimit", 1);
+        $this->globals->inc(REVEALS_LIMIT, 1);
 
         $this->gamestate->nextState("repeat");
     }
@@ -102,7 +110,7 @@ class GemsOfIridescia extends Table
 
     public function actUndoSkipRevealTile()
     {
-        $revealsLimit = (int) $this->globals->get("revealsLimit");
+        $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
 
         if ($revealsLimit === 2) {
             throw new BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
@@ -158,7 +166,7 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $privateStoneDiceCount = $this->globals->get("privateStoneDiceCount")[$player_id];
+        $privateStoneDiceCount = $this->globals->get(PRIVATE_STONE_DICE_COUNT)[$player_id];
 
         if ($stoneDiceCount > $privateStoneDiceCount) {
             throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
@@ -189,7 +197,7 @@ class GemsOfIridescia extends Table
             $mined++;
         }
 
-        $this->globals->inc("activeStoneDice", $stoneDiceCount);
+        $this->globals->inc(ACTIVE_STONE_DICE, $stoneDiceCount);
 
         if ($stoneDiceCount > 0) {
             $this->notifyAllPlayers(
@@ -198,7 +206,7 @@ class GemsOfIridescia extends Table
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
-                    "count" => $this->globals->get("activeStoneDice"),
+                    "count" => $this->globals->get(ACTIVE_STONE_DICE),
                 ]
             );
         }
@@ -240,7 +248,7 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        if ($this->globals->get("hasSoldGems")) {
+        if ($this->globals->get(HAS_SOLD_GEMS)) {
             throw new BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
         }
 
@@ -254,7 +262,7 @@ class GemsOfIridescia extends Table
         }
 
         $this->sellGem(count($soldGems), $gem_id, $soldGems, $player_id);
-        $this->globals->set("hasSoldGems", true);
+        $this->globals->set(HAS_SOLD_GEMS, true);
 
         $this->gamestate->nextState("repeat");
     }
@@ -298,12 +306,12 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $revealableTiles = $this->revealableTiles($player_id);
-        $revealsLimit = (int) $this->globals->get("revealsLimit");
+        $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
         $explorableTiles = $this->explorableTiles($player_id);
 
         return [
             "revealableTiles" => $this->revealableTiles($player_id),
-            "revealsLimit" => $revealsLimit,
+            REVEALS_LIMIT => $revealsLimit,
             "skippable" => !!$explorableTiles,
             "_no_notify" => !$revealableTiles || $revealsLimit >= 2,
         ];
@@ -323,11 +331,11 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $explorableTiles = $this->explorableTiles($player_id);
-        $revealsLimit = $this->globals->get("revealsLimit");
+        $revealsLimit = $this->globals->get(REVEALS_LIMIT);
 
         return [
             "explorableTiles" => $explorableTiles,
-            "revealsLimit" => $revealsLimit,
+            REVEALS_LIMIT => $revealsLimit,
             "_no_notify" => !$explorableTiles
         ];
     }
@@ -346,7 +354,7 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $can_mine = $this->hasEnoughCoins(3, $player_id);
-        $can_sellGems = $this->getTotalGemCount($player_id) > 0 && !$this->globals->get("hasSoldGems");
+        $can_sellGems = $this->getTotalGemCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
         return [
             "can_mine" => $can_mine,
@@ -387,7 +395,8 @@ class GemsOfIridescia extends Table
 
     public function stBetweenTurns(): void
     {
-        $this->globals->set("revealsLimit", 0);
+        $this->globals->set(REVEALS_LIMIT, 0);
+        $this->globals->set(ACTIVE_STONE_DICE, 0);
         $this->activeNextPlayer();
 
         $this->gamestate->nextState("nextTurn");
@@ -549,7 +558,7 @@ class GemsOfIridescia extends Table
         $revealableTiles = [];
 
         $adjacentTiles =  $this->adjacentTiles($player_id);
-        $revealedTiles = $this->globals->get("revealedTiles", []);
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
             if (!key_exists($card_id, $revealedTiles)) {
@@ -592,7 +601,7 @@ class GemsOfIridescia extends Table
         $explorableTiles = [];
 
         $adjacentTiles = $this->adjacentTiles($player_id);
-        $revealedTiles = $this->globals->get("revealedTiles", []);
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
         $occupiedTiles = (array) $this->occupiedTiles();
 
         foreach ($adjacentTiles as $card_id => $tileCard) {
@@ -837,17 +846,17 @@ class GemsOfIridescia extends Table
 
     public function obtainStoneDie(int $player_id): bool
     {
-        if ($this->globals->get("publicStoneDiceCount") === 0) {
+        if ($this->globals->get(PUBLIC_STONE_DICE_COUNT) === 0) {
             return false;
         }
 
 
         $this->dbQuery("UPDATE player SET stone_die=stone_die+1 WHERE player_id=$player_id");
-        $this->globals->inc("publicStoneDiceCount", -1);
+        $this->globals->inc(PUBLIC_STONE_DICE_COUNT, -1);
 
-        $privateStoneDiceCount = $this->globals->get("privateStoneDiceCount");
+        $privateStoneDiceCount = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
         $privateStoneDiceCount[$player_id]++;
-        $this->globals->set("privateStoneDiceCount", $privateStoneDiceCount);
+        $this->globals->set(PRIVATE_STONE_DICE_COUNT, $privateStoneDiceCount);
 
         $this->notifyAllPlayers(
             "obtainStoneDie",
@@ -855,7 +864,7 @@ class GemsOfIridescia extends Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "die_id" => 4 - $this->globals->get("publicStoneDiceCount")
+                "die_id" => 4 - $this->globals->get(PUBLIC_STONE_DICE_COUNT)
             ]
         );
 
@@ -1040,13 +1049,13 @@ class GemsOfIridescia extends Table
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $result["tilesBoard"] = $this->getTileBoard();
-        $result["playerBoards"] = $this->globals->get("playerBoards");
-        $result["revealedTiles"] = $this->globals->get("revealedTiles", []);
+        $result[PLAYER_BOARDS] = $this->globals->get(PLAYER_BOARDS);
+        $result[REVEALED_TILES] = $this->globals->get(REVEALED_TILES, []);
         $result["explorers"] = $this->getExplorers();
         $result["gems"] = $this->getGems(null);
         $result["marketValues"] = $this->getMarketValues(null);
-        $result["publicStoneDiceCount"] = $this->globals->get("publicStoneDiceCount");
-        $result["privateStoneDiceCount"] = $this->globals->get("privateStoneDiceCount");
+        $result[PUBLIC_STONE_DICE_COUNT] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
+        $result[PRIVATE_STONE_DICE_COUNT] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
         $result["relicsInfo"] = $this->relics_info;
         $result["relicsDeck"] = $this->getRelicsDeck();
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
@@ -1114,7 +1123,7 @@ class GemsOfIridescia extends Table
             }
         }
 
-        $this->globals->set("playerBoards", $playerBoards);
+        $this->globals->set(PLAYER_BOARDS, $playerBoards);
         $this->explorer_cards->moveAllCardsInLocation("deck", "box");
 
         $tiles = [];
@@ -1155,14 +1164,14 @@ class GemsOfIridescia extends Table
         $this->relic_cards->shuffle("deck");
         $this->relic_cards->pickCardsForLocation(5, "deck", "market");
 
-        $this->globals->set("revealsLimit", 0);
-        $this->globals->set("publicStoneDiceCount", 4);
-        $this->globals->set("activeStoneDice", 0);
+        $this->globals->set(REVEALS_LIMIT, 0);
+        $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
+        $this->globals->set(ACTIVE_STONE_DICE, 0);
 
         $privateStoneDiceCount = [];
         foreach ($players as $player_id => $player) {
             $privateStoneDiceCount[$player_id] = 0;
-            $this->globals->set("privateStoneDiceCount", $privateStoneDiceCount);
+            $this->globals->set(PRIVATE_STONE_DICE_COUNT, $privateStoneDiceCount);
         }
 
         foreach ($this->gems_info as $gem_info) {

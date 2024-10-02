@@ -22,6 +22,10 @@
   position: relative !important;
 }
 
+.all-visible-deck:empty {
+  display: none;
+}
+
 .all-visible-deck > .card {
   position: absolute !important;
 }
