@@ -292,6 +292,11 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("repeat");
     }
 
+    public function actSkipRestoreRelic(): void
+    {
+        $this->gamestate->nextState("skip");
+    }
+
     /**
      * Game state arguments, example content.
      *

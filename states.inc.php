@@ -79,8 +79,8 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argRestoreRelic",
         "action" => "stRestoreRelic",
-        "possibleactions" => ["actRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 32, "repeat" => 4, "betweenTurns" => 5]
+        "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
+        "transitions" => ["back" => 32, "repeat" => 4, "skip" => 5, "betweenTurns" => 5]
     ],
 
     5 => [

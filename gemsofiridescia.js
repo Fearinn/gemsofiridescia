@@ -585,9 +585,7 @@ define([
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
-          {
-            horizontalShifit: 0,
-          }
+          {}
         );
       }
 
@@ -792,6 +790,25 @@ define([
             "gray"
           );
 
+          this.addActionButton(
+            "goi_skip_btn",
+            _("Skip and finish turn"),
+            () => {
+              this.confirmationDialog(
+                _(
+                  "Your turn will be finished. You won't be able to change your mind."
+                ),
+                () => {
+                  this.actSkipRestoreRelic();
+                }
+              );
+              return;
+            },
+            null,
+            false,
+            "red"
+          );
+
           this.goi_stocks.relics.market.setSelectionMode("single");
           this.goi_stocks.relics.market.setSelectableCards(restorableRelics);
         }
@@ -974,6 +991,10 @@ define([
       this.performAction("actRestoreRelic", {
         relicCard_id: this.goi_globals.selectedRelic.id,
       });
+    },
+
+    actSkipRestoreRelic: function () {
+      this.performAction("actSkipRestoreRelic");
     },
 
     ///////////////////////////////////////////////////
