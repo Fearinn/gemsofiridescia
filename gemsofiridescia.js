@@ -585,7 +585,9 @@ define([
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
-          {}
+          {
+            horizontalShifit: 0,
+          }
         );
       }
 

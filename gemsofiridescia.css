@@ -18,6 +18,18 @@
   background-size: cover;
 } */
 
+.all-visible-deck {
+  position: relative !important;
+}
+
+.all-visible-deck > .card {
+  position: absolute !important;
+}
+
+.all-visible-deck:not(.all-visible-deck:hover) > .card:not(.card:first-child) {
+  margin-top: calc(var(--cardSize) / 4) !important;
+}
+
 .goi_gameArea {
   --boardSize: 2500px;
   --playerBoardSize: 600px;
@@ -294,8 +306,9 @@
 
 .goi_playerBoardContainer {
   display: flex;
+  align-items: flex-start;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .goi_playerHand {
@@ -304,15 +317,6 @@
   align-items: flex-end;
   justify-content: center;
   gap: 4px;
-}
-
-.goi_relicsPile {
-  position: relative !important;
-  pointer-events: none;
-}
-
-.goi_relicsPile:empty {
-  display: none;
 }
 
 .goi_playerBoard {
