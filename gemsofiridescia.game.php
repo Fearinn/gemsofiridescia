@@ -402,7 +402,7 @@ class GemsOfIridescia extends Table
     {
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(ACTIVE_STONE_DICE, 0);
-        $this->activeNextPlayer();
+        // $this->activeNextPlayer();
 
         $this->gamestate->nextState("nextTurn");
     }

@@ -1028,9 +1028,16 @@ define([
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
+      console.log(tileCard, explorerCard, "explorer");
+
+      this.goi_stocks.explorers.board.removeCard(explorerCard);
       this.goi_stocks.explorers.board.addCard(
         explorerCard,
-        {},
+        {
+          fromElement: document.getElementById(
+            `goi_tileContainer-${explorerCard.location_arg}`
+          ),
+        },
         {
           forceToElement: document.getElementById(
             `goi_tileContainer-${tileCard.location_arg}`
