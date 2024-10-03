@@ -359,6 +359,12 @@
   position: relative;
 }
 
+.goi_cargoExcedent {
+  position: absolute;
+  top: calc(var(--playerBoardSize) / 6 * -1);
+  display: flex;
+}
+
 .goi_cargoBox {
   position: absolute;
   aspect-ratio: 1;

@@ -15,7 +15,6 @@
  *
  */
 
-
 $machinestates = [
 
     // The initial state. Please do not modify.
@@ -89,6 +88,17 @@ $machinestates = [
         "type" => "game",
         "action" => "stBetweenTurns",
         "transitions" => ["nextTurn" => 2]
+    ],
+
+    98 => [
+        "name" => "transferGem",
+        "description" => clienttranslate('${actplayer} must give away Gems to other players until their cargo has only 7'),
+        "descriptionmyturn" => clienttranslate('${you} must give away Gems to other players until your cargo has only 7'),
+        "type" => "activeplayer",
+        "args" => "argTransferGem",
+        "action" => "stTransferGem",
+        "possibleactions" => ["actTransferGem", "actDiscardGem"],
+        "transitions" => ["repeat" => 98],
     ],
 
     // Final state.

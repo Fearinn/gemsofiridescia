@@ -40,7 +40,7 @@ define([
         dice: {},
         relics: {},
       };
-      this.goiCounters = {};
+      this.goi_counters = {};
     },
 
     setup: function (gamedatas) {
@@ -63,6 +63,7 @@ define([
       this.goi_globals.playerBoards = gamedatas.playerBoards;
       this.goi_globals.revealedTiles = gamedatas.revealedTiles;
       this.goi_globals.explorers = gamedatas.explorers;
+      this.goi_globals.coins = gamedatas.coins;
       this.goi_globals.gems = gamedatas.gems;
       this.goi_globals.marketValues = gamedatas.marketValues;
       this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
@@ -285,23 +286,23 @@ define([
       );
 
       /* PLAYER PANELS */
-      this.goiCounters.gems = {};
       for (const player_id in this.goi_globals.players) {
+        this.goi_counters[player_id] = {};
+
         document.getElementById(
           `player_board_${player_id}`
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
           </div>`;
 
-        this.goiCounters.gems[player_id] = {
+        this.goi_counters[player_id].gems = {
           amethyst: new ebg.counter(),
           citrine: new ebg.counter(),
           emerald: new ebg.counter(),
           sapphire: new ebg.counter(),
-          coin: new ebg.counter(),
         };
 
-        const gemCounters = this.goiCounters.gems[player_id];
+        const gemCounters = this.goi_counters[player_id].gems;
 
         let spritePosition = 1;
         for (const gem in gemCounters) {
@@ -317,11 +318,26 @@ define([
               </div>`;
         }
 
+        document.getElementById(
+          `goi_gemCounters:${player_id}`
+        ).innerHTML += `<div class="goi_gemCounter">
+        <div class="goi_gemIcon" style="background-position: -500%"></div>
+        <span id="goi_coinCounter:${player_id}"></span>
+      </div>`;
+
         for (const gem in gemCounters) {
           const gemCounter = gemCounters[gem];
           gemCounter.create(`goi_gemCounter:${player_id}-${gem}`);
           gemCounter.setValue(this.goi_globals.gems[player_id][gem]);
         }
+
+        this.goi_counters[player_id].coins = new ebg.counter();
+        this.goi_counters[player_id].coins.create(
+          `goi_coinCounter:${player_id}`
+        );
+        this.goi_counters[player_id].coins.setValue(
+          this.goi_globals.coins[player_id]
+        );
       }
 
       /* BOARDS */
@@ -447,6 +463,7 @@ define([
               <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
             </div>
               <div id="goi_cargo:${player_id}" class="goi_cargo">
+                <div id="goi_cargoExcedent:${player_id}" class="goi_cargoExcedent"></div> 
                 <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
                 <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
                 <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
@@ -555,27 +572,27 @@ define([
         const gems = this.goi_globals.gems[player_id];
 
         for (const gemName in gems) {
-          if (gemName === "coin") {
-            continue;
-          }
-
           const gemCount = gems[gemName];
 
           for (let gem = 1; gem <= gemCount; gem++) {
             const box = this.findFreeBox(player_id);
 
+            const gemCard = {
+              id: box ? `${box}:${player_id}` : `${Date.now()}${Math.random()}`,
+              type: gemName,
+              type_arg: this.goi_globals.gemsIds[gemName],
+              box: box,
+            };
+
+            const destinationElement = box
+              ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
+              : document.getElementById(`goi_cargoExcedent:${player_id}`);
+
             this.goi_stocks[player_id].gems.cargo.addCard(
-              {
-                id: `${box}:${player_id}`,
-                type: gemName,
-                type_arg: this.goi_globals.gemsIds[gemName],
-                box: box,
-              },
+              gemCard,
               {},
               {
-                forceToElement: document.getElementById(
-                  `goi_cargoBox:${player_id}-${box}`
-                ),
+                forceToElement: destinationElement,
               }
             );
           }
@@ -776,6 +793,10 @@ define([
           }
 
           return;
+        }
+
+        if (stateName === "transferGem") {
+          this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("single");
         }
 
         if (stateName === "restoreRelic") {
@@ -1028,8 +1049,6 @@ define([
       const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
 
-      console.log(tileCard, explorerCard, "explorer");
-
       this.goi_stocks.explorers.board.removeCard(explorerCard);
       this.goi_stocks.explorers.board.addCard(
         explorerCard,
@@ -1059,17 +1078,21 @@ define([
       const delta = notif.args.delta;
       const tileCard = notif.args.tileCard;
 
-      this.goiCounters.gems[player_id][gemName].incValue(delta);
+      this.goi_counters[player_id].gems[gemName].incValue(delta);
 
       for (let gem = 1; gem <= delta; gem++) {
         const box = this.findFreeBox(player_id);
 
         const gemCard = {
-          id: `${box}:${player_id}`,
+          id: box ? `${box}:${player_id}` : `${Date.now()}${Math.random()}`,
           type: gemName,
           type_arg: this.goi_globals.gemsIds[gemName],
           box: box,
         };
+
+        const destinationElement = box
+          ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
+          : document.getElementById(`goi_cargoExcedent:${player_id}`);
 
         this.goi_stocks[player_id].gems.cargo.addCard(
           gemCard,
@@ -1081,9 +1104,7 @@ define([
               : undefined,
           },
           {
-            forceToElement: document.getElementById(
-              `goi_cargoBox:${player_id}-${box}`
-            ),
+            forceToElement: destinationElement,
           }
         );
       }
@@ -1096,7 +1117,7 @@ define([
       const gem_id = notif.args.gem_id;
       let gemCards = notif.args.gemCards;
 
-      this.goiCounters.gems[player_id][gemName].incValue(-delta);
+      this.goi_counters[player_id].gems[gemName].incValue(-delta);
 
       if (!gemCards) {
         gemCards = this.goi_stocks[player_id].gems.cargo
@@ -1115,7 +1136,7 @@ define([
       const player_id = notif.args.player_id;
       const delta = notif.args.delta;
 
-      this.goiCounters.gems[player_id].coin.incValue(delta);
+      this.goi_counters[player_id].coins.incValue(delta);
     },
 
     notif_incRoyaltyPoints: function (notif) {
