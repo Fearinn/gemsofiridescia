@@ -584,21 +584,8 @@ define([
         const gemCards = this.goi_globals.gems[player_id];
 
         for (const gemCard_id in gemCards) {
-          const box = this.findFreeBox(player_id);
-          const destinationElement = box
-            ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
-            : document.getElementById(`goi_cargoExcedent:${player_id}`);
-
           const gemCard = gemCards[gemCard_id];
-          gemCard.box = box;
-
-          this.goi_stocks[player_id].gems.cargo.addCard(
-            gemCard,
-            {},
-            {
-              forceToElement: destinationElement,
-            }
-          );
+          this.addGemToCargo(gemCard, player_id);
         }
 
         /* RELICS */
@@ -802,6 +789,38 @@ define([
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("single");
         }
 
+        if (stateName === "client_transferGem") {
+          console.log("entered client state");
+          for (const player_id in this.goi_globals.players) {
+            if (player_id == this.player_id) {
+              continue;
+            }
+
+            const playerBoardElement = document.getElementById(
+              `goi_playerBoard:${player_id}`
+            );
+            playerBoardElement.classList.add("goi_selectablePlayerBoard");
+
+            console.log(playerBoardElement, "playerBoard");
+
+            playerBoardElement.addEventListener("click", () => {
+              playerBoardElement.classList.toggle("goi_selectedPlayerBoard");
+
+              if (
+                playerBoardElement.classList.contains("goi_selectedPlayerBoard")
+              ) {
+                this.goi_globals.selectedOpponent = player_id;
+              } else {
+                this.goi_globals.selectedOpponent = null;
+              }
+
+              console.log(this.goi_globals.selectedOpponent);
+
+              this.handleConfirmationButton();
+            });
+          }
+        }
+
         if (stateName === "restoreRelic") {
           const restorableRelics = args.args.restorableRelics;
 
@@ -930,14 +949,20 @@ define([
       }
 
       if (stateName === "transferGem") {
-        if (this.goi_globals.selectedGem && this.goi_globals.selectedOpponent) {
-        }
-        this.addActionButton(elementId, message, () => {
-          this.setClientState("client_pickOpponentToTransferGem", {
-            descriptionmyturn:
-              "${you} must pick an opponent to transfer the selected Gem",
+        if (this.goi_globals.selectedGem) {
+          this.addActionButton(elementId, message, () => {
+            this.setClientState("client_transferGem", {
+              descriptionmyturn:
+                "${you} must pick an opponent to transfer the selected Gem",
+            });
           });
-        });
+        }
+      }
+
+      if (stateName === "client_transferGem") {
+        if (this.goi_globals.selectedGem && this.goi_globals.selectedOpponent) {
+          this.addActionButton(elementId, message, "actTransferGem");
+        }
       }
 
       if (stateName === "restoreRelic") {
@@ -966,6 +991,29 @@ define([
           return box;
         }
       }
+    },
+
+    addGemToCargo: function (gemCard, player_id, tileCard = null) {
+      const box = this.findFreeBox(player_id);
+      gemCard.box = box;
+
+      const destinationElement = box
+        ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
+        : document.getElementById(`goi_cargoExcedent:${player_id}`);
+
+      this.goi_stocks[player_id].gems.cargo.addCard(
+        gemCard,
+        {
+          fromElement: tileCard
+            ? document.getElementById(
+                `goi_tileContainer-${tileCard.location_arg}`
+              )
+            : undefined,
+        },
+        {
+          forceToElement: destinationElement,
+        }
+      );
     },
 
     ///////////////////////////////////////////////////
@@ -1019,8 +1067,8 @@ define([
       const selectedGem = this.goi_globals.selectedGem;
       this.performAction("actTransferGem", {
         gem_id: selectedGem.type_arg,
-        gemCard: JSON.stringify(this.goi_globals.selectedGem),
-        opponent_id: 2392034,
+        gemCard: JSON.stringify(selectedGem),
+        opponent_id: this.goi_globals.selectedOpponent,
       });
     },
 
@@ -1056,7 +1104,7 @@ define([
       dojo.subscribe("rollDie", this, "notif_rollDie");
       dojo.subscribe("incGem", this, "notif_incGem");
       dojo.subscribe("decGem", this, "notif_decGem");
-      // dojo.subscribe("transferGem", this, "notif_transferGem");
+      dojo.subscribe("transferGem", this, "notif_transferGem");
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
       dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
@@ -1100,34 +1148,15 @@ define([
     notif_incGem: function (notif) {
       const player_id = notif.args.player_id;
       const delta = notif.args.delta;
-      const gemName = notif.args.gem;
+      const gemName = notif.args.gemName;
       const gemCards = notif.args.gemCards;
       const tileCard = notif.args.tileCard;
 
       this.goi_counters[player_id].gems[gemName].incValue(delta);
 
       for (const gemCard_id in gemCards) {
-        const box = this.findFreeBox(player_id);
-        const destinationElement = box
-          ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
-          : document.getElementById(`goi_cargoExcedent:${player_id}`);
-
         const gemCard = gemCards[gemCard_id];
-        gemCard.box = box;
-
-        this.goi_stocks[player_id].gems.cargo.addCard(
-          gemCard,
-          {
-            fromElement: tileCard
-              ? document.getElementById(
-                  `goi_tileContainer-${tileCard.location_arg}`
-                )
-              : undefined,
-          },
-          {
-            forceToElement: destinationElement,
-          }
-        );
+        this.addGemToCargo(gemCard, player_id, tileCard);
       }
     },
 
@@ -1153,6 +1182,25 @@ define([
       for (const gemCard_id in gemCards) {
         const gemCard = gemCards[gemCard_id];
         this.goi_stocks.gems.void.addCard(gemCard);
+      }
+    },
+
+    notif_transferGem: function (notif) {
+      const player_id = notif.args.player_id;
+      const opponent_id = notif.args.player_id2;
+      const transferredGemCard = notif.args.gemCard;
+
+      this.addGemToCargo(transferredGemCard, opponent_id);
+
+      const newGemCard = this.goi_stocks[player_id].gems.cargo
+        .getCards()
+        .filter((gemCard) => {
+          return !gemCard.box;
+        })[0];
+
+      if (newGemCard) {
+        this.goi_stocks[player_id].gems.cargo.removeCard(newGemCard);
+        this.addGemToCargo(newGemCard, player_id);
       }
     },
 

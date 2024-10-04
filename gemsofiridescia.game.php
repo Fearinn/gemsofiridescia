@@ -27,6 +27,7 @@ const PLAYER_BOARDS = "playerBoards";
 const HAS_SOLD_GEMS = "hasSoldGems";
 const REVEALED_TILES = "revealedTiles";
 const REVEALS_LIMIT = "revealsLimit";
+const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE = "activeStoneDice";
 const PRIVATE_STONE_DICE_COUNT = "privateStoneDiceCount";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
@@ -163,8 +164,9 @@ class GemsOfIridescia extends Table
 
         $explorer = $this->getExplorerByPlayerId($player_id);
         $hex = (int) $explorer["location_arg"];
-
         $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
+
+        $this->globals->set(RAINBOW_GEM, $gem_id);
 
         if (
             !$this->incGem(1, $gem_id, $player_id, $tileCard)
@@ -194,8 +196,15 @@ class GemsOfIridescia extends Table
         $tile_id = (int) $tileCard["type_arg"];
 
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
-        $gemName = $this->gems_info[$gem_id]["name"];
-        $gemMarketValue = $this->globals->get("$gemName:MarketValue");
+
+        if ($gem_id !== 0) {
+            $gemName = $this->gems_info[$gem_id]["name"];
+            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
+        } else {
+            $gem_id = $this->globals->get(RAINBOW_GEM);
+            $gemName = $this->gems_info[$gem_id]["name"];
+            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
+        }
 
         $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
         $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
@@ -291,6 +300,9 @@ class GemsOfIridescia extends Table
 
         $gem_id = (int) $gemCard["type_arg"];
         $gemName = $this->gems_info[$gem_id]["name"];
+
+        $gemCard_id = (int) $gemCard["id"];
+        $gemCard = $this->gem_cards->getCard($gemCard_id);
 
         if ($this->getGemsCounts($player_id)[$gemName] === 0) {
             throw new BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
@@ -417,7 +429,7 @@ class GemsOfIridescia extends Table
 
         return [
             "availableCargos" => $this->availableCargos($player_id),
-            "_no_notify" => $this->getGemsCounts($player_id) <= 7,
+            "_no_notify" => $this->getTotalGemCount($player_id) <= 7,
         ];
     }
 
@@ -802,13 +814,12 @@ class GemsOfIridescia extends Table
         return $availableCargos;
     }
 
-    public function transferGem(int $gem_id, $gemCard, int $opponent_id, int $player_id): void
+    public function transferGem(int $gem_id, array $gemCard, int $opponent_id, int $player_id): void
     {
         $gem_info = $this->gems_info[$gem_id];
-        $gemName = $gem_info["name"];
+        $gemCard_id = $gemCard["id"];
 
-        $this->DbQuery("UPDATE player SET $gemName=$gemName-1 WHERE player_id=$player_id");
-        $this->DbQuery("UPDATE player SET $gemName=$gemName+1 WHERE player_id=$opponent_id");
+        $this->gem_cards->moveCard($gemCard_id, "cargo", $opponent_id);
 
         $this->notifyAllPlayers(
             "transferGem",
@@ -839,8 +850,8 @@ class GemsOfIridescia extends Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
-                "gem" => $gemName,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "gemName" => $gemName,
                 "gemCards" => $gemCards,
                 "tileCard" => $tileCard,
                 "i18n" => ["gem_label"]
@@ -1308,9 +1319,10 @@ class GemsOfIridescia extends Table
         $gemCards = [];
         foreach ($this->gems_info as $gem_id => $gem_info) {
             $gemName = $gem_info["name"];
-            $gemCards[] = ["type" => $gemName, "type_arg" => $gem_id, "nbr" => 28];
+            $gemCards[] = ["type" => $gemName, "type_arg" => $gem_id, "nbr" => count($players) * 7];
         }
         $this->gem_cards->createCards($gemCards, "deck");
+
 
         foreach ($this->gems_info as $gem_id => $gem_info) {
             $gemName = $gem_info["name"];
