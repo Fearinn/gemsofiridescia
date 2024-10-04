@@ -22,6 +22,14 @@ CREATE TABLE IF NOT EXISTS `explorer` (
   `card_location_arg` int(11) NOT NULL,
   PRIMARY KEY (`card_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8 AUTO_INCREMENT = 1;
+CREATE TABLE IF NOT EXISTS `gem` (
+  `card_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `card_type` varchar(16) NOT NULL,
+  `card_type_arg` int(11) NOT NULL,
+  `card_location` varchar(16) NOT NULL,
+  `card_location_arg` int(11) NOT NULL,
+  PRIMARY KEY (`card_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8 AUTO_INCREMENT = 1;
 CREATE TABLE IF NOT EXISTS `relic` (
   `card_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `card_type` varchar(16) NOT NULL,
@@ -30,14 +38,6 @@ CREATE TABLE IF NOT EXISTS `relic` (
   `card_location_arg` int(11) NOT NULL,
   PRIMARY KEY (`card_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8 AUTO_INCREMENT = 1;
-ALTER TABLE `player`
-ADD `amethyst` INT UNSIGNED NOT NULL DEFAULT 0;
-ALTER TABLE `player`
-ADD `citrine` INT UNSIGNED NOT NULL DEFAULT 0;
-ALTER TABLE `player`
-ADD `emerald` INT UNSIGNED NOT NULL DEFAULT 0;
-ALTER TABLE `player`
-ADD `sapphire` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `player`
 ADD `coin` INT UNSIGNED NOT NULL DEFAULT 5;
 ALTER TABLE `player`

@@ -46,6 +46,9 @@ class GemsOfIridescia extends Table
         $this->explorer_cards = $this->getNew("module.common.deck");
         $this->explorer_cards->init("explorer");
 
+        $this->gem_cards = $this->getNew("module.common.deck");
+        $this->gem_cards->init("gem");
+
         $this->relic_cards = $this->getNew("module.common.deck");
         $this->relic_cards->init("relic");
 
@@ -158,8 +161,13 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $explorer = $this->getExplorerByPlayerId($player_id);
+        $hex = (int) $explorer["location_arg"];
+
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
+
         if (
-            !$this->incGem(1, $gem_id, $player_id)
+            !$this->incGem(1, $gem_id, $player_id, $tileCard)
         ) {
             return;
         }
@@ -259,33 +267,36 @@ class GemsOfIridescia extends Table
             throw new BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
         }
 
-        $soldGems = [];
+        $gemCards = [];
         foreach ($selectedGems as $gemCard) {
+            $gemCard_id = $gemCard["id"];
+
+            $gemCard = $this->gem_cards->getCard($gemCard_id);
+            $gemCards[$gemCard_id] = $gemCard;
+
             if ($gem_id !== (int) $gemCard["type_arg"]) {
                 throw new BgaVisibleSystemException("You must sell gems of the same type: actSellGems, $gem_id");
             }
-
-            $soldGems[] = $gemCard;
         }
 
-        $this->sellGem(count($soldGems), $gem_id, $soldGems, $player_id);
+        $this->sellGem(count($gemCards), $gem_id, $gemCards, $player_id);
         $this->globals->set(HAS_SOLD_GEMS, true);
 
         $this->gamestate->nextState("repeat");
     }
 
-    public function actTransferGems(#[JsonParam] array $gemCard, int $opponent_id): void
+    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, int $opponent_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
         $gem_id = (int) $gemCard["type_arg"];
         $gemName = $this->gems_info[$gem_id]["name"];
 
-        if ($this->getGems($player_id)[$gemName] === 0) {
+        if ($this->getGemsCounts($player_id)[$gemName] === 0) {
             throw new BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
         }
 
-        $this->transferGem($gem_id, $gemCard, $player_id, $opponent_id);
+        $this->transferGem($gem_id, $gemCard, $opponent_id, $player_id);
 
         $this->gamestate->nextState("repeat");
     }
@@ -382,7 +393,7 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $can_mine = $this->hasEnoughCoins(3, $player_id);
-        $can_sellGems = $this->getTotalGemCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
+        $can_sellGems = $this->getGemsCounts($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
         return [
             "can_mine" => $can_mine,
@@ -406,7 +417,7 @@ class GemsOfIridescia extends Table
 
         return [
             "availableCargos" => $this->availableCargos($player_id),
-            "_no_notify" => $this->getTotalGemCount($player_id) <= 7,
+            "_no_notify" => $this->getGemsCounts($player_id) <= 7,
         ];
     }
 
@@ -724,24 +735,50 @@ class GemsOfIridescia extends Table
 
     public function getGems(?int $player_id): array
     {
-        $sql = "SELECT amethyst, citrine, emerald, sapphire FROM player WHERE player_id=";
         if ($player_id) {
-            return $this->getObjectFromDB("$sql$player_id");
+            return $this->gem_cards->getCardsInLocation("cargo", $player_id);
         }
 
         $gems = [];
 
         $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
-            $gems[$player_id] = $this->getObjectFromDB("$sql$player_id");
+            $gems[$player_id] = $this->gem_cards->getCardsInLocation("cargo", $player_id);
         }
 
         return $gems;
     }
 
+    public function getGemsCounts(?int $player_id): array
+    {
+        $gemsCounts = [];
+
+        if ($player_id) {
+            foreach ($this->gems_info as $gem_id => $gem_info) {
+                $gemName = $gem_info["name"];
+                $cargoGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
+                $gemsCounts[$gemName] = count($cargoGems);
+            }
+
+            return $gemsCounts;
+        }
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $gemsCounts[$player_id] = [];
+            foreach ($this->gems_info as $gem_id => $gem_info) {
+                $gemName = $gem_info["name"];
+                $cargoGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
+                $gemsCounts[$player_id][$gemName] = count($cargoGems);
+            }
+        }
+
+        return $gemsCounts;
+    }
+
     public function getTotalGemCount(int $player_id): int
     {
-        $gems = $this->getGems($player_id);
+        $gems = $this->getGemsCounts($player_id);
 
         $totalGemCount = 0;
         foreach ($gems as $gemCount) {
@@ -757,7 +794,7 @@ class GemsOfIridescia extends Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemCount($player_id) > 7 && $player_id !== $excludedPlayer_id) {
+            if ($this->getGemsCounts($player_id) > 7 && $player_id !== $excludedPlayer_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -769,8 +806,6 @@ class GemsOfIridescia extends Table
     {
         $gem_info = $this->gems_info[$gem_id];
         $gemName = $gem_info["name"];
-
-        $gemCard = ["id" => "1:2392035", "type_arg" => 1];
 
         $this->DbQuery("UPDATE player SET $gemName=$gemName-1 WHERE player_id=$player_id");
         $this->DbQuery("UPDATE player SET $gemName=$gemName+1 WHERE player_id=$opponent_id");
@@ -793,7 +828,7 @@ class GemsOfIridescia extends Table
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
-        $this->DbQuery("UPDATE player SET $gemName=$gemName+$delta WHERE player_id=$player_id");
+        $gemCards = $this->gem_cards->pickCardsForLocation($delta, $gemName, "cargo", $player_id);
 
         $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') : clienttranslate('${player_name} collects ${delta} ${gem_label}');
 
@@ -805,21 +840,20 @@ class GemsOfIridescia extends Table
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
                 "gem" => $gemName,
-                "tileCard" => $tileCard,
                 "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "gemCards" => $gemCards,
+                "tileCard" => $tileCard,
                 "i18n" => ["gem_label"]
             ]
         );
 
         if ($this->getTotalGemCount($player_id) > 7) {
             $anchorState_id = $this->gamestate->state_id();
-            $this->dump("totalGemCount", $this->getTotalGemCount($player_id));
 
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(98);
             return false;
         }
-
 
         return true;
     }
@@ -827,15 +861,17 @@ class GemsOfIridescia extends Table
     public function decGem(int $delta, int $gem_id, int $player_id, array $gemCards = null, bool $sell = false): void
     {
         if ($delta <= 0) {
-            return;
+            throw new BgaVisibleSystemException("The delta must be positive: decGem, $delta");
         }
 
         $gemName = $this->gems_info[$gem_id]["name"];
 
-        $gemCount = $this->getUniqueValueFromDB("SELECT $gemName FROM player WHERE player_id=$player_id");
+        foreach ($gemCards as $gemCard_id => $gemCard) {
+            if ($gemCard["location"] !== "cargo" || $gemCard["location_arg"] != $player_id) {
+                throw new BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
+            }
 
-        if ($gemCount < $delta) {
-            throw new BgaVisibleSystemException("Not enough gems: decGem, $gemName, $delta, $gemCount");
+            $this->gem_cards->moveCard($gemCard_id, "deck", 0);
         }
 
         $this->notifyAllPlayers(
@@ -852,8 +888,6 @@ class GemsOfIridescia extends Table
                 "i18n" => ["gem_label"]
             ]
         );
-
-        $this->DbQuery("UPDATE player SET $gemName=$gemName-$delta WHERE player_id=$player_id");
     }
 
     public function sellGem(int $delta, int $gem_id, array $gemCards, int $player_id): void
@@ -1027,7 +1061,7 @@ class GemsOfIridescia extends Table
         $canPayRelicCost = true;
 
         $relicCost = $this->relics_info[$relic_id]["cost"];
-        $playerGems = $this->getGems($player_id);
+        $playerGems = $this->getGemsCounts($player_id);
 
         foreach ($playerGems as $gemName => $gemCount) {
             $gem_id = $this->gemsIds_info[$gemName];
@@ -1167,6 +1201,7 @@ class GemsOfIridescia extends Table
         $result["explorers"] = $this->getExplorers();
         $result["coins"] = $this->getCoins(null);
         $result["gems"] = $this->getGems(null);
+        $result["gemsCounts"] = $this->getGemsCounts(null);
         $result["marketValues"] = $this->getMarketValues(null);
         $result[PUBLIC_STONE_DICE_COUNT] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
         $result[PRIVATE_STONE_DICE_COUNT] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
@@ -1268,6 +1303,19 @@ class GemsOfIridescia extends Table
                 WHERE card_location='board' AND 
                 card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58)");
             }
+        }
+
+        $gemCards = [];
+        foreach ($this->gems_info as $gem_id => $gem_info) {
+            $gemName = $gem_info["name"];
+            $gemCards[] = ["type" => $gemName, "type_arg" => $gem_id, "nbr" => 28];
+        }
+        $this->gem_cards->createCards($gemCards, "deck");
+
+        foreach ($this->gems_info as $gem_id => $gem_info) {
+            $gemName = $gem_info["name"];
+            $this->DbQuery("UPDATE gem SET card_location='$gemName' WHERE card_type_arg=$gem_id");
+            $this->gem_cards->shuffle($gemName);
         }
 
         $relicCards = [];
