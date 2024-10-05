@@ -1253,6 +1253,16 @@ class GemsOfIridescia extends Table
         $tile_info = $this->tiles_info[$tile_id];
         $gem_id = (int) $tile_info["gem"];
 
+        $this->notifyAllPlayers(
+            "collectTile",
+            "",
+            [
+                "player_id" => $player_id,
+                "tile_id" => $tile_id,
+                "tileCard" => $tileCard,
+            ]
+        );
+
         $this->updateMarketValue($gem_id);
     }
 

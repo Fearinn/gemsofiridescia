@@ -177,6 +177,8 @@ define([
       });
 
       this.goi_managers.tiles = new CardManager(this, {
+        cardHeight: 230,
+        cardWidth: 200,
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -463,7 +465,10 @@ define([
         document.getElementById("goi_playerBoards").innerHTML += `
         <div id="goi_playerBoardContainer:${player_id}" class="goi_playerBoardContainer whiteblock">
           <div id="goi_playerHand:${player_id}" class="goi_playerHand">
-            <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
+            <div id="goi_victoryPile:${player_id}" class="goi_victoryPile">
+                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
+                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
+            </div>
           </div>
           <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
             <div id="goi_scene:${player_id}" class="goi_scene">
@@ -595,7 +600,13 @@ define([
           this.addGemToCargo(gemCard, player_id);
         }
 
-        /* RELICS */
+        /* VICTORY PILE */
+        this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
+          this.goi_managers.tiles,
+          document.getElementById(`goi_tilesPile:${player_id}`),
+          {}
+        );
+
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
@@ -1197,6 +1208,7 @@ define([
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
       dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
+      dojo.subscribe("collectTile", this, "notif_collectTile");
       dojo.subscribe("updateMarketValue", this, "notif_updateMarketValue");
 
       this.notifqueue.setSynchronous("replaceRelic", 1000);
@@ -1374,6 +1386,15 @@ define([
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
       this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+    },
+
+    notif_collectTile: function (notif) {
+      const player_id = notif.args.player_id;
+      const tileCard = notif.args.tileCard;
+
+      console.log(tileCard, "tileCard");
+
+      this.goi_stocks[player_id].tiles.victoryPile.addCard(tileCard);
     },
 
     notif_updateMarketValue: function (notif) {
