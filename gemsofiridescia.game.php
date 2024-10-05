@@ -486,6 +486,10 @@ class GemsOfIridescia extends Table
 
     public function stBetweenTurns(): void
     {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $this->collectTile($player_id);
+
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
@@ -592,13 +596,13 @@ class GemsOfIridescia extends Table
     {
         $adjacentTiles = [];
 
-        $explorer = $this->getExplorerByPlayerId($player_id);
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-        if ($explorer["location"] === "scene") {
+        if ($explorerCard["location"] === "scene") {
             return $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
         }
 
-        $tileHex = $explorer["location_arg"];
+        $tileHex = $explorerCard["location_arg"];
         $tileRow = ceil(($tileHex + 1) / 7);
 
         $leftHex = $tileHex - 1;
@@ -636,8 +640,6 @@ class GemsOfIridescia extends Table
             $topLeftHex,
             $topRightHex
         ];
-
-        $this->dump("adjacentHexes", $adjacentHexes);
 
         foreach ($adjacentHexes as $hex) {
             if ($hex === null) {
@@ -977,19 +979,31 @@ class GemsOfIridescia extends Table
         $this->incCoin($earnedCoins, $player_id);
     }
 
-    public function updateMarket(int $gem_id): void
+    public function updateMarketValue(int $gem_id): void
     {
-        $gemName = $this->gems_info[$gem_id]["name"];
+        $gem_info = $this->gems_info[$gem_id];
+        $gemName = $gem_info["name"];
 
         $marketValueCode = "$gemName:MarketValue";
         $marketValue = $this->globals->get($marketValueCode);
 
         if ($marketValue === 6) {
             $this->globals->set($marketValueCode, 1);
-            return;
+            $marketValue = 1;
+        } else {
+            $marketValue = $this->globals->inc($marketValueCode, 1);
         }
 
-        $this->globals->inc($marketValueCode, 1);
+        $this->notifyAllPlayers(
+            "updateMarketValue",
+            clienttranslate('The market value of ${gem_label} is ${marketValue} now'),
+            [
+                "marketValue" => $marketValue,
+                "gemName" => $gemName,
+                "gem_label" => $gem_info["tr_label"],
+                "i18n" => ["gem_label"]
+            ]
+        );
     }
 
     public function getMarketValues(?int $gem_id): array | int
@@ -1223,6 +1237,23 @@ class GemsOfIridescia extends Table
                 "i18n" => ["relic_name"]
             ]
         );
+    }
+
+    public function collectTile(int $player_id): void
+    {
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $hex = (int) $explorerCard["location_arg"];
+
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
+        $tileCard_id = (int) $tileCard["id"];
+
+        $this->tile_cards->moveCard($tileCard_id, "hand", $player_id);
+
+        $tile_id = (int) $tileCard["type_arg"];
+        $tile_info = $this->tiles_info[$tile_id];
+        $gem_id = (int) $tile_info["gem"];
+
+        $this->updateMarketValue($gem_id);
     }
 
     /**

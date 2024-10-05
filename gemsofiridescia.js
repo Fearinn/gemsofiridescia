@@ -422,17 +422,17 @@ define([
         }
       }
 
-      this.goi_stocks.dice.gems = new DiceStock(
+      this.goi_stocks.dice.market = new DiceStock(
         this.goi_managers.dice,
         document.getElementById("goi_gemDice"),
         {}
       );
 
-      for (const gem in this.goi_globals.marketValues) {
-        const value = this.goi_globals.marketValues[gem];
+      for (const gemName in this.goi_globals.marketValues) {
+        const value = this.goi_globals.marketValues[gemName];
 
-        this.goi_stocks.dice.gems.addDie({
-          id: gem,
+        this.goi_stocks.dice.market.addDie({
+          id: gemName,
           face: value,
           type: "gem",
         });
@@ -1197,6 +1197,7 @@ define([
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
       dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
+      dojo.subscribe("updateMarketValue", this, "notif_updateMarketValue");
 
       this.notifqueue.setSynchronous("replaceRelic", 1000);
     },
@@ -1373,6 +1374,21 @@ define([
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
       this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+    },
+
+    notif_updateMarketValue: function (notif) {
+      const marketValue = notif.args.marketValue;
+      const gem_id = notif.args.gem_id;
+      const gemName = notif.args.gemName;
+
+      const die = this.goi_stocks.dice.market.getDice().find((die) => {
+        return gemName === die.id;
+      });
+
+      this.goi_stocks.dice.market.removeDie(die);
+
+      die.face = marketValue;
+      this.goi_stocks.dice.market.addDie(die);
     },
   });
 });
