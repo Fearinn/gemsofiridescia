@@ -627,7 +627,7 @@ define([
       this.goi_stocks.relics.deck.addCard(relicsDeckTop);
       this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
 
-      this.goi_stocks.relics.market = new LineStock(
+      this.goi_stocks.relics.market = new CardStock(
         this.goi_managers.relics,
         document.getElementById("goi_relicsMarket"),
         {}

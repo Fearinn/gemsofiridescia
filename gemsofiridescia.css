@@ -49,6 +49,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 0 8px;
 }
 
 .goi_cardTitle {
@@ -328,7 +329,6 @@
   display: grid;
   grid-template-rows: 1.1fr 0.9fr;
 
-  
   background: url("img/playerBoards.png");
   pointer-events: all;
   aspect-ratio: 1;
@@ -454,7 +454,15 @@
 
 .goi_relicsContainer {
   display: flex;
+  justify-content: center;
   gap: 8px;
+  width: 100%;
+}
+
+.goi_relicsMarket {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
 }
 
 /* END OF CUSTOM STYLES */
