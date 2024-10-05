@@ -24,9 +24,10 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
 
 const PLAYER_BOARDS = "playerBoards";
+const REVEALS_LIMIT = "revealsLimit";
+const HAS_MOVED_EXPLORER = "hasMovedExplorer";
 const HAS_SOLD_GEMS = "hasSoldGems";
 const REVEALED_TILES = "revealedTiles";
-const REVEALS_LIMIT = "revealsLimit";
 const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE = "activeStoneDice";
 const PRIVATE_STONE_DICE_COUNT = "privateStoneDiceCount";
@@ -156,6 +157,7 @@ class GemsOfIridescia extends Table
         );
 
         $this->resolveTileEffect($tileCard, $player_id);
+        $this->globals->set(HAS_MOVED_EXPLORER, true);
     }
 
     public function actPickRainbowGem(#[IntParam(min: 1, max: 4)] int $gem_id): void
@@ -362,7 +364,7 @@ class GemsOfIridescia extends Table
 
         return [
             "revealableTiles" => $this->revealableTiles($player_id),
-            REVEALS_LIMIT => $revealsLimit,
+            "revealsLimit" => $revealsLimit,
             "skippable" => !!$explorableTiles,
             "_no_notify" => !$revealableTiles || $revealsLimit >= 2,
         ];
@@ -386,8 +388,8 @@ class GemsOfIridescia extends Table
 
         return [
             "explorableTiles" => $explorableTiles,
-            REVEALS_LIMIT => $revealsLimit,
-            "_no_notify" => !$explorableTiles
+            "revealsLimit" => $revealsLimit,
+            "_no_notify" => !$explorableTiles || !!$this->globals->get(HAS_MOVED_EXPLORER)
         ];
     }
 
@@ -467,7 +469,11 @@ class GemsOfIridescia extends Table
     public function stBetweenTurns(): void
     {
         $this->globals->set(REVEALS_LIMIT, 0);
+        $this->globals->set(HAS_SOLD_GEMS, false);
+        $this->globals->set(HAS_MOVED_EXPLORER, false);
         $this->globals->set(ACTIVE_STONE_DICE, 0);
+        $this->globals->set(RAINBOW_GEM, null);
+        $this->globals->set(ANCHOR_STATE, null);
         // $this->activeNextPlayer();
 
         $this->gamestate->nextState("nextTurn");
@@ -578,8 +584,8 @@ class GemsOfIridescia extends Table
 
         $leftHex = $tileHex - 1;
         $rightHex = $tileHex + 1;
-        $topLeftHex = $tileHex + 5;
-        $topRightHex = $tileHex + 6;
+        $topLeftHex = $tileHex + 6;
+        $topRightHex = $tileHex + 7;
 
         $tilesRow = ceil(($tileHex + 1) / 7);
 
@@ -590,6 +596,11 @@ class GemsOfIridescia extends Table
 
         $leftEdges = [1, 7, 14, 20, 27, 33, 40, 46, 53];
         $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52];
+
+        if ($this->getPlayersNumber() === 2) {
+            $leftEdges = [2, 8, 15, 21, 28, 34, 41, 46, 54];
+            $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51];
+        }
 
         if (in_array($tileHex, $leftEdges)) {
             $leftHex = null;
