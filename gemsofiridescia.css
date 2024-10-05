@@ -377,8 +377,10 @@
 
 .goi_cargoExcedent {
   position: absolute;
-  top: calc(var(--playerBoardSize) / 6 * -1);
+  top: calc(var(--playerBoardSize) / 5 * -1);
   display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .goi_cargoBox {
