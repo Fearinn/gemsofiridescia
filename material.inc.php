@@ -98,26 +98,24 @@ $this->regions_info = [
 $this->tileEffects_info = [
     1 => [
         "values" => [
-            1 => 1,
-            2 => 2,
-            3 => 3,
-            4 => null
+            2 => 1,
+            3 => 2,
+            4 => 3,
         ],
     ],
     2 => [
         "values" => [
-            1 => 1,
-            2 => 2,
-            3 => 3,
-            4 => 5
+            2 => 1,
+            3 => 2,
+            4 => 3,
+            5 => 5,
         ],
     ],
     3 => [
         "values" => [
-            1 => 1,
             2 => 1,
             3 => 1,
-            4 => 1
+            4 => 1,
         ],
     ],
 ];
@@ -189,201 +187,200 @@ $this->tiles_info = [
         "gem" => 0,
         "effect" => 0,
     ],
-
     14 => [
         "region" => 2,
         "gem" => 1,
-        "effect" => 0
+        "effect" => 1
     ],
     15 => [
         "region" => 2,
         "gem" => 1,
-        "effect" => 1
+        "effect" => 2
     ],
     16 => [
         "region" => 2,
         "gem" => 1,
-        "effect" => 2
+        "effect" => 3
     ],
     17 => [
         "region" => 2,
         "gem" => 2,
-        "effect" => 3
+        "effect" => 1
     ],
     18 => [
         "region" => 2,
         "gem" => 2,
-        "effect" => 1
+        "effect" => 2
     ],
     19 => [
         "region" => 2,
         "gem" => 2,
-        "effect" => 2
+        "effect" => 3
     ],
     20 => [
         "region" => 2,
         "gem" => 3,
-        "effect" => 3
+        "effect" => 1
     ],
     21 => [
         "region" => 2,
         "gem" => 3,
-        "effect" => 1
+        "effect" => 2
     ],
     22 => [
         "region" => 2,
         "gem" => 3,
-        "effect" => 2
+        "effect" => 3
     ],
     23 => [
         "region" => 2,
         "gem" => 4,
-        "effect" => 3
+        "effect" => 1
     ],
     24 => [
         "region" => 2,
         "gem" => 4,
-        "effect" => 1
+        "effect" => 2
     ],
     25 => [
         "region" => 2,
         "gem" => 4,
-        "effect" => 2
+        "effect" => 3
     ],
     26 => [
         "region" => 2,
         "gem" => 0,
-        "effect" => 3
+        "effect" => 0
     ],
     27 => [
         "region" => 3,
         "gem" => 1,
-        "effect" => 0
+        "effect" => 1
     ],
     28 => [
         "region" => 3,
         "gem" => 1,
-        "effect" => 1
+        "effect" => 2
     ],
     29 => [
         "region" => 3,
         "gem" => 1,
-        "effect" => 2
+        "effect" => 3
     ],
     30 => [
         "region" => 3,
         "gem" => 2,
-        "effect" => 3
+        "effect" => 1
     ],
     31 => [
         "region" => 3,
         "gem" => 2,
-        "effect" => 1
+        "effect" => 2
     ],
     32 => [
         "region" => 3,
         "gem" => 2,
-        "effect" => 2
+        "effect" => 3
     ],
     33 => [
         "region" => 3,
         "gem" => 3,
-        "effect" => 3
+        "effect" => 1
     ],
     34 => [
         "region" => 3,
         "gem" => 3,
-        "effect" => 1
+        "effect" => 2
     ],
     35 => [
         "region" => 3,
         "gem" => 3,
-        "effect" => 2
+        "effect" => 3
     ],
     36 => [
         "region" => 3,
         "gem" => 4,
-        "effect" => 3
+        "effect" => 1
     ],
     37 => [
         "region" => 3,
         "gem" => 4,
-        "effect" => 1
+        "effect" => 2
     ],
     38 => [
         "region" => 3,
         "gem" => 4,
-        "effect" => 2
+        "effect" => 3
     ],
     39 => [
         "region" => 3,
         "gem" => 0,
-        "effect" => 3
+        "effect" => 0
     ],
     40 => [
         "region" => 4,
         "gem" => 1,
-        "effect" => 0
+        "effect" => 1
     ],
     41 => [
         "region" => 4,
         "gem" => 1,
-        "effect" => 1
+        "effect" => 2
     ],
     42 => [
         "region" => 4,
         "gem" => 1,
-        "effect" => 2
+        "effect" => 3
     ],
     43 => [
         "region" => 4,
         "gem" => 2,
-        "effect" => 3
+        "effect" => 1
     ],
     44 => [
         "region" => 4,
         "gem" => 2,
-        "effect" => 1
+        "effect" => 2
     ],
     45 => [
         "region" => 4,
         "gem" => 2,
-        "effect" => 2
+        "effect" => 3
     ],
     46 => [
         "region" => 4,
         "gem" => 3,
-        "effect" => 3
+        "effect" => 1
     ],
     47 => [
         "region" => 4,
         "gem" => 3,
-        "effect" => 1
+        "effect" => 2
     ],
     48 => [
         "region" => 4,
         "gem" => 3,
-        "effect" => 2
+        "effect" => 3
     ],
     49 => [
         "region" => 4,
         "gem" => 4,
-        "effect" => 3
+        "effect" => 1
     ],
     50 => [
         "region" => 4,
         "gem" => 4,
-        "effect" => 1
+        "effect" => 2
     ],
     51 => [
         "region" => 4,
         "gem" => 4,
-        "effect" => 2
+        "effect" => 3
     ],
     52 => [
         "region" => 4,
         "gem" => 0,
-        "effect" => 3
+        "effect" => 0
     ],
     53 => [
         "region" => 5,
