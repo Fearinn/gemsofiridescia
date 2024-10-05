@@ -587,6 +587,7 @@ class GemsOfIridescia extends Table
         }
 
         $tileHex = $explorer["location_arg"];
+        $tileRow = ceil(($tileHex + 1) / 7);
 
         $leftHex = $tileHex - 1;
         $rightHex = $tileHex + 1;
@@ -603,12 +604,18 @@ class GemsOfIridescia extends Table
 
         if (in_array($tileHex, $leftEdges)) {
             $leftHex = null;
-            $topLeftHex = null;
+
+            if ($tileRow % 2 === 0) {
+                $topLeftHex = null;
+            }
         };
 
         if (in_array($tileHex, $rightEdges)) {
             $rightHex = null;
-            $topRightHex = null;
+
+            if ($tileRow % 2 === 0) {
+                $topRightHex = null;
+            }
         }
 
         $adjacentHexes = [
@@ -715,7 +722,6 @@ class GemsOfIridescia extends Table
         }
 
         $tileEffect_id = (int) $tileInfo["effect"];
-        $this->dump("tileBonus", $tileEffect_id);
 
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];

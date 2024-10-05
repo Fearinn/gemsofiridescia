@@ -1254,7 +1254,7 @@ define([
         this.addGemToCargo(
           newGemCard,
           player_id,
-          document.getElementById("goi_cargoExcedent")
+          document.getElementById(`goi_cargoExcedent:${player_id}`)
         );
       }
     },
