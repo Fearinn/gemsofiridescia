@@ -715,8 +715,9 @@ define([
         if (stateName === "moveExplorer") {
           const explorableTiles = args.args.explorableTiles;
           const revealsLimit = args.args.revealsLimit;
+          const revealableTiles = args.args.revealableTiles;
 
-          if (revealsLimit < 2) {
+          if (revealsLimit < 2 && revealableTiles.length > 0) {
             this.addActionButton(
               "goi_undo_btn",
               _("Change mind (reveal another tile)"),

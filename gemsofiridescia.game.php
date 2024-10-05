@@ -116,9 +116,13 @@ class GemsOfIridescia extends Table
 
     public function actUndoSkipRevealTile()
     {
-        $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
 
-        if ($revealsLimit === 2) {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
+        $revealableTiles = $this->revealableTiles($player_id);
+
+        if ($revealsLimit === 2 || !$revealableTiles) {
             throw new BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
         }
 
@@ -384,10 +388,12 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         $explorableTiles = $this->explorableTiles($player_id);
+        $revealableTiles = $this->revealableTiles($player_id);
         $revealsLimit = $this->globals->get(REVEALS_LIMIT);
 
         return [
             "explorableTiles" => $explorableTiles,
+            "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
             "_no_notify" => !$explorableTiles || !!$this->globals->get(HAS_MOVED_EXPLORER)
         ];
@@ -880,10 +886,14 @@ class GemsOfIridescia extends Table
         return true;
     }
 
-    public function decGem(int $delta, int $gem_id, int $player_id, array $gemCards = null, bool $sell = false): void
+    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, bool $sell = false): void
     {
         if ($delta <= 0) {
             throw new BgaVisibleSystemException("The delta must be positive: decGem, $delta");
+        }
+
+        if (count($gemCards) < $delta) {
+            throw new BgaVisibleSystemException("Not enough gems: decGem, $delta");
         }
 
         $gemName = $this->gems_info[$gem_id]["name"];
@@ -919,8 +929,8 @@ class GemsOfIridescia extends Table
         $this->decGem(
             $delta,
             $gem_id,
-            $player_id,
             $gemCards,
+            $player_id,
             true
         );
 
@@ -1128,7 +1138,16 @@ class GemsOfIridescia extends Table
         $relicPoints = $relic_info["points"];
 
         foreach ($relicCost as $gem_id => $gemCost) {
-            $this->decGem($gemCost, $gem_id, $player_id);
+            if ($gemCost === 0) {
+                continue;
+            }
+
+            $gemName = $this->gems_info[$gem_id]["name"];
+
+            $gemCards = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
+            $gemCards = array_slice($gemCards, 0, $gemCost, true);
+
+            $this->decGem($gemCost, $gem_id, $gemCards, $player_id);
         }
 
         $this->relic_cards->moveCard($relicCard_id, "hand", $player_id);
