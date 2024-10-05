@@ -73,6 +73,7 @@ define([
       this.goi_globals.relicsDeck = gamedatas.relicsDeck;
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
+      this.goi_globals.availableCargos = [];
 
       this.goi_info.defaultSelections = {
         tile: null,
@@ -674,9 +675,6 @@ define([
           const skippable = args.args.skippable;
 
           if (!skippable) {
-            this.gamedatas.gamestate.description = _(
-              "${actplayer} must reveal a tile"
-            );
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} must reveal a tile"
             );
@@ -684,9 +682,6 @@ define([
           }
 
           if (revealsLimit === 1) {
-            this.gamedatas.gamestate.description = _(
-              "${actplayer} may reveal another tile"
-            );
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} may reveal another tile"
             );
@@ -793,6 +788,16 @@ define([
         }
 
         if (stateName === "transferGem") {
+          const availableCargos = args.args.availableCargos;
+          this.goi_globals.availableCargos = availableCargos;
+
+          if (availableCargos.length === 0) {
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "The cargos of all players are full. ${you} must pick a Gem to discard"
+            );
+            this.updatePageTitle();
+          }
+
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("single");
         }
 
@@ -878,6 +883,38 @@ define([
           this.goi_stocks.relics.market.setSelectionMode("single");
           this.goi_stocks.relics.market.setSelectableCards(restorableRelics);
         }
+        return;
+      }
+
+      if (stateName === "revealTile") {
+        const revealsLimit = args.args.revealsLimit;
+        const skippable = args.args.skippable;
+
+        if (revealsLimit < 2) {
+          this.gamedatas.gamestate.descriptionmyturn = _(
+            "${you} may reveal another tile"
+          );
+          this.updatePageTitle();
+        }
+
+        if (skippable) {
+          this.gamedatas.gamestate.description = _(
+            "${actplayer} must reveal a tile"
+          );
+          this.updatePageTitle();
+        }
+      }
+
+      if (stateName === "transferGem") {
+        const availableCargos = args.args.availableCargos;
+        this.goi_globals.availableCargos = availableCargos;
+
+        if (availableCargos.length === 0) {
+          this.gamedatas.gamestate.description = _(
+            "The cargos of all players are full. ${actplayer} must pick a Gem to discard"
+          );
+          this.updatePageTitle();
+        }
       }
     },
 
@@ -905,6 +942,7 @@ define([
       }
 
       if (stateName === "transferGem") {
+        this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
 
@@ -999,6 +1037,12 @@ define([
       if (stateName === "transferGem") {
         if (this.goi_selections.gem) {
           this.addActionButton(elementId, message, () => {
+            const availableCargos = this.goi_globals.availableCargos;
+            if (availableCargos.length === 0) {
+              this.actTransferGem();
+              return;
+            }
+
             this.setClientState("client_transferGem", {
               descriptionmyturn:
                 "${you} must pick an opponent to transfer the selected Gem to",

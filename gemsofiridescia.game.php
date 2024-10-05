@@ -300,8 +300,14 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, int $opponent_id): void
+    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
     {
+        $players = $this->loadPlayersBasicInfos();
+
+        if ($opponent_id && !array_key_exists($opponent_id, $players)) {
+            throw new BgaVisibleSystemException("This player is not in the table: actTransferGem, $opponent_id");
+        }
+
         $player_id = (int) $this->getActivePlayerId();
 
         $gem_id = (int) $gemCard["type_arg"];
@@ -314,7 +320,13 @@ class GemsOfIridescia extends Table
             throw new BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
         }
 
-        $this->transferGem($gem_id, $gemCard, $opponent_id, $player_id);
+        $availableCargos = $this->availableCargos($player_id);
+
+        if (!$opponent_id && !$availableCargos) {
+            $this->discardGem($gemCard, $player_id);
+        } else {
+            $this->transferGem($gemCard, $opponent_id, $player_id);
+        }
 
         $this->gamestate->nextState("repeat");
     }
@@ -825,7 +837,7 @@ class GemsOfIridescia extends Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getGemsCounts($player_id) > 7 && $player_id !== $excludedPlayer_id) {
+            if ($this->getGemsCounts($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -833,10 +845,11 @@ class GemsOfIridescia extends Table
         return $availableCargos;
     }
 
-    public function transferGem(int $gem_id, array $gemCard, int $opponent_id, int $player_id): void
+    public function transferGem(array $gemCard, int $opponent_id, int $player_id): void
     {
+        $gem_id = (int) $gemCard["type_arg"];
+        $gemCard_id = (int) $gemCard["id"];
         $gem_info = $this->gems_info[$gem_id];
-        $gemCard_id = $gemCard["id"];
 
         $this->gem_cards->moveCard($gemCard_id, "cargo", $opponent_id);
 
@@ -849,9 +862,29 @@ class GemsOfIridescia extends Table
                 "player_id2" => $opponent_id,
                 "player_name2" => $this->getPlayerNameById($opponent_id),
                 "gem_label" => $gem_info["tr_label"],
-                "gemCard" => $gemCard
+                "gemName" => $gem_info["name"],
+                "gemCard" => $gemCard,
+                "18n" => ["gem_label"],
             ]
         );
+    }
+
+    public function discardGem(array $gemCard, int $player_id): void
+    {
+        $gem_id = (int) $gemCard["type_arg"];
+
+        $this->notifyAllPlayers(
+            "discardGem",
+            clienttranslate('${player_name} returns 1 ${gem_label} to the supply'),
+            [
+                "player_name" => $this->getPlayerNameById($player_id),
+                "gem_id" => $gem_id,
+                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "i18n" => ["gem_label"]
+            ]
+        );
+
+        $this->decGem(1, $gem_id, [$gemCard], $player_id);
     }
 
     public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false): bool
@@ -876,6 +909,8 @@ class GemsOfIridescia extends Table
                 "i18n" => ["gem_label"]
             ]
         );
+
+        $this->dump("totalGemCount", $this->getTotalGemCount($player_id));
 
         if ($this->getTotalGemCount($player_id) > 7) {
             $anchorState_id = $this->gamestate->state_id();
@@ -905,7 +940,7 @@ class GemsOfIridescia extends Table
                 throw new BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
             }
 
-            $this->gem_cards->moveCard($gemCard_id, "deck", 0);
+            $this->gem_cards->insertCardOnExtremePosition($gemCard_id, "deck", false);
         }
 
         $this->notifyAllPlayers(
