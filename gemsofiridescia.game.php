@@ -161,8 +161,8 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        $this->resolveTileEffect($tileCard, $player_id);
         $this->globals->set(HAS_MOVED_EXPLORER, true);
+        $this->resolveTileEffect($tileCard, $player_id);
     }
 
     public function actPickRainbowGem(#[IntParam(min: 1, max: 4)] int $gem_id): void
@@ -755,6 +755,10 @@ class GemsOfIridescia extends Table
             }
         }
 
+        if ($gem_id === 10) {
+            $this->obtainIridiaStone($player_id);
+        }
+
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {
             return;
         };
@@ -762,7 +766,41 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("mine");
     }
 
-    public function getCollectedTiles(?int $player_id): array {
+    public function getIridiaStoneOwner(): int | null
+    {
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $foundIridia = !!$this->getUniqueValueFromDB("SELECT iridia_stone FROM player WHERE player_id=$player_id");
+            if ($foundIridia) {
+                return $player_id;
+            }
+        }
+
+        return null;
+    }
+
+    public function obtainIridiaStone(int $player_id): void
+    {
+        if ($this->getIridiaStoneOwner()) {
+            throw new BgaVisibleSystemException("The Iridia Stone has already been found: collectIridiaStone");
+        }
+
+        $this->DbQuery("UPDATE player SET iridia_stone=1 WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "obtainIridiaStone",
+            clienttranslate('${player_name} finds the Iridia Stone'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id)
+            ]
+        );
+
+        $this->incRoyaltyPoints(10, $player_id);
+    }
+
+    public function getCollectedTiles(?int $player_id): array
+    {
         if ($player_id) {
             return $this->tile_cards->getCardsInLocation("hand", $player_id);
         }
@@ -1340,6 +1378,7 @@ class GemsOfIridescia extends Table
         $result["coins"] = $this->getCoins(null);
         $result["gems"] = $this->getGems(null);
         $result["gemsCounts"] = $this->getGemsCounts(null);
+        $result["iridiaStoneOwner"] = $this->getIridiaStoneOwner();
         $result["marketValues"] = $this->getMarketValues(null);
         $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
         $result["privateStoneDiceCount"] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);

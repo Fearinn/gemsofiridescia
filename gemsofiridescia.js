@@ -49,6 +49,7 @@ define([
       console.log("Starting game setup");
 
       this.goi_info.relics = gamedatas.relicsInfo;
+
       this.goi_info.gemIds = {
         iridescia: 0,
         amethyst: 1,
@@ -68,6 +69,7 @@ define([
       this.goi_globals.coins = gamedatas.coins;
       this.goi_globals.gems = gamedatas.gems;
       this.goi_globals.gemsCounts = gamedatas.gemsCounts;
+      this.goi_globals.iridiaStoneOwner = gamedatas.iridiaStoneOwner;
       this.goi_globals.marketValues = gamedatas.marketValues;
       this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
       this.goi_globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
@@ -165,7 +167,7 @@ define([
       });
 
       this.goi_managers.gems = new CardManager(this, {
-        getId: (card) => `goi_gem-${card.id}-${card.type}`,
+        getId: (card) => `gem-${card.id}`,
         selectedCardClass: "goi_selectedGem",
         setupDiv: (card, div) => {
           div.classList.add("goi_gem");
@@ -468,6 +470,8 @@ define([
         <div id="goi_playerBoardContainer:${player_id}" class="goi_playerBoardContainer whiteblock">
           <div id="goi_playerHand:${player_id}" class="goi_playerHand">
             <div id="goi_victoryPile:${player_id}" class="goi_victoryPile">
+                <div id="goi_iridiaStone:${player_id}"></div> 
+                <div id="goi_royaltToken:${player_id}"></div> 
                 <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
             </div>
@@ -620,6 +624,20 @@ define([
           document.getElementById(`goi_relicsPile:${player_id}`),
           {}
         );
+
+        this.goi_stocks[player_id].gems.iridiaStone = new CardStock(
+          this.goi_managers.gems,
+          document.getElementById(`goi_iridiaStone:${player_id}`),
+          {}
+        );
+
+        if (player_id == this.goi_globals.iridiaStoneOwner) {
+          this.goi_stocks[player_id].gems.iridiaStone.addCard({
+            id: "iridia",
+            type: "iridia",
+            type_arg: 0,
+          });
+        }
 
         const restoredRelics = this.goi_globals.restoredRelics[player_id];
         for (const relicCard_id in restoredRelics) {
@@ -1217,10 +1235,11 @@ define([
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
       dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
       dojo.subscribe("rollDie", this, "notif_rollDie");
+      dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("incGem", this, "notif_incGem");
       dojo.subscribe("decGem", this, "notif_decGem");
       dojo.subscribe("transferGem", this, "notif_transferGem");
-      dojo.subscribe("incCoin", this, "notif_incCoin");
+      dojo.subscribe("obtainIridiaStone", this, "notif_obtainIridiaStone");
       dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
       dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
       dojo.subscribe("collectTile", this, "notif_collectTile");
@@ -1333,6 +1352,16 @@ define([
 
       this.goi_counters[player_id].gems[gemName].incValue(-1);
       this.goi_counters[player_id].gems[gemName].incValue(1);
+    },
+
+    notif_obtainIridiaStone: function (notif) {
+      const player_id = notif.args.player_id;
+
+      this.goi_stocks[player_id].gems.iridiaStone.addCard({
+        id: "iridia",
+        type: "iridia",
+        type_arg: 0,
+      });
     },
 
     notif_incCoin: function (notif) {
