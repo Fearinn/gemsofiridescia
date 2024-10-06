@@ -855,7 +855,7 @@ class GemsOfIridescia extends Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getGemsCounts($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
+            if ($this->getTotalGemCount($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
                 $availableCargos[] = $player_id;
             }
         }

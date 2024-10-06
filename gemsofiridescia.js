@@ -814,6 +814,7 @@ define([
 
         if (stateName === "transferGem") {
           const availableCargos = args.args.availableCargos;
+          console.log(availableCargos, "cargos");
           this.goi_globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
@@ -1311,6 +1312,7 @@ define([
       const player_id = notif.args.player_id;
       const opponent_id = notif.args.player_id2;
       const transferredGemCard = notif.args.gemCard;
+      const gemName = notif.args.gemName;
 
       this.addGemToCargo(transferredGemCard, opponent_id);
 
@@ -1328,6 +1330,9 @@ define([
           document.getElementById(`goi_cargoExcedent:${player_id}`)
         );
       }
+
+      this.goi_counters[player_id].gems[gemName].incValue(-1);
+      this.goi_counters[player_id].gems[gemName].incValue(1);
     },
 
     notif_incCoin: function (notif) {
