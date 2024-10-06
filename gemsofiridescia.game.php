@@ -54,7 +54,8 @@ class GemsOfIridescia extends Table
         $this->relic_cards = $this->getNew("module.common.deck");
         $this->relic_cards->init("relic");
 
-        $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, card_location location, card_location_arg location_arg ";
+        $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
+        card_location location, card_location_arg location_arg ";
     }
 
     /**
@@ -761,6 +762,21 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("mine");
     }
 
+    public function getCollectedTiles(?int $player_id): array {
+        if ($player_id) {
+            return $this->tile_cards->getCardsInLocation("hand", $player_id);
+        }
+
+        $collectedTiles = [];
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $collectedTiles[$player_id] = $this->tile_cards->getCardsInLocation("hand", $player_id);
+        }
+
+        return $collectedTiles;
+    }
+
     public function getCoins(?int $player_id): int | array
     {
         $sql = "SELECT coin FROM player WHERE player_id=";
@@ -1125,18 +1141,20 @@ class GemsOfIridescia extends Table
         return $this->relic_cards->getCardsInLocation("market");
     }
 
-    public function getRelicsByPlayer(?int $player_id): array
+    public function getRestoredRelics(?int $player_id): array
     {
         if ($player_id) {
             return $this->relic_cards->getCardsInLocation("hand", $player_id);
         }
 
-        $players = $this->loadPlayersBasicInfos();
         $relicCards = [];
 
+        $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
             $relicCards[$player_id] = $this->relic_cards->getCardsInLocation("hand", $player_id);
         }
+
+        return $relicCards;
     }
 
     function canPayRelicCost(int $relic_id, int $player_id): bool
@@ -1315,19 +1333,21 @@ class GemsOfIridescia extends Table
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $result["tilesBoard"] = $this->getTileBoard();
-        $result[PLAYER_BOARDS] = $this->globals->get(PLAYER_BOARDS);
-        $result[REVEALED_TILES] = $this->globals->get(REVEALED_TILES, []);
+        $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
+        $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
+        $result["collectedTiles"] = $this->getCollectedTiles(null);
         $result["explorers"] = $this->getExplorers();
         $result["coins"] = $this->getCoins(null);
         $result["gems"] = $this->getGems(null);
         $result["gemsCounts"] = $this->getGemsCounts(null);
         $result["marketValues"] = $this->getMarketValues(null);
-        $result[PUBLIC_STONE_DICE_COUNT] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
-        $result[PRIVATE_STONE_DICE_COUNT] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
+        $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
+        $result["privateStoneDiceCount"] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
         $result["relicsInfo"] = $this->relics_info;
         $result["relicsDeck"] = $this->getRelicsDeck();
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
         $result["relicsMarket"] = $this->getRelicsMarket();
+        $result["restoredRelics"] = $this->getRestoredRelics(null);
 
         return $result;
     }

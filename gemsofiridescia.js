@@ -63,6 +63,7 @@ define([
       this.goi_globals.tilesBoard = gamedatas.tilesBoard;
       this.goi_globals.playerBoards = gamedatas.playerBoards;
       this.goi_globals.revealedTiles = gamedatas.revealedTiles;
+      this.goi_globals.collectedTiles = gamedatas.collectedTiles;
       this.goi_globals.explorers = gamedatas.explorers;
       this.goi_globals.coins = gamedatas.coins;
       this.goi_globals.gems = gamedatas.gems;
@@ -73,6 +74,7 @@ define([
       this.goi_globals.relicsDeck = gamedatas.relicsDeck;
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
+      this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.availableCargos = [];
 
       this.goi_info.defaultSelections = {
@@ -607,11 +609,23 @@ define([
           {}
         );
 
+        const collectedTiles = this.goi_globals.collectedTiles[player_id];
+        for (const tileCard_id in collectedTiles) {
+          const tileCard = collectedTiles[tileCard_id];
+          this.goi_stocks[player_id].tiles.victoryPile.addCard(tileCard);
+        }
+
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
           {}
         );
+
+        const restoredRelics = this.goi_globals.restoredRelics[player_id];
+        for (const relicCard_id in restoredRelics) {
+          const relicCard = restoredRelics[relicCard_id];
+          this.goi_stocks[player_id].relics.victoryPile.addCard(relicCard);
+        }
       }
 
       /* RELICS */

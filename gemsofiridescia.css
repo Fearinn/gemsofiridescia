@@ -30,10 +30,6 @@
   position: absolute !important;
 }
 
-.all-visible-deck:not(.all-visible-deck:hover) > .card:not(.card:first-child) {
-  margin-top: calc(var(--cardSize) / 4) !important;
-}
-
 .goi_gameArea {
   --boardSize: 2500px;
   --playerBoardSize: 600px;
@@ -263,9 +259,12 @@
 .goi_tile {
   bottom: 2px;
   left: 2px;
-  box-shadow: none !important;
-  aspect-ratio: 100/115;
+  height: 230px;
   width: var(--tileSize);
+}
+
+.goi_tile .card-side {
+  box-shadow: none !important;
 }
 
 .goi_selectedTile {
@@ -313,15 +312,30 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
 .goi_playerHand {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
+}
+
+.goi_victoryPile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+
+.goi_tilesPile > .card:not(.card:first-child) {
+  top: calc(var(--tileSize) / 4);
+}
+
+.goi_relicsPile > .card:not(.card:first-child) {
+  top: calc(var(--cardSize) / 4);
 }
 
 .goi_playerBoard {
@@ -438,7 +452,7 @@
 }
 
 .goi_card {
-  aspect-ratio: 300 / 409;
+  height: 409px;
   width: var(--cardSize);
 }
 
@@ -464,6 +478,7 @@
   gap: 8px;
   overflow-x: auto;
 }
+
 
 /* END OF CUSTOM STYLES */
 
