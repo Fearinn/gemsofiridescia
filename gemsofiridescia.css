@@ -330,6 +330,16 @@
   gap: 8px;
 }
 
+.goi_royaltyToken {
+  background-image: url("img/royaltyTokens.png");
+  height: 200px;
+  width: 250px;
+}
+
+.goi_royaltyToken .card-side {
+  box-shadow: none !important;
+}
+
 .goi_tilesPile > .card:not(.card:first-child) {
   top: calc(var(--tileSize) / 4);
 }

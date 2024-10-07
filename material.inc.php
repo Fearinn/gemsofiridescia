@@ -414,9 +414,25 @@ $this->tiles_info = [
     ]
 ];
 
+$this->royaltyTokens_info = [
+    1 => [
+        "name" => "banner",
+        "tr_label" => clienttranslate("Banner"),
+        "points" => 3
+    ],
+    2 => [
+        "name" => "septor",
+        "tr_label" => clienttranslate("Septor"),
+        "points" => 5,
+    ],
+    3 => [
+        "name" => "throne",
+        "tr_label" => clienttranslate("Throne"),
+        "points" => 7,
+    ]
+];
 
 $this->relics_info = [
-
     1 => [
         "name" => "Amethyst Ring",
         "tr_name" => clienttranslate("Amethyst Ring"),

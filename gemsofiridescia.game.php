@@ -799,6 +799,91 @@ class GemsOfIridescia extends Table
         $this->incRoyaltyPoints(10, $player_id);
     }
 
+    public function getRoyaltyTokens(?int $player_id): array
+    {
+        if ($player_id) {
+            foreach ($this->royaltyTokens_info as $token_id => $token_info) {
+                $tokenName = $token_info["name"];
+                $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
+
+                if ($hasObtainedToken) {
+                    $token_info["id"] = $token_id;
+                    return $token_info;
+                }
+            }
+        }
+
+        $royaltyTokens = [];
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $royaltyTokens[$player_id] = null;
+
+            foreach ($this->royaltyTokens_info as $token_id => $token_info) {
+                $tokenName = $token_info["name"];
+                $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
+
+                if ($hasObtainedToken) {
+                    $token_info["id"] = $token_id;
+                    $royaltyTokens[$player_id] = $token_info;
+                    break;
+                }
+            }
+        }
+
+        return $royaltyTokens;
+    }
+
+    public function reachCastle(int $player_id): void
+    {
+        $this->DbQuery("UPDATE player SET castle=1 WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "reacheCastle",
+            clienttranslate('${player_name} reachs the Castle Row'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id)
+            ]
+        );
+
+        $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
+
+        $this->dump("castleCount", $castlePlayersCount);
+
+        if ($castlePlayersCount === 1) {
+            $token_id = 3;
+        }
+
+        if ($castlePlayersCount === 2) {
+            $token_id = 2;
+        }
+
+        if ($castlePlayersCount === 3) {
+            $token_id = 1;
+        }
+
+        $token_info = $this->royaltyTokens_info[$token_id];
+        $tokenName = $token_info["name"];
+        $tokenLabel = $token_info["tr_label"];
+        $tokenPoints = $token_info["points"];
+
+        $this->notifyAllPlayers(
+            "obtainRoyaltyToken",
+            clienttranslate('${player_name} obtains the ${token_label}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "token_label" => $tokenLabel,
+                "tokenName" => $tokenName,
+                "i18n" => ["token_label"]
+            ]
+        );
+
+        $this->DbQuery("UPDATE player SET $tokenName=1 WHERE player_id=$player_id");
+        $this->incRoyaltyPoints($tokenPoints, $player_id);
+    }
+
     public function getCollectedTiles(?int $player_id): array
     {
         if ($player_id) {
@@ -1374,11 +1459,12 @@ class GemsOfIridescia extends Table
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
         $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
         $result["collectedTiles"] = $this->getCollectedTiles(null);
+        $result["iridiaStoneOwner"] = $this->getIridiaStoneOwner();
+        $result["royaltyTokens"] = $this->getRoyaltyTokens(null);
         $result["explorers"] = $this->getExplorers();
         $result["coins"] = $this->getCoins(null);
         $result["gems"] = $this->getGems(null);
         $result["gemsCounts"] = $this->getGemsCounts(null);
-        $result["iridiaStoneOwner"] = $this->getIridiaStoneOwner();
         $result["marketValues"] = $this->getMarketValues(null);
         $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
         $result["privateStoneDiceCount"] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
