@@ -71,14 +71,16 @@ define([
       this.goi_globals.coins = gamedatas.coins;
       this.goi_globals.gems = gamedatas.gems;
       this.goi_globals.gemsCounts = gamedatas.gemsCounts;
+      this.goi_globals.availableCargos = [];
       this.goi_globals.marketValues = gamedatas.marketValues;
       this.goi_globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
       this.goi_globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
+      this.goi_globals.activeStoneDiceCount = gamedatas.activeStoneDiceCount;
+      this.goi_globals.stoneDiceFaces = {};
       this.goi_globals.relicsDeck = gamedatas.relicsDeck;
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
-      this.goi_globals.availableCargos = [];
 
       this.goi_info.defaultSelections = {
         tile: null,
@@ -557,7 +559,9 @@ define([
           this.goi_globals.privateStoneDiceCount[player_id];
 
         for (let die_id = 1; die_id <= privateStoneDiceCount; die_id++) {
-          dice.push({ id: die_id, type: "stone", face: 6 });
+          const active = die_id <= this.goi_globals.activeStoneDiceCount;
+
+          dice.push({ id: die_id, type: "stone", face: 6, active: active });
         }
         this.goi_stocks[player_id].dice.scene.addDice(dice);
 
@@ -992,6 +996,19 @@ define([
           this.updatePageTitle();
         }
       }
+
+      if (stateName === "betweenTurns") {
+        this.goi_stocks[this.player_id].dice.scene.getDice().forEach((die) => {
+          if (!die.active) {
+            return;
+          }
+
+          die.active = false;
+          die.face = this.goi_globals.stoneDiceFaces[die.id];
+          this.goi_stocks[this.player_id].dice.scene.removeDie(die);
+          this.goi_stocks[this.player_id].dice.scene.addDie(die);
+        });
+      }
     },
 
     // onLeavingState: this method is called each time we are leaving a game state.
@@ -1216,7 +1233,7 @@ define([
 
     actMine: function () {
       this.performAction("actMine", {
-        stoneDiceCount: this.goi_selections.diceCount,
+        newStoneDiceCount: this.goi_selections.diceCount,
       });
     },
 
@@ -1460,6 +1477,8 @@ define([
         face: face,
         type: type,
       });
+
+      this.goi_globals.stoneDiceFaces[die_id] = face;
     },
 
     notif_restoreRelic: function (notif) {

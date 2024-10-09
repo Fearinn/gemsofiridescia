@@ -29,7 +29,7 @@ const HAS_MOVED_EXPLORER = "hasMovedExplorer";
 const HAS_SOLD_GEMS = "hasSoldGems";
 const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
-const ACTIVE_STONE_DICE = "activeStoneDice";
+const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PRIVATE_STONE_DICE_COUNT = "privateStoneDiceCount";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
@@ -184,14 +184,16 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("mine");
     }
 
-    public function actMine(#[IntParam(min: 0, max: 4)] int $stoneDiceCount): void
+    public function actMine(#[IntParam(min: 0, max: 4)] int $newStoneDiceCount): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $activeStoneDiceCount = $this->globals->inc(ACTIVE_STONE_DICE_COUNT, $newStoneDiceCount);
+
         $privateStoneDiceCount = $this->globals->get(PRIVATE_STONE_DICE_COUNT)[$player_id];
 
-        if ($stoneDiceCount > $privateStoneDiceCount) {
-            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
+        if ($activeStoneDiceCount > $privateStoneDiceCount) {
+            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $newStoneDiceCount, $privateStoneDiceCount");
         }
 
         $this->decCoin(3, $player_id, true);
@@ -226,21 +228,21 @@ class GemsOfIridescia extends Table
             $mined++;
         }
 
-        $this->globals->inc(ACTIVE_STONE_DICE, $stoneDiceCount);
+        $this->globals->inc(ACTIVE_STONE_DICE_COUNT, $newStoneDiceCount);
 
-        if ($stoneDiceCount > 0) {
+        if ($newStoneDiceCount > 0) {
             $this->notifyAllPlayers(
                 "informActiveStoneDice",
                 clienttranslate('${player_name} has ${count} active Stone dice'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
-                    "count" => $this->globals->get(ACTIVE_STONE_DICE),
+                    "count" => $this->globals->get(ACTIVE_STONE_DICE_COUNT),
                 ]
             );
         }
 
-        for ($die_id = $stoneDiceCount; $die_id > 0; $die_id--) {
+        for ($die_id = $activeStoneDiceCount; $die_id > 0; $die_id--) {
             $this->notifyAllPlayers(
                 "activateStoneDie",
                 "",
@@ -494,7 +496,7 @@ class GemsOfIridescia extends Table
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
-        $this->globals->set(ACTIVE_STONE_DICE, 0);
+        $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
         // $this->activeNextPlayer();
@@ -1468,6 +1470,7 @@ class GemsOfIridescia extends Table
         $result["marketValues"] = $this->getMarketValues(null);
         $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
         $result["privateStoneDiceCount"] = $this->globals->get(PRIVATE_STONE_DICE_COUNT);
+        $result["activeStoneDiceCount"] = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
         $result["relicsInfo"] = $this->relics_info;
         $result["relicsDeck"] = $this->getRelicsDeck();
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
@@ -1593,7 +1596,7 @@ class GemsOfIridescia extends Table
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
-        $this->globals->set(ACTIVE_STONE_DICE, 0);
+        $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
 
         $privateStoneDiceCount = [];
         foreach ($players as $player_id => $player) {
