@@ -1426,7 +1426,9 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        $this->updateMarketValue($gem_id);
+        if ($gem_id !== 0) {
+            $this->updateMarketValue($gem_id);
+        }
     }
 
     /**
