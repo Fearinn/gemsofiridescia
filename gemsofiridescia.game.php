@@ -161,6 +161,7 @@ class GemsOfIridescia extends Table
         );
 
         $this->globals->set(HAS_MOVED_EXPLORER, true);
+
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
@@ -741,6 +742,10 @@ class GemsOfIridescia extends Table
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
+        if ($region_id === 5) {
+            $this->reachCastle($player_id);
+        }
+
         if ($gem_id === 0) {
             $this->gamestate->nextState("rainbowTile");
             return;
@@ -859,8 +864,6 @@ class GemsOfIridescia extends Table
 
         $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
 
-        $this->dump("castleCount", $castlePlayersCount);
-
         if ($castlePlayersCount === 1) {
             $token_id = 3;
         }
@@ -876,7 +879,7 @@ class GemsOfIridescia extends Table
         $token_info = $this->royaltyTokens_info[$token_id];
         $tokenName = $token_info["name"];
         $tokenLabel = $token_info["tr_label"];
-        $tokenPoints = $token_info["points"];
+        $tokenPoints = (int) $token_info["points"];
 
         $this->notifyAllPlayers(
             "obtainRoyaltyToken",
@@ -884,6 +887,7 @@ class GemsOfIridescia extends Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "token_id" => $token_id,
                 "token_label" => $tokenLabel,
                 "tokenName" => $tokenName,
                 "i18n" => ["token_label"]
