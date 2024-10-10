@@ -14,9 +14,9 @@
   <div id="goi_gemVoid"></div>
   <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
   <div class="goi_relicsContainer">
-  <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
-  <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
-</div>
+    <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
+    <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
+  </div>
   <div id="goi_board" class="goi_board">
     <div class="goi_tilesGrid">
       <div id="goi_tilesRow-9" class="goi_tilesRow">
@@ -100,7 +100,7 @@
     <div id="goi_explorersBoard" class="goi_explorersBoard"></div>
     <div id="goi_stoneDice" class="goi_stoneDice"></div>
   </div>
-  <div id="goi_playerBoards" class="goi_playerBoards"></div>
+  <div id="goi_playerZones" class="goi_playerZones"></div>
 </div>
 
 {OVERALL_GAME_FOOTER}

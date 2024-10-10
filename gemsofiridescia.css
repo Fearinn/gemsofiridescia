@@ -13,7 +13,6 @@
  *
  */
 
-
 .all-visible-deck {
   position: relative !important;
 }
@@ -28,7 +27,7 @@
 
 .goi_thematicBackground body {
   background-image: url("img/background.jpg");
-  background-size: 100% auto;
+  background-size: 100%;
   background-position: center top;
 }
 
@@ -303,22 +302,52 @@
   }
 }
 
-.goi_playerBoards {
+.goi_playerZones {
   display: grid;
+  align-items: flex-start;
   justify-content: center;
   grid-template-columns: repeat(
     auto-fit,
     minmax(calc(var(--playerBoardSize) * 1.5), auto)
   );
-  gap: 8px;
+  gap: 16px;
   width: var(--boardSize);
 }
 
-.goi_playerBoardContainer {
+.goi_playerZoneContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  border: 8px double white;
+}
+
+.goi_playerZoneTitle {
+  font-family: "sketchnote-square", sans-serif;
+  font-size: 2.5em;
+}
+
+.goi_playerZone {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   gap: 16px;
+  width: 100%;
+}
+
+.goi_selectablePlayerZoneContainer {
+  cursor: pointer;
+}
+
+.goi_selectablePlayerZoneContainer
+  ~ .goi_playerZoneContainer:not(.goi_selectablePlayerZoneContainer) {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.goi_selectedPlayerZoneContainer {
+  border-style: solid;
+  transform: scale(1.01);
 }
 
 .goi_playerHand {
@@ -333,13 +362,14 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
 .goi_royaltyToken {
   background-image: url("img/royaltyTokens.png");
   height: 250px;
   width: 250px;
+  margin: 0 -48px;
 }
 
 .goi_royaltyToken .card-side {
@@ -352,23 +382,8 @@
   grid-template-rows: 1.1fr 0.9fr;
 
   background: url("img/playerBoards.png");
-  pointer-events: all;
   aspect-ratio: 1;
   width: var(--playerBoardSize);
-}
-
-.goi_playerBoard:not(.goi_selectablePlayerBoard) + .goi_selectablePlayerBoard {
-  opacity: 0.5;
-}
-
-.goi_selectablePlayerBoard {
-  border: 8px dashed green;
-  cursor: pointer;
-  pointer-events: all;
-}
-
-.goi_selectedPlayerBoard {
-  border: 8px solid red;
 }
 
 .goi_scene {

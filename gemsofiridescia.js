@@ -486,31 +486,38 @@ define([
         const spritePosition = this.goi_globals.playerBoards[player_id] - 1;
         const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
-        document.getElementById("goi_playerBoards").innerHTML += `
-        <div id="goi_playerBoardContainer:${player_id}" class="goi_playerBoardContainer whiteblock">
-          <div id="goi_playerHand:${player_id}" class="goi_playerHand">
-            <div id="goi_victoryPile:${player_id}" class="goi_victoryPile">
-                <div id="goi_iridiaStone:${player_id}" class="goi_royaltyTokenContainer"></div> 
-                <div id="goi_royaltyToken:${player_id}" class="goi_royaltyTokenContainer"></div> 
-                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
-                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
-            </div>
-          </div>
-          <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
-            <div id="goi_scene:${player_id}" class="goi_scene">
-              <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
-              <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
-            </div>
-              <div id="goi_cargo:${player_id}" class="goi_cargo">
-                <div id="goi_cargoExcedent:${player_id}" class="goi_cargoExcedent whiteblock"></div> 
-                <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
-                <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
-                <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
-                <div id="goi_cargoBox:${player_id}-4" class="goi_cargoBox" data-box=4></div> 
-                <div id="goi_cargoBox:${player_id}-5" class="goi_cargoBox" data-box=5></div> 
-                <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
-                <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
+        const player = this.goi_globals.players[player_id];
+        const playerName = player.name;
+        const playerColor = player.color;
+
+        document.getElementById("goi_playerZones").innerHTML += `
+        <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor};">
+          <h3 id="goi_playerZoneTitle:${player_id}" class="goi_playerZoneTitle" style="color: #${playerColor};">${playerName}</h3>
+          <div id="goi_playerZone:${player_id}" class="goi_playerZone">
+            <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
+              <div id="goi_scene:${player_id}" class="goi_scene">
+                <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
+                <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
               </div>
+                <div id="goi_cargo:${player_id}" class="goi_cargo">
+                  <div id="goi_cargoExcedent:${player_id}" class="goi_cargoExcedent whiteblock"></div> 
+                  <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
+                  <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
+                  <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
+                  <div id="goi_cargoBox:${player_id}-4" class="goi_cargoBox" data-box=4></div> 
+                  <div id="goi_cargoBox:${player_id}-5" class="goi_cargoBox" data-box=5></div> 
+                  <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
+                  <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
+                </div>
+            </div>
+            <div id="goi_playerHand:${player_id}" class="goi_playerHand">
+              <div id="goi_victoryPile:${player_id}" class="goi_victoryPile">
+                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
+                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
+                <div id="goi_royaltyToken:${player_id}" class="goi_royaltyTokenContainer"></div> 
+                <div id="goi_iridiaStone:${player_id}" class="goi_royaltyTokenContainer"></div> 
+              </div>
+            </div>
           </div>
         </div>`;
       }
@@ -910,17 +917,23 @@ define([
               continue;
             }
 
-            const playerBoardElement = document.getElementById(
-              `goi_playerBoard:${player_id}`
+            const playerZoneContainerElement = document.getElementById(
+              `goi_playerZoneContainer:${player_id}`
             );
 
-            playerBoardElement.classList.add("goi_selectablePlayerBoard");
+            playerZoneContainerElement.classList.add(
+              "goi_selectablePlayerZoneContainer"
+            );
 
-            playerBoardElement.onclick = () => {
-              playerBoardElement.classList.toggle("goi_selectedPlayerBoard");
+            playerZoneContainerElement.onclick = () => {
+              playerZoneContainerElement.classList.toggle(
+                "goi_selectedPlayerZoneContainer"
+              );
 
               if (
-                playerBoardElement.classList.contains("goi_selectedPlayerBoard")
+                playerZoneContainerElement.classList.contains(
+                  "goi_selectedPlayerZoneContainer"
+                )
               ) {
                 this.goi_selections.opponent = player_id;
               } else {
@@ -1052,12 +1065,12 @@ define([
         gemElement.classList.remove("goi_selectedGem");
 
         for (const player_id in this.goi_globals.players) {
-          const playerBoardElement = document.getElementById(
-            `goi_playerBoard:${player_id}`
+          const playerZoneContainerElement = document.getElementById(
+            `goi_playerZoneContainer:${player_id}`
           );
-          playerBoardElement.classList.remove("goi_selectablePlayerBoard");
-          playerBoardElement.classList.remove("goi_selectedPlayerBoard");
-          playerBoardElement.onclick = undefined;
+          playerZoneContainerElement.classList.remove("goi_selectablePlayerZoneContainer");
+          playerZoneContainerElement.classList.remove("goi_selectedPlayerZoneContainer");
+          playerZoneContainerElement.onclick = undefined;
         }
       }
 
