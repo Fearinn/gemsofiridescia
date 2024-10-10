@@ -1284,6 +1284,7 @@ define([
       dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
       dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
       dojo.subscribe("rollDie", this, "notif_rollDie");
+      dojo.subscribe("syncDieRolls", this, () => {});
       dojo.subscribe("incCoin", this, "notif_incCoin");
       dojo.subscribe("incGem", this, "notif_incGem");
       dojo.subscribe("decGem", this, "notif_decGem");
@@ -1295,6 +1296,7 @@ define([
       dojo.subscribe("collectTile", this, "notif_collectTile");
       dojo.subscribe("updateMarketValue", this, "notif_updateMarketValue");
 
+      this.notifqueue.setSynchronous("syncDieRolls", 1000);
       this.notifqueue.setSynchronous("replaceRelic", 1000);
     },
 
@@ -1463,6 +1465,7 @@ define([
         id: die_id,
         type: "stone",
         active: true,
+        face: this.goi_globals.stoneDiceFaces[die_id]
       });
     },
 
@@ -1471,6 +1474,8 @@ define([
       const die_id = notif.args.die_id;
       const face = notif.args.face;
       const type = notif.args.type;
+
+      this.goi_stocks[player_id].dice.scene.unselectAll();
 
       this.goi_stocks[player_id].dice.scene.rollDie({
         id: die_id,

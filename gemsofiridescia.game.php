@@ -242,6 +242,21 @@ class GemsOfIridescia extends Table
         }
 
         for ($die_id = $activeStoneDiceCount; $die_id > 0; $die_id--) {
+            $roll = $this->rollDie($die_id, $player_id, "stone");
+
+            if ($roll >= $gemMarketValue) {
+                $mined++;
+            }
+        }
+
+        $this->notifyAllPlayers(
+            "syncDieRolls",
+            "",
+            []
+        );
+
+
+        for ($die_id = $activeStoneDiceCount; $die_id > 0; $die_id--) {
             $this->notifyAllPlayers(
                 "activateStoneDie",
                 "",
@@ -250,12 +265,6 @@ class GemsOfIridescia extends Table
                     "die_id" => $die_id
                 ]
             );
-
-            $roll = $this->rollDie($die_id, $player_id, "stone");
-
-            if ($roll >= $gemMarketValue) {
-                $mined++;
-            }
         }
 
         if ($mined === 0) {
