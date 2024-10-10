@@ -340,14 +340,6 @@
   box-shadow: none !important;
 }
 
-.goi_tilesPile > .card:not(.card:first-child) {
-  top: calc(var(--tileSize) / 4);
-}
-
-.goi_relicsPile > .card:not(.card:first-child) {
-  top: calc(var(--cardSize) / 4);
-}
-
 .goi_playerBoard {
   position: relative;
   display: grid;
@@ -748,7 +740,7 @@ body > .card {
 .card-stock.all-visible-deck.vertical:hover > .card,
 .card-stock.all-visible-deck.vertical:active > .card,
 .card-stock.all-visible-deck.vertical.opened > .card {
-  top: calc((var(--height) + var(--vertical-shift)) * var(--order));
+  top: calc(var(--height) * var(--order));
 }
 .card-stock.all-visible-deck.horizontal:hover,
 .card-stock.all-visible-deck.horizontal:active,

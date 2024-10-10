@@ -632,7 +632,10 @@ define([
         this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
           this.goi_managers.tiles,
           document.getElementById(`goi_tilesPile:${player_id}`),
-          {}
+          {
+            horizontalShift: "0px",
+            verticalShift: "48px",
+          }
         );
 
         const collectedTiles = this.goi_globals.collectedTiles[player_id];
@@ -672,7 +675,7 @@ define([
         this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
-          {}
+          { horizontalShift: "0px", verticalShift: "48px" }
         );
 
         const restoredRelics = this.goi_globals.restoredRelics[player_id];
