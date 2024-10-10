@@ -13,10 +13,6 @@
  *
  */
 
-/* .goi_themedBackground body {
-  background-image: url("img/background.jpg");
-  background-size: cover;
-} */
 
 .all-visible-deck {
   position: relative !important;
@@ -28,6 +24,16 @@
 
 .all-visible-deck > .card {
   position: absolute !important;
+}
+
+.goi_thematicBackground body {
+  background-image: url("img/background.jpg");
+  background-size: 100% auto;
+  background-position: center top;
+}
+
+.goi_thematicBackground #seemorelogs {
+  background-image: none;
 }
 
 .goi_gameArea {
