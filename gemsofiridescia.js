@@ -1277,27 +1277,37 @@ define([
 
     setupNotifications: function () {
       console.log("notifications subscriptions setup");
-      dojo.subscribe("revealTile", this, "notif_revealTile");
-      dojo.subscribe("moveExplorer", this, "notif_moveExplorer");
-      dojo.subscribe("resetExplorer", this, "notif_resetExplorer");
-      dojo.subscribe("incRoyaltyPoints", this, "notif_incRoyaltyPoints");
-      dojo.subscribe("obtainStoneDie", this, "notif_obtainStoneDie");
-      dojo.subscribe("activateStoneDie", this, "notif_activateStoneDie");
-      dojo.subscribe("rollDie", this, "notif_rollDie");
-      dojo.subscribe("syncDieRolls", this, () => {});
-      dojo.subscribe("incCoin", this, "notif_incCoin");
-      dojo.subscribe("incGem", this, "notif_incGem");
-      dojo.subscribe("decGem", this, "notif_decGem");
-      dojo.subscribe("transferGem", this, "notif_transferGem");
-      dojo.subscribe("obtainIridiaStone", this, "notif_obtainIridiaStone");
-      dojo.subscribe("obtainRoyaltyToken", this, "notif_obtainRoyaltyToken");
-      dojo.subscribe("restoreRelic", this, "notif_restoreRelic");
-      dojo.subscribe("replaceRelic", this, "notif_replaceRelic");
-      dojo.subscribe("collectTile", this, "notif_collectTile");
-      dojo.subscribe("updateMarketValue", this, "notif_updateMarketValue");
+      const notifications = [
+        { event: "revealTile", duration: 500 },
+        { event: "moveExplorer", duration: 500 },
+        { event: "resetExplorer", duration: 500 },
+        { event: "incRoyaltyPoints", duration: 500 },
+        { event: "obtainStoneDie", duration: 500 },
+        { event: "activateStoneDie", duration: 500 },
+        { event: "rollDie", duration: 0 },
+        { event: "syncDieRolls", duration: 1000 },
+        { event: "incCoin", duration: 500 },
+        { event: "incGem", duration: 500 },
+        { event: "decGem", duration: 500 },
+        { event: "transferGem", duration: 500 },
+        { event: "obtainIridiaStone", duration: 500 },
+        { event: "obtainRoyaltyToken", duration: 500 },
+        { event: "restoreRelic", duration: 500 },
+        { event: "replaceRelic", duration: 1000 },
+        { event: "collectTile", duration: 500 },
+        { event: "updateMarketValue", duration: 500 },
+      ];
 
-      this.notifqueue.setSynchronous("syncDieRolls", 1000);
-      this.notifqueue.setSynchronous("replaceRelic", 1000);
+      notifications.forEach((notif) => {
+        const event = notif.event;
+        const duration = notif.duration;
+
+        dojo.subscribe(event, this, `notif_${event}`);
+
+        if (duration > 0) {
+          this.notifqueue.setSynchronous(event, duration);
+        }
+      });
     },
 
     notif_revealTile: function (notif) {
@@ -1465,7 +1475,7 @@ define([
         id: die_id,
         type: "stone",
         active: true,
-        face: this.goi_globals.stoneDiceFaces[die_id]
+        face: this.goi_globals.stoneDiceFaces[die_id],
       });
     },
 
@@ -1485,6 +1495,8 @@ define([
 
       this.goi_globals.stoneDiceFaces[die_id] = face;
     },
+
+    notif_syncDieRolls: function (notif) {},
 
     notif_restoreRelic: function (notif) {
       const player_id = notif.args.player_id;
