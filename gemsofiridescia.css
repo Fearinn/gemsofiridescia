@@ -304,7 +304,7 @@
 
 .goi_playerZones {
   display: grid;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   grid-template-columns: repeat(
     auto-fit,
@@ -322,17 +322,10 @@
   border: 8px double white;
 }
 
-.goi_playerZoneTitle {
-  font-family: "sketchnote-square", sans-serif;
-  font-size: 2.5em;
-}
-
-.goi_playerZone {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 16px;
-  width: 100%;
+.goi_playerZoneContainer:hover,
+.goi_lockHeight {
+  max-height: calc(var(--playerBoardSize) + 78px);
+  overflow-y: visible;
 }
 
 .goi_selectablePlayerZoneContainer {
@@ -348,6 +341,19 @@
 .goi_selectedPlayerZoneContainer {
   border-style: solid;
   transform: scale(1.01);
+}
+
+.goi_playerZoneTitle {
+  font-family: "sketchnote-square", sans-serif;
+  font-size: 2.5em;
+}
+
+.goi_playerZone {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
 }
 
 .goi_playerHand {

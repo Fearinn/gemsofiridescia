@@ -1149,7 +1149,7 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "updateMarketValue",
-            clienttranslate('The market value of ${gem_label} is ${marketValue} now'),
+            clienttranslate('The market value of the ${gem_label} is ${marketValue} now'),
             [
                 "marketValue" => $marketValue,
                 "gemName" => $gemName,

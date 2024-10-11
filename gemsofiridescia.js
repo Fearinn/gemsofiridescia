@@ -192,6 +192,25 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "absolute";
+
+          const location = card.location;
+          const player_id = card.location_arg;
+
+          const playerZoneContainerElement = document.getElementById(
+            `goi_playerZoneContainer:${player_id}`
+          );
+
+          if (location === "hand") {
+            playerZoneContainerElement.onmouseleave = () => {
+              playerZoneContainerElement.classList.add("goi_lockHeight");
+
+              clearTimeout(this.goi_globals.timeout_id);
+
+              this.goi_globals.timeout_id = setTimeout(() => {
+                playerZoneContainerElement.classList.remove("goi_lockHeight");
+              }, 1000);
+            };
+          }
         },
         setupFrontDiv: (card, div) => {
           const backgroundCode = card.type;
@@ -255,6 +274,25 @@ define([
           div.classList.add("goi_card");
           div.classList.add("goi_relic");
           div.style.position = "relative";
+
+          const location = card.location;
+          const player_id = card.location_arg;
+
+          const playerZoneContainerElement = document.getElementById(
+            `goi_playerZoneContainer:${player_id}`
+          );
+
+          if (location === "hand") {
+            playerZoneContainerElement.onmouseleave = () => {
+              playerZoneContainerElement.classList.add("goi_lockHeight");
+
+              clearTimeout(this.goi_globals.timeout_id);
+
+              this.goi_globals.timeout_id = setTimeout(() => {
+                playerZoneContainerElement.classList.remove("goi_lockHeight");
+              }, 1000);
+            };
+          }
         },
         setupFrontDiv: (card, div) => {
           if (!card.type_arg || card.id === "fake") {
@@ -511,9 +549,9 @@ define([
                 </div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
-              <div id="goi_victoryPile:${player_id}" class="goi_victoryPile">
-                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
-                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
+              <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
+                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile" data-pile=true></div>
+                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile" data-pile=true></div>
                 <div id="goi_royaltyToken:${player_id}" class="goi_royaltyTokenContainer"></div> 
                 <div id="goi_iridiaStone:${player_id}" class="goi_royaltyTokenContainer"></div> 
               </div>
@@ -1068,8 +1106,12 @@ define([
           const playerZoneContainerElement = document.getElementById(
             `goi_playerZoneContainer:${player_id}`
           );
-          playerZoneContainerElement.classList.remove("goi_selectablePlayerZoneContainer");
-          playerZoneContainerElement.classList.remove("goi_selectedPlayerZoneContainer");
+          playerZoneContainerElement.classList.remove(
+            "goi_selectablePlayerZoneContainer"
+          );
+          playerZoneContainerElement.classList.remove(
+            "goi_selectedPlayerZoneContainer"
+          );
           playerZoneContainerElement.onclick = undefined;
         }
       }
