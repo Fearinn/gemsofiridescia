@@ -326,7 +326,7 @@ class GemsOfIridescia extends Table
         $gemCard_id = (int) $gemCard["id"];
         $gemCard = $this->gem_cards->getCard($gemCard_id);
 
-        if ($this->getGemsCounts($player_id)[$gemName] === 0) {
+        if ($gemCard["location"] === "hand" && $gemCard["location_arg"] !== $player_id) {
             throw new BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
         }
 
@@ -470,6 +470,27 @@ class GemsOfIridescia extends Table
         if ($args["_no_notify"]) {
             $anchorState_id = $this->globals->get(ANCHOR_STATE);
             $this->gamestate->jumpToState($anchorState_id);
+            return;
+        }
+
+        $player_id = (int) $this->getActivePlayerId();
+
+        $availableCargos = $args["availableCargos"];
+        $gemsCounts = $this->getGemsCounts($player_id);
+
+        $typesOfGems = 0;
+        foreach ($gemsCounts as $gemName => $gemCount) {
+            if ($gemCount > 0) {
+                $typesOfGems++;
+            }
+        }
+
+        if ($typesOfGems === 1 && count($availableCargos) === 1) {
+            $opponent_id = array_shift($availableCargos);
+            $gemCard = $this->getObjectFromDB("$this->deckSelectQuery FROM gem 
+            WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
+            $this->transferGem($gemCard, $opponent_id, $player_id);
+            $this->gamestate->nextState("repeat");
         }
     }
 
@@ -937,14 +958,14 @@ class GemsOfIridescia extends Table
     public function getGems(?int $player_id): array
     {
         if ($player_id) {
-            return $this->gem_cards->getCardsInLocation("cargo", $player_id);
+            return $this->gem_cards->getCardsInLocation("hand", $player_id);
         }
 
         $gems = [];
 
         $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
-            $gems[$player_id] = $this->gem_cards->getCardsInLocation("cargo", $player_id);
+            $gems[$player_id] = $this->gem_cards->getCardsInLocation("hand", $player_id);
         }
 
         return $gems;
@@ -957,8 +978,8 @@ class GemsOfIridescia extends Table
         if ($player_id) {
             foreach ($this->gems_info as $gem_id => $gem_info) {
                 $gemName = $gem_info["name"];
-                $cargoGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
-                $gemsCounts[$gemName] = count($cargoGems);
+                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
+                $gemsCounts[$gemName] = count($handGems);
             }
 
             return $gemsCounts;
@@ -969,8 +990,8 @@ class GemsOfIridescia extends Table
             $gemsCounts[$player_id] = [];
             foreach ($this->gems_info as $gem_id => $gem_info) {
                 $gemName = $gem_info["name"];
-                $cargoGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
-                $gemsCounts[$player_id][$gemName] = count($cargoGems);
+                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
+                $gemsCounts[$player_id][$gemName] = count($handGems);
             }
         }
 
@@ -1003,13 +1024,13 @@ class GemsOfIridescia extends Table
         return $availableCargos;
     }
 
-    public function transferGem(array $gemCard, int $opponent_id, int $player_id): void
+    public function transferGem(array $gemCard, int $opponent_id, int $player_id, $auto = false): void
     {
         $gem_id = (int) $gemCard["type_arg"];
         $gemCard_id = (int) $gemCard["id"];
         $gem_info = $this->gems_info[$gem_id];
 
-        $this->gem_cards->moveCard($gemCard_id, "cargo", $opponent_id);
+        $this->gem_cards->moveCard($gemCard_id, "hand", $opponent_id);
 
         $this->notifyAllPlayers(
             "transferGem",
@@ -1049,7 +1070,7 @@ class GemsOfIridescia extends Table
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
-        $gemCards = $this->gem_cards->pickCardsForLocation($delta, $gemName, "cargo", $player_id);
+        $gemCards = $this->gem_cards->pickCardsForLocation($delta, $gemName, "hand", $player_id);
 
         $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') : clienttranslate('${player_name} collects ${delta} ${gem_label}');
 
@@ -1094,7 +1115,7 @@ class GemsOfIridescia extends Table
         $gemName = $this->gems_info[$gem_id]["name"];
 
         foreach ($gemCards as $gemCard_id => $gemCard) {
-            if ($gemCard["location"] !== "cargo" || $gemCard["location_arg"] != $player_id) {
+            if ($gemCard["location"] !== "hand" || $gemCard["location_arg"] != $player_id) {
                 throw new BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
             }
 
@@ -1365,7 +1386,7 @@ class GemsOfIridescia extends Table
 
             $gemName = $this->gems_info[$gem_id]["name"];
 
-            $gemCards = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "cargo", $player_id);
+            $gemCards = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
             $gemCards = array_slice($gemCards, 0, $gemCost, true);
 
             $this->decGem($gemCost, $gem_id, $gemCards, $player_id);
