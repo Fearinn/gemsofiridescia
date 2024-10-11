@@ -560,6 +560,7 @@ define([
         </div>`;
       }
 
+      let currentStoneDie_id = 1;
       for (const player_id in this.goi_globals.players) {
         const player_color = this.goi_globals.players[player_id].color;
 
@@ -608,11 +609,16 @@ define([
         const privateStoneDiceCount =
           this.goi_globals.privateStoneDiceCount[player_id];
 
-        for (let die_id = 1; die_id <= privateStoneDiceCount; die_id++) {
+        for (
+          let die_id = currentStoneDie_id;
+          die_id <= privateStoneDiceCount + currentStoneDie_id - 1;
+          die_id++
+        ) {
           const active = die_id <= this.goi_globals.activeStoneDiceCount;
-
           dice.push({ id: die_id, type: "stone", face: 6, active: active });
         }
+        currentStoneDie_id += dice.length - 2;
+
         this.goi_stocks[player_id].dice.scene.addDice(dice);
 
         this.goi_stocks[player_id].gems.cargo = new CardStock(
@@ -1591,7 +1597,6 @@ define([
 
     notif_updateMarketValue: function (notif) {
       const marketValue = notif.args.marketValue;
-      const gem_id = notif.args.gem_id;
       const gemName = notif.args.gemName;
 
       const die = this.goi_stocks.dice.market.getDice().find((die) => {

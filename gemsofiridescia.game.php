@@ -487,8 +487,10 @@ class GemsOfIridescia extends Table
 
         if ($typesOfGems === 1 && count($availableCargos) === 1) {
             $opponent_id = array_shift($availableCargos);
+            
             $gemCard = $this->getObjectFromDB("$this->deckSelectQuery FROM gem 
             WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
+
             $this->transferGem($gemCard, $opponent_id, $player_id);
             $this->gamestate->nextState("repeat");
         }
