@@ -193,7 +193,7 @@ class GemsOfIridescia extends Table
         $privateStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
         if ($activeStoneDiceCount > $privateStoneDiceCount) {
-            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $newStoneDiceCount, $privateStoneDiceCount");
+            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $activeStoneDiceCount, $privateStoneDiceCount");
         }
 
         $this->decCoin(3, $player_id, true);
@@ -227,8 +227,6 @@ class GemsOfIridescia extends Table
         if ($roll2 >= $gemMarketValue) {
             $mined++;
         }
-
-        $this->globals->inc(ACTIVE_STONE_DICE_COUNT, $newStoneDiceCount);
 
         if ($newStoneDiceCount > 0) {
             $this->notifyAllPlayers(

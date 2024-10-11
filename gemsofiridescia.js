@@ -565,7 +565,12 @@ define([
 
         this.goi_stocks[player_id].dice.scene = new DiceStock(
           this.goi_managers.dice,
-          document.getElementById(`goi_sceneDice:${player_id}`)
+          document.getElementById(`goi_sceneDice:${player_id}`),
+          {
+            sort: (a, b) => {
+              return a.id - b.id;
+            },
+          }
         );
 
         this.goi_stocks[player_id].dice.scene.onSelectionChange = (
