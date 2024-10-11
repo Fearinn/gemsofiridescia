@@ -742,10 +742,6 @@ class GemsOfIridescia extends Table
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
-        if ($region_id === 5) {
-            $this->reachCastle($player_id);
-        }
-
         if ($gem_id === 0) {
             $this->gamestate->nextState("rainbowTile");
             return;
@@ -859,6 +855,15 @@ class GemsOfIridescia extends Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id)
+            ]
+        );
+
+        $this->notifyAllPlayers(
+            "resetExplorer",
+            "",
+            [
+                "player_id" => $player_id,
+                "explorerCard" => $this->getExplorerByPlayerId($player_id)
             ]
         );
 
@@ -1411,7 +1416,9 @@ class GemsOfIridescia extends Table
         $explorerCard = $this->getExplorerByPlayerId($player_id);
         $hex = (int) $explorerCard["location_arg"];
 
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
+        AND card_location_arg=$hex");
+
         $tileCard_id = (int) $tileCard["id"];
 
         $this->tile_cards->moveCard($tileCard_id, "hand", $player_id);
@@ -1419,6 +1426,7 @@ class GemsOfIridescia extends Table
         $tile_id = (int) $tileCard["type_arg"];
         $tile_info = $this->tiles_info[$tile_id];
         $gem_id = (int) $tile_info["gem"];
+        $region_id = (int) $tile_info["region"];
 
         $this->notifyAllPlayers(
             "collectTile",
@@ -1432,6 +1440,10 @@ class GemsOfIridescia extends Table
 
         if ($gem_id !== 0) {
             $this->updateMarketValue($gem_id);
+        }
+
+        if ($region_id === 5) {
+            $this->reachCastle($player_id);
         }
     }
 
