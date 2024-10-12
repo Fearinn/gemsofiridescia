@@ -459,7 +459,7 @@ class GemsOfIridescia extends Table
 
         return [
             "availableCargos" => $this->availableCargos($player_id),
-            "_no_notify" => $this->getTotalGemCount($player_id) <= 7,
+            "_no_notify" => $this->getTotalGemsCount($player_id) <= 7,
         ];
     }
 
@@ -1014,16 +1014,16 @@ class GemsOfIridescia extends Table
         return $gemsCounts;
     }
 
-    public function getTotalGemCount(int $player_id): int
+    public function getTotalGemsCount(int $player_id): int
     {
         $gems = $this->getGemsCounts($player_id);
 
-        $totalGemCount = 0;
+        $totalGemsCount = 0;
         foreach ($gems as $gemCount) {
-            $totalGemCount += $gemCount;
+            $totalGemsCount += $gemCount;
         }
 
-        return $totalGemCount;
+        return $totalGemsCount;
     }
 
     public function availableCargos(int $excludedPlayer_id = null): array
@@ -1032,7 +1032,7 @@ class GemsOfIridescia extends Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemCount($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
+            if ($this->getTotalGemsCount($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -1105,7 +1105,7 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        if ($this->getTotalGemCount($player_id) > 7) {
+        if ($this->getTotalGemsCount($player_id) > 7) {
             $anchorState_id = $this->gamestate->state_id();
 
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
@@ -1254,13 +1254,13 @@ class GemsOfIridescia extends Table
         );
     }
 
-    public function incRoyaltyPoints(int $delta, int $player_id): void
+    public function incRoyaltyPoints(int $delta, int $player_id, bool $silent = false): void
     {
         $this->dbQuery("UPDATE player SET player_score=player_score+$delta WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
-            clienttranslate('${player_name} obtains ${delta} Royalty Point(s)'),
+            $silent ? "" : clienttranslate('${player_name} obtains ${delta} Royalty Point(s)'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -1480,6 +1480,24 @@ class GemsOfIridescia extends Table
         }
     }
 
+    public function calcGemsPoints(int $player_id): void
+    {
+        $totalGemsCount = $this->getTotalGemsCount($player_id);
+
+        $gemsPoints = (int) ceil($totalGemsCount / 2);
+
+        $this->incRoyaltyPoints($gemsPoints, $player_id, true);
+
+        $this->notifyAllPlayers(
+            "calcTilesPoints",
+            clienttranslate('${player_name} scores ${points} points from Gems'),
+            [
+                "player_name" => $this->getPlayerNameById($player_id),
+                "points" => $gemsPoints,
+            ]
+        );
+    }
+
     public function calcTilesPoints(int $player_id): void
     {
         $tilesCountsByRegion = [
@@ -1498,8 +1516,8 @@ class GemsOfIridescia extends Table
             5 => 0,
         ];
 
-        $victoryTiles = $this->tile_cards->getCardsInLocation("hand", $player_id);
-        foreach ($victoryTiles as $tileCard_id => $tileCard) {
+        $tileCards = $this->tile_cards->getCardsInLocation("hand", $player_id);
+        foreach ($tileCards as $tileCard_id => $tileCard) {
             $region_id = (int) $tileCard["type"];
 
             $tilesCountsByRegion[$region_id]++;
@@ -1507,17 +1525,17 @@ class GemsOfIridescia extends Table
 
         foreach ($tilesCountsByRegion as $region_id => $tilesCount) {
             if ($tilesCount >= 7) {
-                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 7) * 12;
+                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 7) * 12;
                 continue;
             }
 
             if ($tilesCount >= 5) {
-                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 5) * 7;
+                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 5) * 7;
                 continue;
             }
 
             if ($tilesCount >= 3) {
-                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 3) * 3;
+                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 3) * 3;
                 continue;
             }
         }
@@ -1526,6 +1544,8 @@ class GemsOfIridescia extends Table
             if ($tilesPoints === 0) {
                 continue;
             }
+
+            $this->incRoyaltyPoints($tilesPoints, $player_id, true);
 
             $this->notifyAllPlayers(
                 "calcTilesPoints",

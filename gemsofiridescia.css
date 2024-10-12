@@ -124,6 +124,8 @@
 }
 
 .goi_helpCard .goi_coinIcon {
+  position: relative;
+  top: 2px;
   display: inline-block;
   background-image: url("img/mini_coin.png");
   background-position: -400% 0;
