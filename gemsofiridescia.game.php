@@ -487,7 +487,7 @@ class GemsOfIridescia extends Table
 
         if ($typesOfGems === 1 && count($availableCargos) === 1) {
             $opponent_id = array_shift($availableCargos);
-            
+
             $gemCard = $this->getObjectFromDB("$this->deckSelectQuery FROM gem 
             WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
 
@@ -529,7 +529,17 @@ class GemsOfIridescia extends Table
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
-        // $this->activeNextPlayer();
+
+        $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
+
+        if ($castlePlayersCount === $this->getPlayersNumber()) {
+            $this->calcFinalScores();
+            $this->gamestate->nextState("gameEnd");
+            return;
+        }
+
+        $this->giveExtraTime($player_id);
+        $this->activeNextPlayer();
 
         $this->gamestate->nextState("nextTurn");
     }
@@ -1091,8 +1101,6 @@ class GemsOfIridescia extends Table
             ]
         );
 
-        $this->dump("totalGemCount", $this->getTotalGemCount($player_id));
-
         if ($this->getTotalGemCount($player_id) > 7) {
             $anchorState_id = $this->gamestate->state_id();
 
@@ -1465,6 +1473,75 @@ class GemsOfIridescia extends Table
 
         if ($region_id === 5) {
             $this->reachCastle($player_id);
+        }
+    }
+
+    public function calcTilesPoints(int $player_id): void
+    {
+        $tilesCountsByRegion = [
+            1 => 0,
+            2 => 0,
+            3 => 0,
+            4 => 0,
+            5 => 0,
+        ];
+
+        $tilesPointsByRegion = [
+            1 => 0,
+            2 => 0,
+            3 => 0,
+            4 => 0,
+            5 => 0,
+        ];
+
+        $victoryTiles = $this->tile_cards->getCardsInLocation("hand", $player_id);
+        foreach ($victoryTiles as $tileCard_id => $tileCard) {
+            $region_id = (int) $tileCard["type"];
+
+            $tilesCountsByRegion[$region_id]++;
+        }
+
+        foreach ($tilesCountsByRegion as $region_id => $tilesCount) {
+            if ($tilesCount >= 7) {
+                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 7) * 12;
+                continue;
+            }
+
+            if ($tilesCount >= 5) {
+                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 5) * 7;
+                continue;
+            }
+
+            if ($tilesCount >= 3) {
+                $tilesPointsByRegion[$region_id] = ceil($tilesCount / 3) * 3;
+                continue;
+            }
+        }
+
+        foreach ($tilesPointsByRegion as $region_id => $tilesPoints) {
+            if ($tilesPoints === 0) {
+                continue;
+            }
+
+            $this->notifyAllPlayers(
+                "calcTilesPoints",
+                clienttranslate('${player_name} scores ${points} points from the ${region_label} region'),
+                [
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "points" => $tilesPoints,
+                    "region_label" => $this->regions_info[$region_id]["tr_label"],
+                    "i18n" => ["region_label"]
+                ]
+            );
+        }
+    }
+
+    public function calcFinalScores(): void
+    {
+        $players = $this->loadPlayersBasicInfos();
+
+        foreach ($players as $player_id => $player) {
+            $this->calcTilesPoints($player_id);
         }
     }
 
