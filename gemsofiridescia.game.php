@@ -1489,7 +1489,7 @@ class GemsOfIridescia extends Table
         $this->incRoyaltyPoints($gemsPoints, $player_id, true);
 
         $this->notifyAllPlayers(
-            "calcTilesPoints",
+            "calcGemsPoints",
             clienttranslate('${player_name} scores ${points} points from Gems'),
             [
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -1500,47 +1500,46 @@ class GemsOfIridescia extends Table
 
     public function calcTilesPoints(int $player_id): void
     {
-        $tilesCountsByRegion = [
+        $tilesCountsByGem = [
             1 => 0,
             2 => 0,
             3 => 0,
             4 => 0,
-            5 => 0,
         ];
 
-        $tilesPointsByRegion = [
+        $tilesPointsByGem = [
             1 => 0,
             2 => 0,
             3 => 0,
             4 => 0,
-            5 => 0,
         ];
 
         $tileCards = $this->tile_cards->getCardsInLocation("hand", $player_id);
         foreach ($tileCards as $tileCard_id => $tileCard) {
-            $region_id = (int) $tileCard["type"];
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = $this->tiles_info[$tile_id]["gem"];
 
-            $tilesCountsByRegion[$region_id]++;
+            $tilesCountsByGem[$gem_id]++;
         }
 
-        foreach ($tilesCountsByRegion as $region_id => $tilesCount) {
+        foreach ($tilesCountsByGem as $gem_id => $tilesCount) {
             if ($tilesCount >= 7) {
-                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 7) * 12;
+                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 7) * 12;
                 continue;
             }
 
             if ($tilesCount >= 5) {
-                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 5) * 7;
+                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 5) * 7;
                 continue;
             }
 
             if ($tilesCount >= 3) {
-                $tilesPointsByRegion[$region_id] = (int) ceil($tilesCount / 3) * 3;
+                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 3) * 3;
                 continue;
             }
         }
 
-        foreach ($tilesPointsByRegion as $region_id => $tilesPoints) {
+        foreach ($tilesPointsByGem as $gem_id => $tilesPoints) {
             if ($tilesPoints === 0) {
                 continue;
             }
@@ -1549,12 +1548,12 @@ class GemsOfIridescia extends Table
 
             $this->notifyAllPlayers(
                 "calcTilesPoints",
-                clienttranslate('${player_name} scores ${points} points from the ${region_label} region'),
+                clienttranslate('${player_name} scores ${points} points from tiles with ${gem_label}'),
                 [
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $tilesPoints,
-                    "region_label" => $this->regions_info[$region_id]["tr_label"],
-                    "i18n" => ["region_label"]
+                    "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                    "i18n" => ["gem_label"]
                 ]
             );
         }
@@ -1565,6 +1564,7 @@ class GemsOfIridescia extends Table
         $players = $this->loadPlayersBasicInfos();
 
         foreach ($players as $player_id => $player) {
+            $this->calcGemsPoints($player_id);
             $this->calcTilesPoints($player_id);
         }
     }
