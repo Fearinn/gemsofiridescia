@@ -912,6 +912,10 @@ class GemsOfIridescia extends Table
             $token_id = 1;
         }
 
+        if ($castlePlayersCount >= 4) {
+            return;
+        }
+
         $token_info = $this->royaltyTokens_info[$token_id];
         $tokenName = $token_info["name"];
         $tokenLabel = $token_info["tr_label"];
