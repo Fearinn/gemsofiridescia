@@ -533,7 +533,7 @@ class GemsOfIridescia extends Table
         $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
 
         if ($castlePlayersCount === $this->getPlayersNumber()) {
-            $this->calcFinalScores();
+            $this->calcFinalScoring();
             $this->gamestate->nextState("gameEnd");
             return;
         }
@@ -1480,7 +1480,7 @@ class GemsOfIridescia extends Table
         }
     }
 
-    public function calcGemsPoints(int $player_id): void
+    public function computeGemsPoints(int $player_id): void
     {
         $totalGemsCount = $this->getTotalGemsCount($player_id);
 
@@ -1489,7 +1489,7 @@ class GemsOfIridescia extends Table
         $this->incRoyaltyPoints($gemsPoints, $player_id, true);
 
         $this->notifyAllPlayers(
-            "calcGemsPoints",
+            "computeGemsPoints",
             clienttranslate('${player_name} scores ${points} points from Gems'),
             [
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -1558,7 +1558,7 @@ class GemsOfIridescia extends Table
         return $totalPoints;
     }
 
-    public function calcTilesPoints(int $player_id): void
+    public function computeTilesPoints(int $player_id): void
     {
         $tilesCountsByGem = [
             0 => 0,
@@ -1579,7 +1579,7 @@ class GemsOfIridescia extends Table
         $tilesPoints = $this->calcMaxTilesPoints($tilesCountsByGem);
 
         $this->notifyAllPlayers(
-            "calcTilesPoints",
+            "computeTilesPoints",
             clienttranslate('${player_name} scores ${points} from tiles'),
             [
                 "player_id" => $player_id,
@@ -1670,7 +1670,7 @@ class GemsOfIridescia extends Table
         return $this->relicsDp($tech, $lore, $jewelry, $iridia, $memo);
     }
 
-    public function calcRelicsPoints(int $player_id): void
+    public function computeRelicsPoints(int $player_id): void
     {
         $relicsCountsByType = [
             0 => 0,
@@ -1694,7 +1694,7 @@ class GemsOfIridescia extends Table
         $maxPoints = $this->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
 
         $this->notifyAllPlayers(
-            "calcRelicsPoints",
+            "computeRelicsPoints",
             clienttranslate('${player_name} scores ${points} from relics'),
             [
                 "player_id" => $player_id,
@@ -1706,13 +1706,14 @@ class GemsOfIridescia extends Table
         $this->incRoyaltyPoints($maxPoints, $player_id, true);
     }
 
-    public function calcFinalScores(): void
+    public function calcFinalScoring(): void
     {
         $players = $this->loadPlayersBasicInfos();
 
         foreach ($players as $player_id => $player) {
-            $this->calcGemsPoints($player_id);
-            $this->calcTilesPoints($player_id);
+            $this->computeGemsPoints($player_id);
+            $this->computeTilesPoints($player_id);
+            $this->computeRelicsPoints($player_id);
         }
     }
 
