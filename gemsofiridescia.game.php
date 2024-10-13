@@ -1498,7 +1498,65 @@ class GemsOfIridescia extends Table
         );
     }
 
-    // public function calcMaxTilesPoints(int $player_id): int {}
+    function tilesDp($gemsCounts, &$memo)
+    {
+        $key = implode(',', $gemsCounts);
+        if (isset($memo[$key])) {
+            return $memo[$key];
+        }
+
+        $maxPoints = 0;
+
+        // Try to create sets of 7 (12 points)
+        for ($gem_id = 1; $gem_id <= 4; $gem_id++) {
+            if ($gemsCounts[$gem_id] + $gemsCounts[0] >= 7) { // Enough gems including wilds
+                $usedWild = max(0, 7 - $gemsCounts[$gem_id]);
+                $newGemsCounts = $gemsCounts; // Copy the original array
+                $newGemsCounts[0] -= $usedWild; // Use wilds
+                $newGemsCounts[$gem_id] -= (7 - $usedWild); // Use regular gems
+                if ($newGemsCounts[$gem_id] >= 0 && $newGemsCounts[0] >= 0) {
+                    $maxPoints = max($maxPoints, 12 + $this->tilesDp($newGemsCounts, $memo));
+                }
+            }
+        }
+
+        // Try to create sets of 5 (7 points)
+        for ($gem_id = 1; $gem_id <= 4; $gem_id++) {
+            if ($gemsCounts[$gem_id] + $gemsCounts[0] >= 5) {
+                $usedWild = max(0, 5 - $gemsCounts[$gem_id]);
+                $newGemsCounts = $gemsCounts; // Copy the original array
+                $newGemsCounts[0] -= $usedWild; // Use wilds
+                $newGemsCounts[$gem_id] -= (5 - $usedWild); // Use regular gems
+                if ($newGemsCounts[$gem_id] >= 0 && $newGemsCounts[0] >= 0) {
+                    $maxPoints = max($maxPoints, 7 + $this->tilesDp($newGemsCounts, $memo));
+                }
+            }
+        }
+
+        // Try to create sets of 3 (3 points)
+        for ($gem_id = 1; $gem_id <= 4; $gem_id++) {
+            if ($gemsCounts[$gem_id] + $gemsCounts[0] >= 3) {
+                $usedWild = max(0, 3 - $gemsCounts[$gem_id]);
+                $newGemsCounts = $gemsCounts; // Copy the original array
+                $newGemsCounts[0] -= $usedWild; // Use wilds
+                $newGemsCounts[$gem_id] -= (3 - $usedWild); // Use regular gems
+                if ($newGemsCounts[$gem_id] >= 0 && $newGemsCounts[0] >= 0) {
+                    $maxPoints = max($maxPoints, 3 + $this->tilesDp($newGemsCounts, $memo));
+                }
+            }
+        }
+
+        $memo[$key] = $maxPoints;
+        return $maxPoints;
+    }
+
+    public function calcMaxTilesPoints(array $gemsCounts): int
+    {
+        $memo = [];
+        $totalPoints = $this->tilesDp($gemsCounts, $memo);
+
+        return $totalPoints;
+    }
 
     public function calcTilesPoints(int $player_id): void
     {
@@ -1510,63 +1568,34 @@ class GemsOfIridescia extends Table
             4 => 0,
         ];
 
-        $tilesPointsByGem = [
-            1 => 0,
-            2 => 0,
-            3 => 0,
-            4 => 0,
-        ];
-
         $tileCards = $this->tile_cards->getCardsInLocation("hand", $player_id);
-        foreach ($tileCards as $tileCard_id => $tileCard) {
+        foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = $this->tiles_info[$tile_id]["gem"];
 
             $tilesCountsByGem[$gem_id]++;
         }
 
-        foreach ($tilesCountsByGem as $gem_id => $tilesCount) {
-            if ($tilesCount >= 7) {
-                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 7) * 12;
-                continue;
-            }
+        $tilesPoints = $this->calcMaxTilesPoints($tilesCountsByGem);
 
-            if ($tilesCount >= 5) {
-                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 5) * 7;
-                continue;
-            }
+        $this->notifyAllPlayers(
+            "calcTilesPoints",
+            clienttranslate('${player_name} scores ${points} from tiles'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "points" => $tilesPoints
+            ],
+        );
 
-            if ($tilesCount >= 3) {
-                $tilesPointsByGem[$gem_id] = (int) ceil($tilesCount / 3) * 3;
-                continue;
-            }
-        }
-
-        foreach ($tilesPointsByGem as $gem_id => $tilesPoints) {
-            if ($tilesPoints === 0) {
-                continue;
-            }
-
-            $this->incRoyaltyPoints($tilesPoints, $player_id, true);
-
-            $this->notifyAllPlayers(
-                "calcTilesPoints",
-                clienttranslate('${player_name} scores ${points} points from tiles with ${gem_label}'),
-                [
-                    "player_name" => $this->getPlayerNameById($player_id),
-                    "points" => $tilesPoints,
-                    "gem_label" => $this->gems_info[$gem_id]["tr_label"],
-                    "i18n" => ["gem_label"]
-                ]
-            );
-        }
+        $this->incRoyaltyPoints($tilesPoints, $player_id, true);
     }
 
     public function calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia): int
     {
         $memo = [];
 
-        function dp($tech, $lore, $jewelry, $iridia, &$memo)
+        function relicsDp($tech, $lore, $jewelry, $iridia, &$memo)
         {
             // If we've already computed this state, return the memoized result
             if (isset($memo[$tech][$lore][$jewelry][$iridia])) {
@@ -1582,54 +1611,54 @@ class GemsOfIridescia extends Table
 
             // Try to form tech-tech-tech (9 points)
             if ($tech >= 3) {
-                $maxPoints = max($maxPoints, 9 + dp($tech - 3, $lore, $jewelry, $iridia, $memo));
+                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 3, $lore, $jewelry, $iridia, $memo));
             } elseif ($tech >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 9 + dp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
             } elseif ($tech >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 9 + dp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
             } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 9 + dp($tech, $lore, $jewelry, $iridia - 3, $memo));
+                $maxPoints = max($maxPoints, 9 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
             }
 
             // Try to form lore-lore-lore (7 points)
             if ($lore >= 3) {
-                $maxPoints = max($maxPoints, 7 + dp($tech, $lore - 3, $jewelry, $iridia, $memo));
+                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 3, $jewelry, $iridia, $memo));
             } elseif ($lore >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 7 + dp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
             } elseif ($lore >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 7 + dp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
             } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 7 + dp($tech, $lore, $jewelry, $iridia - 3, $memo));
+                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
             }
 
             // Try to form jewelry-jewelry-jewelry (5 points)
             if ($jewelry >= 3) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry - 3, $iridia, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 3, $iridia, $memo));
             } elseif ($jewelry >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry - 2, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 2, $iridia - 1, $memo));
             } elseif ($jewelry >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
             } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry, $iridia - 3, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
             }
 
             // Try to form tech-lore-jewelry (5 points)
             if ($tech >= 1 && $lore >= 1 && $jewelry >= 1) {
-                $maxPoints = max($maxPoints, 5 + dp($tech - 1, $lore - 1, $jewelry - 1, $iridia, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore - 1, $jewelry - 1, $iridia, $memo));
             } elseif ($tech >= 1 && $lore >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + dp($tech - 1, $lore - 1, $jewelry, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore - 1, $jewelry, $iridia - 1, $memo));
             } elseif ($tech >= 1 && $jewelry >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + dp($tech - 1, $lore, $jewelry - 1, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore, $jewelry - 1, $iridia - 1, $memo));
             } elseif ($lore >= 1 && $jewelry >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore - 1, $jewelry - 1, $iridia - 1, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore - 1, $jewelry - 1, $iridia - 1, $memo));
             } elseif ($tech >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + dp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
             } elseif ($lore >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
             } elseif ($jewelry >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
             } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 5 + dp($tech, $lore, $jewelry, $iridia - 3, $memo));
+                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
             }
 
             // Memoize the result before returning it
@@ -1638,7 +1667,7 @@ class GemsOfIridescia extends Table
             return $maxPoints;
         }
 
-        return dp($tech, $lore, $jewelry, $iridia, $memo);
+        return relicsDp($tech, $lore, $jewelry, $iridia, $memo);
     }
 
     public function calcRelicsPoints(int $player_id): void
@@ -1666,7 +1695,7 @@ class GemsOfIridescia extends Table
 
         $this->notifyAllPlayers(
             "calcRelicsPoints",
-            clienttranslate('${player_name} scores ${points} from Relics'),
+            clienttranslate('${player_name} scores ${points} from relics'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
