@@ -1591,83 +1591,83 @@ class GemsOfIridescia extends Table
         $this->incRoyaltyPoints($tilesPoints, $player_id, true);
     }
 
+    function relicsDp($tech, $lore, $jewelry, $iridia, &$memo)
+    {
+        // If we've already computed this state, return the memoized result
+        if (isset($memo[$tech][$lore][$jewelry][$iridia])) {
+            return $memo[$tech][$lore][$jewelry][$iridia];
+        }
+
+        // Base case: If no relics are left, no points can be scored
+        if ($tech == 0 && $lore == 0 && $jewelry == 0 && $iridia == 0) {
+            return 0;
+        }
+
+        $maxPoints = 0;
+
+        // Try to form tech-tech-tech (9 points)
+        if ($tech >= 3) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 3, $lore, $jewelry, $iridia, $memo));
+        } elseif ($tech >= 2 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
+        } elseif ($tech >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
+        } elseif ($iridia >= 3) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
+        }
+
+        // Try to form lore-lore-lore (7 points)
+        if ($lore >= 3) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 3, $jewelry, $iridia, $memo));
+        } elseif ($lore >= 2 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
+        } elseif ($lore >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
+        } elseif ($iridia >= 3) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
+        }
+
+        // Try to form jewelry-jewelry-jewelry (5 points)
+        if ($jewelry >= 3) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry - 3, $iridia, $memo));
+        } elseif ($jewelry >= 2 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry - 2, $iridia - 1, $memo));
+        } elseif ($jewelry >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
+        } elseif ($iridia >= 3) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
+        }
+
+        // Try to form tech-lore-jewelry (5 points)
+        if ($tech >= 1 && $lore >= 1 && $jewelry >= 1) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech - 1, $lore - 1, $jewelry - 1, $iridia, $memo));
+        } elseif ($tech >= 1 && $lore >= 1 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech - 1, $lore - 1, $jewelry, $iridia - 1, $memo));
+        } elseif ($tech >= 1 && $jewelry >= 1 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech - 1, $lore, $jewelry - 1, $iridia - 1, $memo));
+        } elseif ($lore >= 1 && $jewelry >= 1 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore - 1, $jewelry - 1, $iridia - 1, $memo));
+        } elseif ($tech >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
+        } elseif ($lore >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
+        } elseif ($jewelry >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
+        } elseif ($iridia >= 3) {
+            $maxPoints = max($maxPoints, 5 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
+        }
+
+        // Memoize the result before returning it
+        $memo[$tech][$lore][$jewelry][$iridia] = $maxPoints;
+
+        return $maxPoints;
+    }
+
     public function calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia): int
     {
         $memo = [];
 
-        function relicsDp($tech, $lore, $jewelry, $iridia, &$memo)
-        {
-            // If we've already computed this state, return the memoized result
-            if (isset($memo[$tech][$lore][$jewelry][$iridia])) {
-                return $memo[$tech][$lore][$jewelry][$iridia];
-            }
-
-            // Base case: If no relics are left, no points can be scored
-            if ($tech == 0 && $lore == 0 && $jewelry == 0 && $iridia == 0) {
-                return 0;
-            }
-
-            $maxPoints = 0;
-
-            // Try to form tech-tech-tech (9 points)
-            if ($tech >= 3) {
-                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 3, $lore, $jewelry, $iridia, $memo));
-            } elseif ($tech >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
-            } elseif ($tech >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 9 + relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
-            } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 9 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
-            }
-
-            // Try to form lore-lore-lore (7 points)
-            if ($lore >= 3) {
-                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 3, $jewelry, $iridia, $memo));
-            } elseif ($lore >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
-            } elseif ($lore >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
-            } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 7 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
-            }
-
-            // Try to form jewelry-jewelry-jewelry (5 points)
-            if ($jewelry >= 3) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 3, $iridia, $memo));
-            } elseif ($jewelry >= 2 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 2, $iridia - 1, $memo));
-            } elseif ($jewelry >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
-            } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
-            }
-
-            // Try to form tech-lore-jewelry (5 points)
-            if ($tech >= 1 && $lore >= 1 && $jewelry >= 1) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore - 1, $jewelry - 1, $iridia, $memo));
-            } elseif ($tech >= 1 && $lore >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore - 1, $jewelry, $iridia - 1, $memo));
-            } elseif ($tech >= 1 && $jewelry >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore, $jewelry - 1, $iridia - 1, $memo));
-            } elseif ($lore >= 1 && $jewelry >= 1 && $iridia >= 1) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore - 1, $jewelry - 1, $iridia - 1, $memo));
-            } elseif ($tech >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
-            } elseif ($lore >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
-            } elseif ($jewelry >= 1 && $iridia >= 2) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry - 1, $iridia - 2, $memo));
-            } elseif ($iridia >= 3) {
-                $maxPoints = max($maxPoints, 5 + relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
-            }
-
-            // Memoize the result before returning it
-            $memo[$tech][$lore][$jewelry][$iridia] = $maxPoints;
-
-            return $maxPoints;
-        }
-
-        return relicsDp($tech, $lore, $jewelry, $iridia, $memo);
+        return $this->relicsDp($tech, $lore, $jewelry, $iridia, $memo);
     }
 
     public function calcRelicsPoints(int $player_id): void
