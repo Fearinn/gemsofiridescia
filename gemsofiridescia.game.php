@@ -1559,6 +1559,211 @@ class GemsOfIridescia extends Table
         }
     }
 
+    public function calcRelicsPoints(int $player_id): void
+    {
+        $relicsCountsByType = [
+            0 => 5,
+            1 => 2,
+            2 => 2,
+            3 => 2
+        ];
+
+        // $relicCards = $this->relic_cards->getCardsInLocation("hand", $player_id);
+        // foreach ($relicCards as $relicCard) {
+        //     $relic_id = (int) $relicCard["type_arg"];
+        //     $type_id = (int) $this->relic_info[$relic_id]["type"];
+        //     $relicsCountsByType[$type_id]++;
+        // }
+
+        $iridia = $relicsCountsByType[0];
+        $jewelry = $relicsCountsByType[1];
+        $lore = $relicsCountsByType[2];
+        $tech = $relicsCountsByType[3];
+
+        $tripleSets = 0;
+        $fullJewelry = 0;
+        $fullLore = 0;
+        $fullTech = 0;
+
+        while ($jewelry >= 3) {
+            if ($jewelry === 3 && $lore === 2 && $tech === 2 && $iridia === 0) {
+                $jewelry--;
+                $lore--;
+                $tech--;
+
+                $tripleSets++;
+            } else {
+                $jewelry -= 3;
+
+                $fullJewelry++;
+            }
+        }
+
+        while ($lore >= 3) {
+            if ($lore === 3 && $jewelry === 2 && $tech === 2 && $iridia === 0) {
+                $jewelry--;
+                $lore--;
+                $tech--;
+
+                $tripleSets++;
+            } else {
+                $lore -= 3;
+
+                $fullLore++;
+            }
+        }
+
+        while ($tech >= 3) {
+            if ($tech === 3 && $jewelry === 2 && $lore === 2 && $iridia === 0) {
+                $jewelry -= 2;
+                $lore -= 2;
+                $tech -= 2;
+
+                $tripleSets += 2;
+            } else {
+                $tech -= 3;
+
+                $fullTech++;
+            }
+        }
+
+        while ($iridia >= 0) {
+            $iridiaCompletesTech = ($tech + 1) % 3 === 0 || ($iridia >= 2 && ($tech + 2) % 3 === 0);
+            $iridiaCompletesLore = ($lore + 1) % 3 === 0 || ($iridia >= 2 && ($lore + 2) % 3 === 0);
+            $iridiaCompletesJewelry = ($jewelry + 1) % 3 === 0 || ($iridia >= 2 && ($jewelry + 2) % 3 === 0);
+
+            $iridiaCompletionsCount = 0;
+
+            if ($iridiaCompletesTech) {
+                $iridiaCompletionsCount++;
+            }
+
+            if ($iridiaCompletesLore) {
+                $iridiaCompletionsCount++;
+            }
+
+            if ($iridiaCompletesJewelry) {
+                $iridiaCompletionsCount++;
+            }
+
+            $iridiaCompletesTriple = ($iridia > 0 && $jewelry > 0 && $lore > 0) || ($iridia > 0 && $jewelry > 0 && $tech > 0) || ($iridia > 0 && $lore > 0 && $tech > 0) ||
+                ($iridia >= 2 && ($jewelry > 0 && $lore === 0 && $tech === 0) || ($lore > 0 && $jewelry === 0 && $tech === 0) || ($tech > 0 && $jewelry === 0 && $lore === 0));
+
+            while (($tech + 1) % 3 === 0) {
+                $tech -= 2;
+                $iridia--;
+
+                $fullTech++;
+            }
+
+            $this->dump("iridia", $iridia);
+            $this->dump("tech", $tech);
+            $this->dump("lore", $lore);
+            $this->dump("jewelry", $jewelry);
+
+            if ($iridia < 3 || $iridiaCompletionsCount >= 2) {
+                while ($iridia >= 2 && ($tech + 2) % 3 === 0) {
+                    $tech -= 1;
+                    $iridia -= 2;
+
+                    $fullTech++;
+                }
+
+                while (($lore + 1) % 3 === 0) {
+                    $lore -= 2;
+                    $iridia--;
+
+                    $fullLore++;
+                }
+
+                while (!$iridiaCompletesTriple && $iridia >= 2 && ($lore + 2) % 3 === 0) {
+                    $lore -= 1;
+                    $iridia -= 2;
+
+                    $fullLore++;
+                }
+
+                while (($jewelry + 1) % 3 === 0) {
+                    $jewelry -= 2;
+                    $iridia--;
+
+                    $fullJewelry++;
+                }
+
+                while (!$iridiaCompletesTriple && $iridia >= 2 && ($jewelry + 2) % 3 === 0) {
+                    $jewelry--;
+                    $iridia -= 2;
+
+                    $fullJewelry++;
+                }
+            }
+
+            while ($iridia >= 3) {
+                $iridia -= 3;
+
+                $fullTech++;
+            }
+
+            while ($iridia > 0 && $jewelry > 0 && $lore > 0) {
+                $jewelry--;
+                $lore--;
+                $iridia--;
+
+                $tripleSets++;
+            }
+
+            while ($iridia > 0 && $jewelry > 0 && $tech > 0) {
+                $jewelry--;
+                $tech--;
+                $iridia--;
+
+                $tripleSets++;
+            }
+
+            while ($iridia > 0 && $lore > 0 && $tech > 0) {
+                $lore--;
+                $tech--;
+                $iridia--;
+
+                $tripleSets++;
+            }
+
+            while ($iridia >= 2 && $jewelry > 0 && $lore === 0 && $tech === 0) {
+                $jewelry--;
+                $iridia -= 2;
+
+                $tripleSets++;
+            }
+
+            while ($iridia >= 2 && $lore > 0 && $jewelry === 0 && $tech === 0) {
+                $lore--;
+                $iridia -= 2;
+
+                $tripleSets++;
+            }
+
+            while ($iridia >= 2 && $tech > 0 && $jewelry === 0 && $lore === 0) {
+                $tech--;
+                $iridia -= 2;
+
+                $tripleSets++;
+            }
+
+            break;
+        }
+
+        while ($jewelry > 0 && $lore > 0 && $tech > 0) {
+            $jewelry--;
+            $lore--;
+            $tech--;
+
+            $tripleSets++;
+        }
+
+        $totalPoints = $tripleSets * 5 + $fullJewelry * 5 + $fullLore * 7 + $fullTech * 9;
+        $this->notifyAllPlayers("test", "$tripleSets, $fullJewelry, $fullLore, $fullTech, $totalPoints", []);
+    }
+
     public function calcFinalScores(): void
     {
         $players = $this->loadPlayersBasicInfos();
