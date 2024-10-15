@@ -49,6 +49,7 @@ define([
       console.log("Starting game setup");
 
       this.goi_info.relics = gamedatas.relicsInfo;
+      this.goi_info.objectives = gamedatas.objectivesInfo;
 
       this.goi_info.gemIds = {
         iridescia: 0,
@@ -81,6 +82,9 @@ define([
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
+      this.goi_globals.objectives = gamedatas.objectives;
+
+      console.log(this.goi_globals.objectives);
 
       this.goi_info.defaultSelections = {
         tile: null,
@@ -329,6 +333,32 @@ define([
           div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
           const backgroundPosition = this.calcBackgroundPosition(card.type);
 
+          div.style.backgroundPosition = backgroundPosition;
+        },
+      });
+
+      this.goi_managers.objectives = new CardManager(this, {
+        cardHeight: 273,
+        cardWidth: 200,
+        selectedCardClass: "goi_selectedCard",
+        getId: (card) => `objective-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_objective");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          const objectiveName = this.goi_info.objectives[card.type_arg].tr_name;
+
+          const cardTitle = document.createElement("span");
+          cardTitle.textContent = _(objectiveName);
+          cardTitle.classList.add("goi_cardTitle");
+
+          if (div.childElementCount === 0) {
+            div.appendChild(cardTitle);
+          }
+        },
+        setupBackDiv: (card, div) => {
+          const backgroundPosition = this.calcBackgroundPosition(0);
           div.style.backgroundPosition = backgroundPosition;
         },
       });

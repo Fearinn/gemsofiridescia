@@ -56,42 +56,42 @@ $this->gemsIds_info = [
 $this->gems_info = [
     1 => [
         "name" => "amethyst",
-        "tr_label" => clienttranslate("Amethyst(s)")
+        "tr_name" => clienttranslate("Amethyst(s)")
     ],
     2 => [
         "name" => "citrine",
-        "tr_label" => clienttranslate("Citrine(s)")
+        "tr_name" => clienttranslate("Citrine(s)")
     ],
     3 => [
         "name" => "emerald",
-        "tr_label" => clienttranslate("Emerald(s)")
+        "tr_name" => clienttranslate("Emerald(s)")
     ],
     4 => [
         "name" => "sapphire",
-        "tr_label" => clienttranslate("Sapphire(s)")
+        "tr_name" => clienttranslate("Sapphire(s)")
     ],
 ];
 
 $this->regions_info = [
     1 => [
         "name" => "Desert",
-        "tr_label" => clienttranslate("Desert")
+        "tr_name" => clienttranslate("Desert")
     ],
     2 => [
         "name" => "Canyon",
-        "tr_label" => clienttranslate("Canyon")
+        "tr_name" => clienttranslate("Canyon")
     ],
     3 => [
         "name" => "Florest",
-        "tr_label" => clienttranslate("Florest")
+        "tr_name" => clienttranslate("Florest")
     ],
     4 => [
         "name" => "Ruins",
-        "tr_label" => clienttranslate("Ruins")
+        "tr_name" => clienttranslate("Ruins")
     ],
     5 => [
         "name" => "Castle",
-        "tr_label" => clienttranslate("Castle")
+        "tr_name" => clienttranslate("Castle")
     ],
 ];
 
@@ -417,17 +417,17 @@ $this->tiles_info = [
 $this->royaltyTokens_info = [
     1 => [
         "name" => "banner",
-        "tr_label" => clienttranslate("Banner"),
+        "tr_name" => clienttranslate("Banner"),
         "points" => 3
     ],
     2 => [
         "name" => "septor",
-        "tr_label" => clienttranslate("Septor"),
+        "tr_name" => clienttranslate("Septor"),
         "points" => 5,
     ],
     3 => [
         "name" => "throne",
-        "tr_label" => clienttranslate("Throne"),
+        "tr_name" => clienttranslate("Throne"),
         "points" => 7,
     ]
 ];
@@ -744,5 +744,98 @@ $this->relics_info = [
             3 => 1,
             4 => 1
         ]
+    ]
+];
+
+$this->objectives_info = [
+    1 => [
+        "name" => "Glimmering Gold",
+        "tr_name" => clienttranslate("Glimmering Gold"),
+        "content" => clienttranslate("Finish the game with the most coins"),
+        "points" => 7
+    ],
+    2 => [
+        "name" => "Amethyst Aficionado",
+        "tr_name" => clienttranslate("Amethyst Aficionado"),
+        "content" => clienttranslate("Collect the most Amethyst tiles"),
+        "points" => 5
+    ],
+    3 => [
+        "name" => "Citrine Crazy",
+        "tr_name" => clienttranslate("Citrine Crazy"),
+        "content" => clienttranslate("Collect the most Citrine tiles"),
+        "points" => 5
+    ],
+    4 => [
+        "name" => "Emerald Enthusiast",
+        "tr_name" => clienttranslate("Emerald Enthusiast"),
+        "content" => clienttranslate("Collect the most Emerald tiles"),
+        "points" => 5
+    ],
+    5 => [
+        "name" => "Sapphire Savant",
+        "tr_name" => clienttranslate("Sapphire Savant"),
+        "content" => clienttranslate("Collect the most Sapphire tiles"),
+        "points" => 5
+    ],
+    6 => [
+        "name" => "Regal Rainbow",
+        "tr_name" => clienttranslate("Regal Rainbow"),
+        "content" => clienttranslate("Restore 1 Relic from each Gem type"),
+        "points" => 7
+    ],
+    7 => [
+        "name" => "All About Amethyst",
+        "tr_name" => clienttranslate("All About Amethyst"),
+        "content" => clienttranslate("Restore the most Amethyst Relics"),
+        "points" => 7
+    ],
+    8 => [
+        "name" => "Classy Citrine",
+        "tr_name" => clienttranslate("Classy Citrine"),
+        "content" => clienttranslate("Restore the most Citrine Relics"),
+        "points" => 7
+    ],
+    9 => [
+        "name" => "Emerald Euphoria",
+        "tr_name" => clienttranslate("Emerald Euphoria"),
+        "content" => clienttranslate("Restore the most Emerald Relic"),
+        "points" => 7
+    ],
+    10 => [
+        "name" => "Sapphire Saturation",
+        "tr_name" => clienttranslate("Sapphire Saturation"),
+        "content" => clienttranslate("Restore the most Sapphire Relics"),
+        "points" => 7
+    ],
+    11 => [
+        "name" => "Remarkable Restorer",
+        "tr_name" => clienttranslate("Remarkable Restorer"),
+        "content" => clienttranslate("Restore 5 or more Relics"),
+        "points" => 7
+    ],
+    12 => [
+        "name" => "Jazzy Jeweler",
+        "tr_name" => clienttranslate("Jazzy Jeweler"),
+        "content" => clienttranslate("Restore the most Jewelry Relics"),
+        "points" => 5
+    ],
+    13 => [
+        "name" => "Lots-O-Lore",
+        "tr_name" => clienttranslate("Lots-O-Lore"),
+        "content" => clienttranslate("Restore the most Lore Relics"),
+        "points" => 7
+    ],
+    14 => [
+        "name" => "Tantalizing Tech",
+        "tr_name" => clienttranslate("Tantalizing Tech"),
+        "content" => clienttranslate("Restore the most Tech Relics"),
+        "points" => 7
+    ],
+    15 => [
+        "name" => "Master Miner",
+        "tr_name" => clienttranslate("Master Miner"),
+        "content" => clienttranslate("Restore 1 Relic from each of the 3 categories"),
+        "points" => 7
     ]
 ];

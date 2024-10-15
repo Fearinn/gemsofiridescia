@@ -53,6 +53,9 @@ class GemsOfIridescia extends Table
         $this->relic_cards = $this->getNew("module.common.deck");
         $this->relic_cards->init("relic");
 
+        $this->objective_cards = $this->getNew("module.common.deck");
+        $this->objective_cards->init("objective");
+
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
     }
@@ -92,7 +95,7 @@ class GemsOfIridescia extends Table
                 "i18n" => ["region_label"],
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "region_label" => $this->regions_info[$region_id]["tr_label"],
+                "region_label" => $this->regions_info[$region_id]["tr_name"],
                 "tileCard" => $tileCard,
             ]
         );
@@ -153,7 +156,7 @@ class GemsOfIridescia extends Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "region_label" => $this->regions_info[$region_id]["tr_label"],
+                "region_label" => $this->regions_info[$region_id]["tr_name"],
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
@@ -808,6 +811,42 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("optionalActions");
     }
 
+    public function collectTile(int $player_id): void
+    {
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $hex = (int) $explorerCard["location_arg"];
+
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
+        AND card_location_arg=$hex");
+
+        $tileCard_id = (int) $tileCard["id"];
+
+        $this->tile_cards->moveCard($tileCard_id, "hand", $player_id);
+
+        $tile_id = (int) $tileCard["type_arg"];
+        $tile_info = $this->tiles_info[$tile_id];
+        $gem_id = (int) $tile_info["gem"];
+        $region_id = (int) $tile_info["region"];
+
+        $this->notifyAllPlayers(
+            "collectTile",
+            "",
+            [
+                "player_id" => $player_id,
+                "tile_id" => $tile_id,
+                "tileCard" => $tileCard,
+            ]
+        );
+
+        if ($gem_id !== 0) {
+            $this->updateMarketValue($gem_id);
+        }
+
+        if ($region_id === 5) {
+            $this->reachCastle($player_id);
+        }
+    }
+
     public function getIridiaStoneOwner(): int | null
     {
         $players = $this->loadPlayersBasicInfos();
@@ -918,7 +957,7 @@ class GemsOfIridescia extends Table
 
         $token_info = $this->royaltyTokens_info[$token_id];
         $tokenName = $token_info["name"];
-        $tokenLabel = $token_info["tr_label"];
+        $tokenLabel = $token_info["tr_name"];
         $tokenPoints = (int) $token_info["points"];
 
         $this->notifyAllPlayers(
@@ -1056,7 +1095,7 @@ class GemsOfIridescia extends Table
                 "player_name" => $this->getPlayerNameById($player_id),
                 "player_id2" => $opponent_id,
                 "player_name2" => $this->getPlayerNameById($opponent_id),
-                "gem_label" => $gem_info["tr_label"],
+                "gem_label" => $gem_info["tr_name"],
                 "gemName" => $gem_info["name"],
                 "gemCard" => $gemCard,
                 "18n" => ["gem_label"],
@@ -1074,7 +1113,7 @@ class GemsOfIridescia extends Table
             [
                 "player_name" => $this->getPlayerNameById($player_id),
                 "gem_id" => $gem_id,
-                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "i18n" => ["gem_label"]
             ]
         );
@@ -1097,7 +1136,7 @@ class GemsOfIridescia extends Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
-                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
                 "tileCard" => $tileCard,
@@ -1146,7 +1185,7 @@ class GemsOfIridescia extends Table
                 "gem_id" => $gem_id,
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
-                "gem_label" => $this->gems_info[$gem_id]["tr_label"],
+                "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "i18n" => ["gem_label"]
             ]
         );
@@ -1191,7 +1230,7 @@ class GemsOfIridescia extends Table
             [
                 "marketValue" => $marketValue,
                 "gemName" => $gemName,
-                "gem_label" => $gem_info["tr_label"],
+                "gem_label" => $gem_info["tr_name"],
                 "i18n" => ["gem_label"]
             ]
         );
@@ -1444,40 +1483,10 @@ class GemsOfIridescia extends Table
         );
     }
 
-    public function collectTile(int $player_id): void
+    public function getObjectives($player_id): array
     {
-        $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $hex = (int) $explorerCard["location_arg"];
-
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
-        AND card_location_arg=$hex");
-
-        $tileCard_id = (int) $tileCard["id"];
-
-        $this->tile_cards->moveCard($tileCard_id, "hand", $player_id);
-
-        $tile_id = (int) $tileCard["type_arg"];
-        $tile_info = $this->tiles_info[$tile_id];
-        $gem_id = (int) $tile_info["gem"];
-        $region_id = (int) $tile_info["region"];
-
-        $this->notifyAllPlayers(
-            "collectTile",
-            "",
-            [
-                "player_id" => $player_id,
-                "tile_id" => $tile_id,
-                "tileCard" => $tileCard,
-            ]
-        );
-
-        if ($gem_id !== 0) {
-            $this->updateMarketValue($gem_id);
-        }
-
-        if ($region_id === 5) {
-            $this->reachCastle($player_id);
-        }
+        $objectiveCards = $this->objective_cards->getCardsInLocation("hand", $player_id);
+        return $objectiveCards;
     }
 
     public function computeGemsPoints(int $player_id): void
@@ -1784,6 +1793,8 @@ class GemsOfIridescia extends Table
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
         $result["relicsMarket"] = $this->getRelicsMarket();
         $result["restoredRelics"] = $this->getRestoredRelics(null);
+        $result["objectivesInfo"] = $this->objectives_info;
+        $result["objectives"] = $this->getObjectives($current_player_id);
 
         return $result;
     }
@@ -1901,6 +1912,17 @@ class GemsOfIridescia extends Table
         $this->relic_cards->createCards($relicCards, "deck");
         $this->relic_cards->shuffle("deck");
         $this->relic_cards->pickCardsForLocation(5, "deck", "market");
+
+        $objectiveCards = [];
+        foreach ($this->objectives_info as $objective_id => $objective_info) {
+            $objectiveCards[] = ["type" => $objective_info["points"], "type_arg" => $objective_id, "nbr" => 1];
+        }
+        $this->objective_cards->createCards($objectiveCards, "deck");
+        $this->objective_cards->shuffle("deck");
+
+        foreach ($players as $player_id => $player) {
+            $this->objective_cards->pickCardsForLocation(2, "deck", "hand", $player_id);
+        }
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
