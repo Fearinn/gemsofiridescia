@@ -48,49 +48,19 @@ $machinestates = [
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "rainbowTile" => 31, "mine" => 32]
+        "transitions" => ["back" => 2, "rainbowTile" => 30, "optionalActions" => 32]
     ],
 
-    31 => [
+    30 => [
         "name" => "rainbowTile",
         "description" => clienttranslate('${actplayer} must pick a Gem to collect from the Rainbow'),
         "descriptionmyturn" => clienttranslate('${you} must pick a Gem to collect from the Rainbow'),
         "type" => "activeplayer",
         "possibleactions" => ["actPickRainbowGem"],
-        "transitions" => ["mine" => 32]
+        "transitions" => ["optionalActions" => 4]
     ],
 
-    32 => [
-        "name" => "optionalActions",
-        "description" => clienttranslate('${actplayer} may perform any available optional actions, in any order'),
-        "descriptionmyturn" => clienttranslate('${you} may perform any available optional actions, in any order'),
-        "type" => "activeplayer",
-        "args" => "argOptionalActions",
-        "action" => "stOptionalActions",
-        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions"],
-        "transitions" => ["repeat" => 32, "skip" => 4, "restoreRelic" => 4]
-    ],
-
-    4 => [
-        "name" => "restoreRelic",
-        "description" => clienttranslate('${actplayer} may restore a Relic'),
-        "descriptionmyturn" => clienttranslate('${you} may restore a Relic'),
-        "type" => "activeplayer",
-        "args" => "argRestoreRelic",
-        "action" => "stRestoreRelic",
-        "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 32, "repeat" => 4, "skip" => 5, "betweenTurns" => 5]
-    ],
-
-    5 => [
-        "name" => "betweenTurns",
-        "description" => clienttranslate("Ending turn..."),
-        "type" => "game",
-        "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "gameEnd" => 99]
-    ],
-
-    98 => [
+    31 => [
         "name" => "transferGem",
         "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick a Gem to give away to other player'),
         "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick a Gem to give away to other player'),
@@ -98,7 +68,37 @@ $machinestates = [
         "args" => "argTransferGem",
         "action" => "stTransferGem",
         "possibleactions" => ["actTransferGem", "actDiscardGem"],
-        "transitions" => ["repeat" => 98],
+        "transitions" => ["repeat" => 31],
+    ],
+
+    4 => [
+        "name" => "optionalActions",
+        "description" => clienttranslate('${actplayer} may perform any available optional actions, in any order'),
+        "descriptionmyturn" => clienttranslate('${you} may perform any available optional actions, in any order'),
+        "type" => "activeplayer",
+        "args" => "argOptionalActions",
+        "action" => "stOptionalActions",
+        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions"],
+        "transitions" => ["repeat" => 4, "skip" => 5, "restoreRelic" => 5]
+    ],
+
+    5 => [
+        "name" => "restoreRelic",
+        "description" => clienttranslate('${actplayer} may restore a Relic'),
+        "descriptionmyturn" => clienttranslate('${you} may restore a Relic'),
+        "type" => "activeplayer",
+        "args" => "argRestoreRelic",
+        "action" => "stRestoreRelic",
+        "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
+        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 4]
+    ],
+
+    6 => [
+        "name" => "betweenTurns",
+        "description" => clienttranslate("Ending turn..."),
+        "type" => "game",
+        "action" => "stBetweenTurns",
+        "transitions" => ["nextTurn" => 2, "gameEnd" => 99]
     ],
 
     // Final state.

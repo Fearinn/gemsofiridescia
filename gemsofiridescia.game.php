@@ -181,7 +181,7 @@ class GemsOfIridescia extends Table
             return;
         }
 
-        $this->gamestate->nextState("mine");
+        $this->gamestate->nextState("optionalActions");
     }
 
     public function actMine(#[IntParam(min: 0, max: 4)] int $newStoneDiceCount): void
@@ -426,7 +426,7 @@ class GemsOfIridescia extends Table
         $args = $this->argMoveExplorer();
 
         if ($args["_no_notify"]) {
-            $this->gamestate->nextState("mine");
+            $this->gamestate->nextState("optionalActions");
         }
     }
 
@@ -805,7 +805,7 @@ class GemsOfIridescia extends Table
             return;
         };
 
-        $this->gamestate->nextState("mine");
+        $this->gamestate->nextState("optionalActions");
     }
 
     public function getIridiaStoneOwner(): int | null
@@ -1109,7 +1109,7 @@ class GemsOfIridescia extends Table
             $anchorState_id = $this->gamestate->state_id();
 
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(98);
+            $this->gamestate->jumpToState(31);
             return false;
         }
 
