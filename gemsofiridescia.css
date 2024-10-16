@@ -53,6 +53,21 @@
   padding: 0 8px;
 }
 
+.goi_card {
+  height: 409px;
+  width: var(--cardSize);
+}
+
+.goi_card,
+.goi_card .card-side {
+  border-radius: 12px;
+}
+
+.goi_selectedCard {
+  border: 4px solid red;
+  transform: scale(1.01);
+}
+
 .goi_cardTitle {
   font-family: "sketchnote-square", sans-serif;
   color: white;
@@ -66,7 +81,7 @@
   z-index: 1;
 }
 
-.goi_cardContent {
+.goi_helpCardContent {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
@@ -85,7 +100,7 @@
   width: 100%;
 }
 
-.goi_cardContent > div {
+.goi_helpCardContent > div {
   display: flex;
   flex-direction: column;
 }
@@ -99,7 +114,12 @@
   width: 15% !important;
 }
 
-.goi_playerAid-folded {
+.bga-help_button .goi_cardTitle {
+  font-size: 1.1em;
+  top: 3%;
+}
+
+.goi_helpFolded {
   font-family: "sketchnote-square", sans-serif;
 
   position: relative;
@@ -131,6 +151,36 @@
   background-position: -400% 0;
   height: 12px;
   width: 12px;
+}
+
+.goi_objectives {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goi_objective {
+  height: 273px;
+  width: 200px;
+}
+
+.goi_objective .card-side {
+  background-image: url("img/objectives.png");
+}
+
+.goi_objectiveContent {
+  font-family: "rooney-web", serif;
+  font-weight: 400;
+  font-style: normal;
+  word-break: break-all;
+
+  position: absolute;
+  left: 0;
+  bottom: 20%;
+  text-align: center;
+  max-height: 15%;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .goi_playerPanel {
@@ -482,21 +532,6 @@
   box-shadow: none !important;
 }
 
-.goi_card {
-  height: 409px;
-  width: var(--cardSize);
-}
-
-.goi_card,
-.goi_card .card-side {
-  border-radius: 12px;
-}
-
-.goi_selectedCard {
-  border: 4px solid red;
-  transform: scale(1.01);
-}
-
 .goi_relicsContainer {
   display: flex;
   justify-content: center;
@@ -507,7 +542,7 @@
 .goi_relicsMarket {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
+  flex-wrap: wrap;
 }
 
 /* END OF CUSTOM STYLES */

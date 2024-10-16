@@ -42,11 +42,21 @@ define([
         explorers: {},
         dice: {},
         relics: {},
+        objectives: {},
       };
     },
 
     setup: function (gamedatas) {
       console.log("Starting game setup");
+
+      this.goi_managers.zoom = new ZoomManager({
+        element: document.getElementById("goi_gameArea"),
+        localStorageZoomKey: "gemsofiridescia-zoom",
+        zoomControls: {
+          color: "black",
+        },
+        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75],
+      });
 
       this.goi_info.relics = gamedatas.relicsInfo;
       this.goi_info.objectives = gamedatas.objectivesInfo;
@@ -84,8 +94,6 @@ define([
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.objectives = gamedatas.objectives;
 
-      console.log(this.goi_globals.objectives);
-
       this.goi_info.defaultSelections = {
         tile: null,
         gem: null,
@@ -119,7 +127,7 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_cardContent" style="--maxHeight: 180px;"> 
+      <div id="goi_helpCardContent" class="goi_helpCardContent" style="--maxHeight: 180px;"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
@@ -144,24 +152,22 @@ define([
       this.goi_managers.help = new HelpManager(this, {
         buttons: [
           new BgaHelpExpandableButton({
-            title: _("Player aid"),
+            title: _("Player Aid"),
             expandedHeight: "273px",
-            foldedHtml: `<span class="goi_playerAid-folded">?</span>`,
+            foldedHtml: `<span class="goi_helpFolded">?</span>`,
             unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
               ${aidContent}
             </div>`,
           }),
+          new BgaHelpExpandableButton({
+            title: _("Secret Objectives"),
+            buttonsId: "bga-help_objectives",
+            expandedHeight: "273px",
+            foldedHtml: `<span class="goi_helpFolded"><i class="fa6 fa6-bullseye"></i></span>`,
+            unfoldedHtml: `<div id="goi_objectives" class="goi_objectives"></div>`,
+          }),
         ],
-      });
-
-      this.goi_managers.zoom = new ZoomManager({
-        element: document.getElementById("goi_gameArea"),
-        localStorageZoomKey: "gemsofiridescia-zoom",
-        zoomControls: {
-          color: "black",
-        },
-        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75],
       });
 
       this.goi_managers.dice = new DiceManager(this, {
@@ -343,11 +349,15 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
+          div.classList.add("goi_card");
           div.classList.add("goi_objective");
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          const objectiveName = this.goi_info.objectives[card.type_arg].tr_name;
+          const objective_id = Number(card.type_arg);
+          const objectiveInfo = this.goi_info.objectives[objective_id];
+          const objectiveName = objectiveInfo.tr_name;
+          const objectiveContent = objectiveInfo.content;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(objectiveName);
@@ -356,12 +366,36 @@ define([
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
           }
+
+          const cardContent = document.createElement("span");
+          cardContent.textContent = _(objectiveContent);
+          cardContent.classList.add("goi_objectiveContent");
+
+          if (div.childElementCount === 1) {
+            div.appendChild(cardContent);
+        }
+
+          const backgroundPosition = this.calcBackgroundPosition(objective_id);
+          div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
           const backgroundPosition = this.calcBackgroundPosition(0);
           div.style.backgroundPosition = backgroundPosition;
         },
       });
+
+      this.goi_stocks.objectives.hand = new CardStock(
+        this.goi_managers.objectives,
+        document.getElementById("goi_objectives"),
+        {}
+      );
+
+      const objectives = this.goi_globals.objectives;
+      for (const objectiveCard_id in objectives) {
+        const objectiveCard = objectives[objectiveCard_id];
+        console.log(objectiveCard);
+        this.goi_stocks.objectives.hand.addCard(objectiveCard);
+      }
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
         this.goi_managers.gems,
