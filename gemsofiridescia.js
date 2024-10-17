@@ -160,13 +160,6 @@ define([
               ${aidContent}
             </div>`,
           }),
-          new BgaHelpExpandableButton({
-            title: _("Secret Objectives"),
-            buttonsId: "bga-help_objectives",
-            expandedHeight: "273px",
-            foldedHtml: `<span class="goi_helpFolded"><i class="fa6 fa6-bullseye"></i></span>`,
-            unfoldedHtml: `<div id="goi_objectives" class="goi_objectives"></div>`,
-          }),
         ],
       });
 
@@ -373,7 +366,7 @@ define([
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
-        }
+          }
 
           const backgroundPosition = this.calcBackgroundPosition(objective_id);
           div.style.backgroundPosition = backgroundPosition;
@@ -383,19 +376,6 @@ define([
           div.style.backgroundPosition = backgroundPosition;
         },
       });
-
-      this.goi_stocks.objectives.hand = new CardStock(
-        this.goi_managers.objectives,
-        document.getElementById("goi_objectives"),
-        {}
-      );
-
-      const objectives = this.goi_globals.objectives;
-      for (const objectiveCard_id in objectives) {
-        const objectiveCard = objectives[objectiveCard_id];
-        console.log(objectiveCard);
-        this.goi_stocks.objectives.hand.addCard(objectiveCard);
-      }
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
         this.goi_managers.gems,
@@ -425,10 +405,15 @@ define([
       for (const player_id in this.goi_globals.players) {
         this.goi_counters[player_id] = {};
 
-        document.getElementById(
-          `player_board_${player_id}`
+        this.getPlayerPanelElement(
+          player_id
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
+            ${
+              player_id == this.player_id
+                ? '<div id="goi_objectives" class="goi_objectives"></div>'
+                : ""
+            }
           </div>`;
 
         this.goi_counters[player_id].gems = {
@@ -474,6 +459,20 @@ define([
         this.goi_counters[player_id].coins.setValue(
           this.goi_globals.coins[player_id]
         );
+
+        if (player_id == this.player_id) {
+          this.goi_stocks.objectives.hand = new CardStock(
+            this.goi_managers.objectives,
+            document.getElementById("goi_objectives"),
+            {}
+          );
+
+          const objectives = this.goi_globals.objectives;
+          for (const objectiveCard_id in objectives) {
+            const objectiveCard = objectives[objectiveCard_id];
+            this.goi_stocks.objectives.hand.addCard(objectiveCard);
+          }
+        }
       }
 
       /* BOARDS */
