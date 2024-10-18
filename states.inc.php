@@ -98,7 +98,16 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "gameEnd" => 99]
+        "transitions" => ["nextTurn" => 2, "discardObjective" => 60, "gameEnd" => 99]
+    ],
+
+    60 => [
+        "name" => "discardObjective",
+        "description" => clienttranslate('${actplayer} must discard a Secret Objective'),
+        "descriptionmyturn" => clienttranslate('${you} must discard a Secret Objective'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actDiscardObjective"],
+        "transitions" => ["betweenTurns" => 6]
     ],
 
     // Final state.

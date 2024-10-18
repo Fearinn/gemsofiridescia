@@ -467,6 +467,19 @@ define([
             {}
           );
 
+          this.goi_stocks.objectives.hand.onSelectionChange = (
+            selection,
+            lastChange
+          ) => {
+            if (selection.length > 0) {
+              this.goi_selections.objective = lastChange;
+            } else {
+              this.goi_selections.objective = null;
+            }
+
+            this.handleConfirmationButton();
+          };
+
           const objectives = this.goi_globals.objectives;
           for (const objectiveCard_id in objectives) {
             const objectiveCard = objectives[objectiveCard_id];
@@ -840,9 +853,9 @@ define([
         lastChange
       ) => {
         if (selection.length > 0) {
-          this.goi_globals.selectedRelic = lastChange;
+          this.goi_selections.relic = lastChange;
         } else {
-          this.goi_globals.selectedRelic = null;
+          this.goi_selections.relic = null;
         }
 
         this.handleConfirmationButton();
@@ -1091,6 +1104,11 @@ define([
           this.goi_stocks.relics.market.setSelectionMode("single");
           this.goi_stocks.relics.market.setSelectableCards(restorableRelics);
         }
+
+        if (stateName === "discardObjective") {
+          this.goi_stocks.objectives.hand.setSelectionMode("single");
+        }
+
         return;
       }
 
@@ -1284,10 +1302,19 @@ define([
       }
 
       if (stateName === "restoreRelic") {
-        const selectedRelic = this.goi_globals.selectedRelic;
+        const selectedRelic = this.goi_selections.relic;
 
         if (selectedRelic) {
           this.addActionButton(elementId, message, "actRestoreRelic");
+          return;
+        }
+      }
+
+      if (stateName === "discardObjective") {
+        const selectedObjective = this.goi_selections.objective;
+
+        if (selectedObjective) {
+          this.addActionButton(elementId, message, "actDiscardObjective");
           return;
         }
       }
@@ -1396,12 +1423,18 @@ define([
 
     actRestoreRelic: function () {
       this.performAction("actRestoreRelic", {
-        relicCard_id: this.goi_globals.selectedRelic.id,
+        relicCard_id: this.goi_selections.relic.id,
       });
     },
 
     actSkipRestoreRelic: function () {
       this.performAction("actSkipRestoreRelic");
+    },
+
+    actDiscardObjective: function () {
+      this.performAction("actDiscardObjective", {
+        objectiveCard_id: this.goi_selections.objective.id,
+      });
     },
 
     ///////////////////////////////////////////////////
@@ -1410,34 +1443,53 @@ define([
     setupNotifications: function () {
       console.log("notifications subscriptions setup");
       const notifications = [
-        { event: "revealTile", duration: 500 },
-        { event: "moveExplorer", duration: 500 },
-        { event: "resetExplorer", duration: 500 },
-        { event: "incRoyaltyPoints", duration: 500 },
-        { event: "obtainStoneDie", duration: 500 },
-        { event: "activateStoneDie", duration: 500 },
+        { event: "revealTile" },
+        { event: "moveExplorer" },
+        { event: "resetExplorer" },
+        { event: "incRoyaltyPoints" },
+        { event: "obtainStoneDie" },
+        { event: "activateStoneDie" },
         { event: "rollDie", duration: 0 },
         { event: "syncDieRolls", duration: 1000 },
-        { event: "incCoin", duration: 500 },
-        { event: "incGem", duration: 500 },
-        { event: "decGem", duration: 500 },
-        { event: "transferGem", duration: 500 },
-        { event: "obtainIridiaStone", duration: 500 },
-        { event: "obtainRoyaltyToken", duration: 500 },
-        { event: "restoreRelic", duration: 500 },
+        { event: "incCoin" },
+        { event: "incGem" },
+        { event: "decGem" },
+        { event: "transferGem" },
+        { event: "obtainIridiaStone" },
+        { event: "obtainRoyaltyToken" },
+        { event: "restoreRelic" },
         { event: "replaceRelic", duration: 1000 },
-        { event: "collectTile", duration: 500 },
-        { event: "updateMarketValue", duration: 500 },
+        { event: "collectTile" },
+        { event: "updateMarketValue" },
+        {
+          event: "discardObjective",
+          ignorePredicate: (notif) => {
+            return notif.args.player_id == this.player_id;
+          },
+        },
+        {
+          event: "discardObjective_priv",
+        },
       ];
 
       notifications.forEach((notif) => {
         const event = notif.event;
-        const duration = notif.duration;
+        let duration = notif.duration;
+        const ignorePredicate = notif.ignorePredicate;
 
         dojo.subscribe(event, this, `notif_${event}`);
 
-        if (duration > 0) {
-          this.notifqueue.setSynchronous(event, duration);
+        if (duration === 0) {
+          return;
+        }
+
+        if (!duration) {
+          duration = 500;
+        }
+        this.notifqueue.setSynchronous(event, duration);
+
+        if (ignorePredicate) {
+          this.notifqueue.setIgnoreNotificationCheck(event, ignorePredicate);
         }
       });
     },
@@ -1670,6 +1722,14 @@ define([
 
       die.face = marketValue;
       this.goi_stocks.dice.market.addDie(die);
+    },
+
+    notif_discardObjective: function (notif) {},
+
+    notif_discardObjective_priv: function (notif) {
+      const objectiveCard = notif.args.objectiveCard;
+
+      this.goi_stocks.objectives.hand.removeCard(objectiveCard);
     },
   });
 });

@@ -187,6 +187,50 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("optionalActions");
     }
 
+    public function actDiscardObjective(#[IntParam(min: 1, max: 15)] int $objectiveCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $objectiveCard = $this->objective_cards->getCard($objectiveCard_id);
+
+        if ($objectiveCard["location"] !== "hand" || $objectiveCard["location_arg"] != $player_id) {
+            throw new BgaVisibleSystemException("You can't discard this objective now: actDiscardObjective, $objectiveCard_id");
+        }
+
+        $this->objective_cards->moveCard($objectiveCard_id, "discard");
+
+        $points = (int) $objectiveCard["type"];
+        $this->incRoyaltyPoints($points, $player_id);
+
+        $objective_id = (int) $objectiveCard["type_arg"];
+        $objective_info = $this->objectives_info[$objective_id];
+
+        $this->notifyAllPlayers(
+            "discardObjective",
+            clienttranslate('${player_name} discards a Secret Objective'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id)
+            ]
+        );
+
+        $this->notifyPlayer(
+            $player_id,
+            "discardObjective_priv",
+            clienttranslate('You discard the ${objective_name} objective'),
+            [
+                "player_id" => $player_id,
+                "objective_id" => $objective_id,
+                "objective_name" => $objective_info["tr_name"],
+                "objectiveCard" => $objectiveCard,
+                "i18n" => ["objectiveName"],
+                "preserve" => ["objective_id"]
+            ]
+        );
+
+        $this->gamestate->nextState("betweenTurns");
+    }
+
     public function actMine(#[IntParam(min: 0, max: 4)] int $newStoneDiceCount): void
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -524,7 +568,9 @@ class GemsOfIridescia extends Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $this->collectTile($player_id);
+        if (!$this->collectTile($player_id)) {
+            return;
+        };
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
@@ -811,7 +857,7 @@ class GemsOfIridescia extends Table
         $this->gamestate->nextState("optionalActions");
     }
 
-    public function collectTile(int $player_id): void
+    public function collectTile(int $player_id): bool
     {
         $explorerCard = $this->getExplorerByPlayerId($player_id);
         $hex = (int) $explorerCard["location_arg"];
@@ -842,9 +888,36 @@ class GemsOfIridescia extends Table
             $this->updateMarketValue($gem_id);
         }
 
+        if ($region_id === 3) {
+            return $this->reachFlorest($player_id);
+        }
+
         if ($region_id === 5) {
             $this->reachCastle($player_id);
         }
+    }
+
+    public function reachFlorest(int $player_id): bool
+    {
+        $hasReachedFlorest = $this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
+
+        if ($hasReachedFlorest) {
+            return false;
+        }
+
+        $this->DbQuery("UPDATE player SET florest=1 WHERE player_id=$player_id");
+
+        $this->notifyAllPlayers(
+            "reachFlorest",
+            clienttranslate('${player_name} reaches the Florest region'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+            ]
+        );
+
+        $this->gamestate->nextState("discardObjective");
+        return true;
     }
 
     public function getIridiaStoneOwner(): int | null
