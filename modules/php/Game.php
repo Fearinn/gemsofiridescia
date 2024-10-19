@@ -35,7 +35,7 @@ const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
 
-class GemsOfIridescia extends \Table
+class Game extends \Table
 {
     public function __construct()
     {
@@ -1805,6 +1805,13 @@ class GemsOfIridescia extends \Table
             $this->computeGemsPoints($player_id);
             $this->computeTilesPoints($player_id);
             $this->computeRelicsPoints($player_id);
+
+            // $objective = new ObjectiveManager(1, $this);
+            // $objectiveCompleted = $objective->checkCondition($player_id);
+
+            // if ($objectiveCompleted) {
+            //     $this->incRoyaltyPoints($objective->points, $player_id, true);
+            // }
         }
     }
 
@@ -1905,15 +1912,6 @@ class GemsOfIridescia extends \Table
                 addslashes($player["player_name"]),
                 addslashes($player["player_avatar"]),
             ]);
-
-            foreach ($this->gems_info as $gem_id) {
-                $this->initStat("player", "$gem_id:GemTiles", 0, $player_id);
-                $this->initStat("player", "$gem_id:GemRelics", 0, $player_id);
-            }
-
-            $this->initStat("player", "1:TypeRelics", 0, $player_id);
-            $this->initStat("player", "2:TypeRelics", 0, $player_id);
-            $this->initStat("player", "3:TypeRelics", 0, $player_id);
         }
 
         static::DbQuery(
@@ -1927,6 +1925,22 @@ class GemsOfIridescia extends \Table
         $this->reloadPlayersBasicInfos();
 
         $players = $this->loadPlayersBasicInfos();
+
+        foreach ($players as $player_id => $player) {
+            $this->initStat("player", "1:GemTiles", 0, $player_id);
+            $this->initStat("player", "2:GemTiles", 0, $player_id);
+            $this->initStat("player", "3:GemTiles", 0, $player_id);
+            $this->initStat("player", "4:GemTiles", 0, $player_id);
+
+            $this->initStat("player", "1:GemRelics", 0, $player_id);
+            $this->initStat("player", "2:GemRelics", 0, $player_id);
+            $this->initStat("player", "3:GemRelics", 0, $player_id);
+            $this->initStat("player", "4:GemRelics", 0, $player_id);
+
+            $this->initStat("player", "1:TypeRelics", 0, $player_id);
+            $this->initStat("player", "2:TypeRelics", 0, $player_id);
+            $this->initStat("player", "3:TypeRelics", 0, $player_id);
+        }
 
         $explorers = [];
         foreach ($this->explorers_info as $explorer_id => $explorer) {
