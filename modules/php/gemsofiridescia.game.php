@@ -18,6 +18,8 @@
 
 declare(strict_types=1);
 
+namespace Bga\Games\GemsOfIridescia;
+
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
@@ -33,7 +35,7 @@ const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
 
-class GemsOfIridescia extends Table
+class GemsOfIridescia extends \Table
 {
     public function __construct()
     {
@@ -79,7 +81,7 @@ class GemsOfIridescia extends Table
         $revealableTiles = $this->revealableTiles($player_id, true);
 
         if (!array_key_exists($tileCard_id, $revealableTiles)) {
-            throw new BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
+            throw new \BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
         }
 
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
@@ -111,7 +113,7 @@ class GemsOfIridescia extends Table
 
         $explorableTiles = $this->explorableTiles($player_id);
         if (!$explorableTiles) {
-            throw new BgaVisibleSystemException("You must reveal a tile now: actSkipRevealTile");
+            throw new \BgaVisibleSystemException("You must reveal a tile now: actSkipRevealTile");
         }
 
         $this->gamestate->nextState("skip");
@@ -126,7 +128,7 @@ class GemsOfIridescia extends Table
         $revealableTiles = $this->revealableTiles($player_id);
 
         if ($revealsLimit === 2 || !$revealableTiles) {
-            throw new BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
+            throw new \BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
         }
 
         $this->gamestate->nextState("back");
@@ -141,7 +143,7 @@ class GemsOfIridescia extends Table
         $explorableTiles = $this->explorableTiles($player_id, true);
 
         if (!array_key_exists($tileCard_id, $explorableTiles)) {
-            throw new BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
+            throw new \BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
         }
 
         $region_id = (int) $tileCard["type"];
@@ -194,7 +196,7 @@ class GemsOfIridescia extends Table
         $objectiveCard = $this->objective_cards->getCard($objectiveCard_id);
 
         if ($objectiveCard["location"] !== "hand" || $objectiveCard["location_arg"] != $player_id) {
-            throw new BgaVisibleSystemException("You can't discard this objective now: actDiscardObjective, $objectiveCard_id");
+            throw new \BgaVisibleSystemException("You can't discard this objective now: actDiscardObjective, $objectiveCard_id");
         }
 
         $this->objective_cards->moveCard($objectiveCard_id, "discard");
@@ -240,7 +242,7 @@ class GemsOfIridescia extends Table
         $privateStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
         if ($activeStoneDiceCount > $privateStoneDiceCount) {
-            throw new BgaVisibleSystemException("Not enough Stone Dice: actMine, $activeStoneDiceCount, $privateStoneDiceCount");
+            throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $activeStoneDiceCount, $privateStoneDiceCount");
         }
 
         $this->decCoin(3, $player_id, true);
@@ -336,7 +338,7 @@ class GemsOfIridescia extends Table
         $player_id = (int) $this->getActivePlayerId();
 
         if ($this->globals->get(HAS_SOLD_GEMS)) {
-            throw new BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
+            throw new \BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
         }
 
         $gemCards = [];
@@ -347,7 +349,7 @@ class GemsOfIridescia extends Table
             $gemCards[$gemCard_id] = $gemCard;
 
             if ($gem_id !== (int) $gemCard["type_arg"]) {
-                throw new BgaVisibleSystemException("You must sell gems of the same type: actSellGems, $gem_id");
+                throw new \BgaVisibleSystemException("You must sell gems of the same type: actSellGems, $gem_id");
             }
         }
 
@@ -362,7 +364,7 @@ class GemsOfIridescia extends Table
         $players = $this->loadPlayersBasicInfos();
 
         if ($opponent_id && !array_key_exists($opponent_id, $players)) {
-            throw new BgaVisibleSystemException("This player is not in the table: actTransferGem, $opponent_id");
+            throw new \BgaVisibleSystemException("This player is not in the table: actTransferGem, $opponent_id");
         }
 
         $player_id = (int) $this->getActivePlayerId();
@@ -374,7 +376,7 @@ class GemsOfIridescia extends Table
         $gemCard = $this->gem_cards->getCard($gemCard_id);
 
         if ($gemCard["location"] === "hand" && $gemCard["location_arg"] !== $player_id) {
-            throw new BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
+            throw new \BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
         }
 
         $availableCargos = $this->availableCargos($player_id);
@@ -405,7 +407,7 @@ class GemsOfIridescia extends Table
         $restorableRelics = $this->restorableRelics($player_id, true);
 
         if (!array_key_exists($relicCard_id, $restorableRelics)) {
-            throw new BgaVisibleSystemException("You can't restore this Relic now: actRestoreRelic, $relicCard_id");
+            throw new \BgaVisibleSystemException("You can't restore this Relic now: actRestoreRelic, $relicCard_id");
         }
 
         $this->restoreRelic($relicCard_id, $player_id);
@@ -936,7 +938,7 @@ class GemsOfIridescia extends Table
     public function obtainIridiaStone(int $player_id): void
     {
         if ($this->getIridiaStoneOwner()) {
-            throw new BgaVisibleSystemException("The Iridia Stone has already been found: collectIridiaStone");
+            throw new \BgaVisibleSystemException("The Iridia Stone has already been found: collectIridiaStone");
         }
 
         $this->DbQuery("UPDATE player SET iridia_stone=1 WHERE player_id=$player_id");
@@ -1231,18 +1233,18 @@ class GemsOfIridescia extends Table
     public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, bool $sell = false): void
     {
         if ($delta <= 0) {
-            throw new BgaVisibleSystemException("The delta must be positive: decGem, $delta");
+            throw new \BgaVisibleSystemException("The delta must be positive: decGem, $delta");
         }
 
         if (count($gemCards) < $delta) {
-            throw new BgaVisibleSystemException("Not enough gems: decGem, $delta");
+            throw new \BgaVisibleSystemException("Not enough gems: decGem, $delta");
         }
 
         $gemName = $this->gems_info[$gem_id]["name"];
 
         foreach ($gemCards as $gemCard_id => $gemCard) {
             if ($gemCard["location"] !== "hand" || $gemCard["location_arg"] != $player_id) {
-                throw new BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
+                throw new \BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
             }
 
             $this->gem_cards->insertCardOnExtremePosition($gemCard_id, "deck", false);
@@ -1349,7 +1351,7 @@ class GemsOfIridescia extends Table
     public function decCoin(int $delta, int $player_id): void
     {
         if (!$this->hasEnoughCoins($delta, $player_id)) {
-            throw new BgaVisibleSystemException("You don't have enough coins: decCoin, $delta");
+            throw new \BgaVisibleSystemException("You don't have enough coins: decCoin, $delta");
         }
 
         $this->dbQuery("UPDATE player SET coin=coin-$delta WHERE player_id=$player_id");
@@ -2048,6 +2050,6 @@ class GemsOfIridescia extends Table
             return;
         }
 
-        throw new feException("Zombie mode not supported at this game state: \"{$state_name}\".");
+        throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
     }
 }
