@@ -94,6 +94,8 @@ define([
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.objectives = gamedatas.objectives;
 
+      console.log(this.goi_globals);
+
       this.goi_info.defaultSelections = {
         tile: null,
         gem: null,
@@ -112,6 +114,7 @@ define([
           explorers: {},
           dice: {},
           relics: {},
+          objectives: {},
         };
       }
 
@@ -348,6 +351,11 @@ define([
         },
         setupFrontDiv: (card, div) => {
           const objective_id = Number(card.type_arg);
+
+          if (!objective_id) {
+            return;
+          }
+
           const objectiveInfo = this.goi_info.objectives[objective_id];
           const objectiveName = objectiveInfo.tr_name;
           const objectiveContent = objectiveInfo.content;
@@ -409,11 +417,7 @@ define([
           player_id
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
-            ${
-              player_id == this.player_id
-                ? '<div id="goi_objectives" class="goi_objectives"></div>'
-                : ""
-            }
+            <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
           </div>`;
 
         this.goi_counters[player_id].gems = {
@@ -460,30 +464,34 @@ define([
           this.goi_globals.coins[player_id]
         );
 
-        if (player_id == this.player_id) {
-          this.goi_stocks.objectives.hand = new CardStock(
-            this.goi_managers.objectives,
-            document.getElementById("goi_objectives"),
-            {}
-          );
+        this.goi_stocks[player_id].objectives.hand = new CardStock(
+          this.goi_managers.objectives,
+          document.getElementById(`goi_objectives:${player_id}`)
+        );
 
-          this.goi_stocks.objectives.hand.onSelectionChange = (
-            selection,
-            lastChange
-          ) => {
-            if (selection.length > 0) {
-              this.goi_selections.objective = lastChange;
-            } else {
-              this.goi_selections.objective = null;
-            }
+        this.goi_stocks[player_id].objectives.hand.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          if (selection.length > 0) {
+            this.goi_selections.objective = lastChange;
+          } else {
+            this.goi_selections.objective = null;
+          }
 
-            this.handleConfirmationButton();
-          };
+          this.handleConfirmationButton();
+        };
 
-          const objectives = this.goi_globals.objectives;
-          for (const objectiveCard_id in objectives) {
-            const objectiveCard = objectives[objectiveCard_id];
-            this.goi_stocks.objectives.hand.addCard(objectiveCard);
+        const objectives = this.goi_globals.objectives[player_id];
+        for (const objectiveCard_id in objectives) {
+          const objectiveCard = objectives[objectiveCard_id];
+          this.goi_stocks[player_id].objectives.hand.addCard(objectiveCard);
+
+          if (player_id != this.player_id) {
+            this.goi_stocks[player_id].objectives.hand.setCardVisible(
+              objectiveCard,
+              false
+            );
           }
         }
       }
@@ -1463,19 +1471,23 @@ define([
         { event: "updateMarketValue" },
         {
           event: "discardObjective",
-          ignorePredicate: (notif) => {
-            return notif.args.player_id == this.player_id;
-          },
+          ignoreCurrentPlayer: true,
         },
         {
           event: "discardObjective_priv",
         },
+        {
+          event: "revealObjective",
+          duration: 1000,
+          ignoreCurrentPlayer: true,
+        },
+        { event: "completeObjective", duration: 1000 },
       ];
 
       notifications.forEach((notif) => {
         const event = notif.event;
         let duration = notif.duration;
-        const ignorePredicate = notif.ignorePredicate;
+        const ignoreCurrentPlayer = notif.ignoreCurrentPlayer;
 
         dojo.subscribe(event, this, `notif_${event}`);
 
@@ -1488,8 +1500,10 @@ define([
         }
         this.notifqueue.setSynchronous(event, duration);
 
-        if (ignorePredicate) {
-          this.notifqueue.setIgnoreNotificationCheck(event, ignorePredicate);
+        if (ignoreCurrentPlayer) {
+          this.notifqueue.setIgnoreNotificationCheck(event, (notif) => {
+            return notif.args.player_id == this.player_id;
+          });
         }
       });
     },
@@ -1724,12 +1738,40 @@ define([
       this.goi_stocks.dice.market.addDie(die);
     },
 
-    notif_discardObjective: function (notif) {},
-
-    notif_discardObjective_priv: function (notif) {
+    notif_discardObjective: function (notif) {
+      const player_id = notif.args.player_id;
       const objectiveCard = notif.args.objectiveCard;
 
-      this.goi_stocks.objectives.hand.removeCard(objectiveCard);
+      this.goi_stocks[player_id].objectives.hand.removeCard(objectiveCard);
+    },
+
+    notif_discardObjective_priv: function (notif) {
+      const player_id = notif.args.player_id;
+      const objectiveCard = notif.args.objectiveCard;
+
+      this.goi_stocks[player_id].objectives.hand.removeCard(objectiveCard);
+    },
+
+    notif_revealObjective: function (notif) {
+      const player_id = notif.args.player_id;
+      const objectiveCard = notif.args.objectiveCard;
+
+      this.goi_stocks[player_id].objectives.hand.flipCard(objectiveCard);
+    },
+
+    notif_completeObjective: function (notif) {
+      const player_id = notif.args.player_id;
+      const objectiveCard = notif.args.objectiveCard;
+      const points = notif.args.points;
+
+      const objectiveElement =
+        this.goi_stocks[player_id].objectives.hand.getCardElement(
+          objectiveCard
+        );
+
+      const player_color = this.goi_globals.players[player_id].color;
+
+      this.displayScoring(objectiveElement.id, player_color, points);
     },
   });
 });

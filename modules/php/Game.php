@@ -1103,17 +1103,12 @@ class Game extends \Table
         return $gems;
     }
 
-    public function getGemsCounts(?int $player_id, ?int $gem_id = null): array
+    public function getGemsCounts(?int $player_id): array
     {
         $gemsCounts = [];
 
         if ($player_id) {
-            if ($gem_id) {
-                $gemName = $this->gems_info[$gem_id]["name"];
-                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
-                return count($handGems);
-            }
-            foreach ($this->gems_info as $gem_id => $gem_info) {
+            foreach ($this->gems_info as $gem_info) {
                 $gemName = $gem_info["name"];
                 $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
                 $gemsCounts[$gemName] = count($handGems);
@@ -1126,14 +1121,7 @@ class Game extends \Table
         foreach ($players as $player_id => $player) {
             $gemsCounts[$player_id] = [];
 
-            if ($gem_id) {
-                $gemName = $this->gems_info[$gem_id]["name"];
-                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
-                $gemsCounts[$player_id] = count($handGems);
-                continue;
-            }
-
-            foreach ($this->gems_info as $gem_id => $gem_info) {
+            foreach ($this->gems_info as $gem_info) {
                 $gemName = $gem_info["name"];
                 $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
                 $gemsCounts[$player_id][$gemName] = count($handGems);
@@ -1578,9 +1566,20 @@ class Game extends \Table
         );
     }
 
-    public function getObjectives($player_id): array
+    public function getObjectives(int $current_player_id, bool $unique = false): array
     {
-        $objectiveCards = $this->objective_cards->getCardsInLocation("hand", $player_id);
+        if ($unique) {
+            return $this->objective_cards->getCardsInLocation("hand", $current_player_id);
+        }
+
+        $objectiveCards = [];
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $cards = $this->objective_cards->getCardsInLocation("hand", $player_id);
+            $objectiveCards[$player_id] = $player_id === $current_player_id ? $cards : $this->hideCards($cards);
+        }
+
         return $objectiveCards;
     }
 
@@ -1812,9 +1811,26 @@ class Game extends \Table
 
     public function computeObjectivePoints(int $player_id): void
     {
-        $objectiveCard = $this->objectiveCard->getCardOnTop("hand", $player_id);
-        $objective = new ObjectiveManager($objectiveCard["type_arg"], $this);
+        $handObjectives = $this->objective_cards->getCardsInLocation("hand", $player_id);
+        $objectiveCard = array_shift($handObjectives);
+        $objective_id = (int) $objectiveCard["type_arg"];
+
+        $objective = new ObjectiveManager($objective_id, $this);
         $objectiveCompleted = $objective->checkCondition($player_id);
+
+        $this->notifyAllPlayers(
+            "revealObjective",
+            clienttranslate('${player_name} reveals ${objective_name} as his Secret Objective'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "objectiveCard" => $objectiveCard,
+                "objective_id" => $objective_id,
+                "objective_name" => $objective->tr_name,
+                "i18n" => ["objective_name"],
+                "preserve" => ["objective_id"]
+            ]
+        );
 
         if ($objectiveCompleted) {
             $this->incRoyaltyPoints($objective->points, $player_id, true);
