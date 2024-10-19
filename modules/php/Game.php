@@ -1103,11 +1103,16 @@ class Game extends \Table
         return $gems;
     }
 
-    public function getGemsCounts(?int $player_id): array
+    public function getGemsCounts(?int $player_id, ?int $gem_id = null): array
     {
         $gemsCounts = [];
 
         if ($player_id) {
+            if ($gem_id) {
+                $gemName = $this->gems_info[$gem_id]["name"];
+                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
+                return count($handGems);
+            }
             foreach ($this->gems_info as $gem_id => $gem_info) {
                 $gemName = $gem_info["name"];
                 $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
@@ -1120,6 +1125,14 @@ class Game extends \Table
         $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
             $gemsCounts[$player_id] = [];
+
+            if ($gem_id) {
+                $gemName = $this->gems_info[$gem_id]["name"];
+                $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
+                $gemsCounts[$player_id] = count($handGems);
+                continue;
+            }
+
             foreach ($this->gems_info as $gem_id => $gem_info) {
                 $gemName = $gem_info["name"];
                 $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
@@ -1797,6 +1810,29 @@ class Game extends \Table
         $this->incRoyaltyPoints($maxPoints, $player_id, true);
     }
 
+    public function computeObjectivePoints(int $player_id): void
+    {
+        $objectiveCard = $this->objectiveCard->getCardOnTop("hand", $player_id);
+        $objective = new ObjectiveManager($objectiveCard["type_arg"], $this);
+        $objectiveCompleted = $objective->checkCondition($player_id);
+
+        if ($objectiveCompleted) {
+            $this->incRoyaltyPoints($objective->points, $player_id, true);
+
+            $this->notifyAllPlayers(
+                "completeObjective",
+                clienttranslate('${player_name} completes the ${objective_name} objective and scores ${points} points'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "objective_name" => $objective->tr_name,
+                    "points" => $objective->points,
+                    "i18n" => ["objective_name"]
+                ]
+            );
+        }
+    }
+
     public function calcFinalScoring(): void
     {
         $players = $this->loadPlayersBasicInfos();
@@ -1805,13 +1841,7 @@ class Game extends \Table
             $this->computeGemsPoints($player_id);
             $this->computeTilesPoints($player_id);
             $this->computeRelicsPoints($player_id);
-
-            // $objective = new ObjectiveManager(1, $this);
-            // $objectiveCompleted = $objective->checkCondition($player_id);
-
-            // if ($objectiveCompleted) {
-            //     $this->incRoyaltyPoints($objective->points, $player_id, true);
-            // }
+            $this->computeObjectivePoints($player_id);
         }
     }
 

@@ -758,55 +758,63 @@ $this->objectives_info = [
         "name" => "Amethyst Aficionado",
         "tr_name" => clienttranslate("Amethyst Aficionado"),
         "content" => clienttranslate("Collect the most Amethyst tiles"),
-        "points" => 5
+        "points" => 5,
+        "variable" => 1,
     ],
     3 => [
         "name" => "Citrine Crazy",
         "tr_name" => clienttranslate("Citrine Crazy"),
         "content" => clienttranslate("Collect the most Citrine tiles"),
-        "points" => 5
+        "points" => 5,
+        "variable" => 2,
     ],
     4 => [
         "name" => "Emerald Enthusiast",
         "tr_name" => clienttranslate("Emerald Enthusiast"),
         "content" => clienttranslate("Collect the most Emerald tiles"),
-        "points" => 5
+        "points" => 5,
+        "variable" => 3,
     ],
     5 => [
         "name" => "Sapphire Savant",
         "tr_name" => clienttranslate("Sapphire Savant"),
         "content" => clienttranslate("Collect the most Sapphire tiles"),
-        "points" => 5
+        "points" => 5,
+        "variable" => 4,
     ],
     6 => [
         "name" => "Regal Rainbow",
         "tr_name" => clienttranslate("Regal Rainbow"),
         "content" => clienttranslate("Restore 1 Relic from each Gem type"),
-        "points" => 7
+        "points" => 7,
     ],
     7 => [
         "name" => "All About Amethyst",
         "tr_name" => clienttranslate("All About Amethyst"),
         "content" => clienttranslate("Restore the most Amethyst Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 1,
     ],
     8 => [
         "name" => "Classy Citrine",
         "tr_name" => clienttranslate("Classy Citrine"),
         "content" => clienttranslate("Restore the most Citrine Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 2,
     ],
     9 => [
         "name" => "Emerald Euphoria",
         "tr_name" => clienttranslate("Emerald Euphoria"),
         "content" => clienttranslate("Restore the most Emerald Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 3,
     ],
     10 => [
         "name" => "Sapphire Saturation",
         "tr_name" => clienttranslate("Sapphire Saturation"),
         "content" => clienttranslate("Restore the most Sapphire Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 4,
     ],
     11 => [
         "name" => "Remarkable Restorer",
@@ -818,19 +826,22 @@ $this->objectives_info = [
         "name" => "Jazzy Jeweler",
         "tr_name" => clienttranslate("Jazzy Jeweler"),
         "content" => clienttranslate("Restore the most Jewelry Relics"),
-        "points" => 5
+        "points" => 5,
+        "variable" => 1,
     ],
     13 => [
         "name" => "Lots-O-Lore",
         "tr_name" => clienttranslate("Lots-O-Lore"),
         "content" => clienttranslate("Restore the most Lore Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 2,
     ],
     14 => [
         "name" => "Tantalizing Tech",
         "tr_name" => clienttranslate("Tantalizing Tech"),
         "content" => clienttranslate("Restore the most Tech Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => 3
     ],
     15 => [
         "name" => "Master Miner",
