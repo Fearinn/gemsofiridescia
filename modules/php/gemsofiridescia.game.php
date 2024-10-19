@@ -876,6 +876,8 @@ class GemsOfIridescia extends \Table
         $gem_id = (int) $tile_info["gem"];
         $region_id = (int) $tile_info["region"];
 
+        $this->incStat(1, "$gem_id:GemTiles", $player_id);
+
         $this->notifyAllPlayers(
             "collectTile",
             "",
@@ -1505,7 +1507,12 @@ class GemsOfIridescia extends \Table
 
         $relic_info = $this->relics_info[$relic_id];
         $relicCost = $relic_info["cost"];
-        $relicPoints = $relic_info["points"];
+        $relicPoints = (int) $relic_info["points"];
+        $relicType = (int) $relic_info["type"];
+        $leadGem = (int) $relic_info["leadGem"];
+
+        $this->incStat(1, "$relicType:TypeRelics", $player_id);
+        $this->incStat(1, "$leadGem:GemRelics", $player_id);
 
         foreach ($relicCost as $gem_id => $gemCost) {
             if ($gemCost === 0) {
@@ -1886,6 +1893,7 @@ class GemsOfIridescia extends \Table
 
     protected function setupNewGame($players, $options = [])
     {
+
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 
@@ -1897,6 +1905,15 @@ class GemsOfIridescia extends \Table
                 addslashes($player["player_name"]),
                 addslashes($player["player_avatar"]),
             ]);
+
+            foreach ($this->gems_info as $gem_id) {
+                $this->initStat("player", "$gem_id:GemTiles", 0, $player_id);
+                $this->initStat("player", "$gem_id:GemRelics", 0, $player_id);
+            }
+
+            $this->initStat("player", "1:TypeRelics", 0, $player_id);
+            $this->initStat("player", "2:TypeRelics", 0, $player_id);
+            $this->initStat("player", "3:TypeRelics", 0, $player_id);
         }
 
         static::DbQuery(

@@ -799,7 +799,7 @@ $this->objectives_info = [
     9 => [
         "name" => "Emerald Euphoria",
         "tr_name" => clienttranslate("Emerald Euphoria"),
-        "content" => clienttranslate("Restore the most Emerald Relic"),
+        "content" => clienttranslate("Restore the most Emerald Relics"),
         "points" => 7
     ],
     10 => [
