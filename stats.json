@@ -1,57 +1,57 @@
 {
   "player": {
     "1:GemTiles": {
-      "id": 1,
+      "id": 10,
       "name": "Amethyst tiles collected",
       "type": "int"
     },
     "2:GemTiles": {
-      "id": 2,
+      "id": 11,
       "name": "Citrine tiles collected",
       "type": "int"
     },
     "3:GemTiles": {
-      "id": 3,
+      "id": 12,
       "name": "Emerald tiles collected",
       "type": "int"
     },
     "4:GemTiles": {
-      "id": 4,
+      "id": 13,
       "name": "Sapphire tiles collected",
       "type": "int"
     },
     "1:GemRelics": {
-      "id": 5,
+      "id": 14,
       "name": "Amethyst relics restored",
       "type": "int"
     },
     "2:GemRelics": {
-      "id": 6,
+      "id": 15,
       "name": "Citrine relics restored",
       "type": "int"
     },
     "3:GemRelics": {
-      "id": 7,
+      "id": 16,
       "name": "Emerald relics restored",
       "type": "int"
     },
     "4:GemRelics": {
-      "id": 8,
+      "id": 17,
       "name": "Sapphire relics restored",
       "type": "int"
     },
     "1:TypeRelics": {
-      "id": 9,
+      "id": 18,
       "name": "Jewelry relics restored",
       "type": "int"
     },
     "2:TypeRelics": {
-      "id": 10,
+      "id": 19,
       "name": "Lore relics restored",
       "type": "int"
     },
     "3:TypeRelics": {
-      "id": 11,
+      "id": 20,
       "name": "Tech relics restored",
       "type": "int"
     }
