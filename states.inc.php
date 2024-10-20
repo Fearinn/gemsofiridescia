@@ -98,7 +98,7 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "discardObjective" => 60, "gameEnd" => 99]
+        "transitions" => ["nextTurn" => 2, "discardObjective" => 60, "finalScoring" => 7]
     ],
 
     60 => [
@@ -108,6 +108,14 @@ $machinestates = [
         "type" => "activeplayer",
         "possibleactions" => ["actDiscardObjective"],
         "transitions" => ["betweenTurns" => 6]
+    ],
+
+    7 => [
+        "name" => "finalScoring",
+        "description" => clienttranslate("Computing final scoring..."),
+        "type" => "game",
+        "action" => "stFinalScoring",
+        "transitions" => ["gameEnd" => 99]
     ],
 
     // Final state.

@@ -584,8 +584,7 @@ class Game extends \Table
         $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
 
         if ($castlePlayersCount === $this->getPlayersNumber()) {
-            $this->calcFinalScoring();
-            $this->gamestate->nextState("gameEnd");
+            $this->gamestate->nextState("finalScoring");
             return;
         }
 
@@ -593,6 +592,12 @@ class Game extends \Table
         $this->activeNextPlayer();
 
         $this->gamestate->nextState("nextTurn");
+    }
+
+    public function stFinalScoring(): void
+    {
+        $this->calcFinalScoring();
+        $this->gamestate->nextState("gameEnd");
     }
 
     /**
