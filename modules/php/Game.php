@@ -876,7 +876,8 @@ class Game extends \Table
         $gem_id = (int) $tile_info["gem"];
         $region_id = (int) $tile_info["region"];
 
-        $this->incStat(1, "$gem_id:GemTiles", $player_id);
+        $statName = $gem_id === 0 ? "rainbow:Tiles" : "$gem_id:GemTiles";
+        $this->incStat(1, $statName, $player_id);
 
         $this->notifyAllPlayers(
             "collectTile",
@@ -1512,8 +1513,12 @@ class Game extends \Table
         $relicType = (int) $relic_info["type"];
         $leadGem = (int) $relic_info["leadGem"];
 
-        $this->incStat(1, "$relicType:TypeRelics", $player_id);
-        $this->incStat(1, "$leadGem:GemRelics", $player_id);
+        $statName = $leadGem === 0 ? "iridia:Relics" : "$leadGem:GemRelics";
+        $this->incStat(1, $statName, $player_id);
+
+        if ($relicType !== 4) {
+            $this->incStat(1, "$relicType:TypeRelics", $player_id);
+        }
 
         foreach ($relicCost as $gem_id => $gemCost) {
             if ($gemCost === 0) {

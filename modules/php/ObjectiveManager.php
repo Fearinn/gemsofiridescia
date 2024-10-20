@@ -86,10 +86,23 @@ class ObjectiveManager
         }
 
         if ($this->id === 6) {
-            return (!!$this->game->getStat("1:GemRelics") &&
-                !!$this->game->getStat("2:GemRelics") &&
-                !!$this->game->getStat("3:GemRelics") &&
-                !!$this->game->getStat("4:GemRelics"));
+            $gemsRelics = [
+                "amethyst" => $this->game->getStat("1:GemRelics"),
+                "citrine" => $this->game->getStat("2:GemRelics"),
+                "emerald" => $this->game->getStat("3:GemRelics"),
+                "sapphire" => $this->game->getStat("4:GemRelics"),
+            ];
+
+            $iridiaRelics = $this->game->getStat("iridiaRelics");
+
+            $differentGems = 0;
+            foreach ($gemsRelics as $relicsCount) {
+                if ($relicsCount > 0) {
+                    $differentGems++;
+                };
+            }
+
+            return ($differentGems + $iridiaRelics) >= 4;
         }
 
         if ($this->id === 11) {
@@ -97,9 +110,22 @@ class ObjectiveManager
         }
 
         if ($this->id === 15) {
-            return (!!$this->game->getStat("1:TypeRelics") &&
-                !!$this->game->getStat("2:TypeRelics") &&
-                !!$this->game->getStat("3:TypeRelics"));
+            $typesRelics = [
+                "jewelry" => $this->game->getStat("1:TypeRelics"),
+                "lore" => $this->game->getStat("2:TypeRelics"),
+                "tech" => $this->game->getStat("3:TypeRelics"),
+            ];
+
+            $iridiaRelics = $this->game->getStat("iridiaRelics");
+
+            $differentTypes = 0;
+            foreach ($typesRelics as $relicsCount) {
+                if ($relicsCount > 0) {
+                    $differentTypes++;
+                };
+            }
+
+            return ($differentTypes + $iridiaRelics) >= 3;
         }
     }
 }

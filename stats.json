@@ -20,6 +20,11 @@
       "name": "Sapphire tiles collected",
       "type": "int"
     },
+    "rainbow:Tiles": {
+      "id": 21,
+      "name": "Rainbow tiles collected",
+      "type": "int"
+    },
     "1:GemRelics": {
       "id": 14,
       "name": "Amethyst relics restored",
@@ -53,6 +58,11 @@
     "3:TypeRelics": {
       "id": 20,
       "name": "Tech relics restored",
+      "type": "int"
+    },
+    "iridia:Relics": {
+      "id": 22,
+      "name": "Iridia relics restored",
       "type": "int"
     }
   }
