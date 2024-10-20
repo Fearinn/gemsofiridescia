@@ -893,8 +893,11 @@ define([
       if (this.isCurrentPlayerActive()) {
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
+          const expandedRevealableTiles = args.args.expandedRevealableTiles;
           const revealsLimit = args.args.revealsLimit;
           const skippable = args.args.skippable;
+
+          console.log(expandedRevealableTiles, "expanded");
 
           if (!skippable) {
             this.gamedatas.gamestate.descriptionmyturn = _(
@@ -923,7 +926,9 @@ define([
 
           this.goi_stocks.tiles.board.setSelectionMode(
             "single",
-            revealableTiles
+            revealableTiles.length > 0
+              ? revealableTiles
+              : expandedRevealableTiles
           );
 
           return;
@@ -1468,6 +1473,7 @@ define([
         { event: "restoreRelic" },
         { event: "replaceRelic", duration: 1000 },
         { event: "collectTile" },
+        { event: "discardCollectedTile" },
         { event: "updateMarketValue" },
         {
           event: "discardObjective",
@@ -1512,6 +1518,13 @@ define([
       const tileCard = notif.args.tileCard;
 
       this.goi_stocks.tiles.board.flipCard(tileCard);
+    },
+
+    notif_discardCollectedTile: function (notif) {
+      const player_id = notif.args.player_id;
+      const tileCard = notif.args.tileCard;
+
+      this.goi_stocks[player_id].tiles.victoryPile.removeCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
@@ -1718,8 +1731,6 @@ define([
     notif_collectTile: function (notif) {
       const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
-
-      console.log(tileCard, "tileCard");
 
       this.goi_stocks[player_id].tiles.victoryPile.addCard(tileCard);
     },

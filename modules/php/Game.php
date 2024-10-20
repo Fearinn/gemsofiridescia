@@ -24,6 +24,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
+use BgaVisibleSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -34,6 +35,7 @@ const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
+const HAS_EXPANDED_TILES = "hasExpandedTiles";
 
 class Game extends \Table
 {
@@ -79,6 +81,10 @@ class Game extends \Table
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
         $revealableTiles = $this->revealableTiles($player_id, true);
+
+        if (!$revealableTiles) {
+            $revealableTiles = $this->expandedRevealableTiles($player_id, true);
+        }
 
         if (!array_key_exists($tileCard_id, $revealableTiles)) {
             throw new \BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
@@ -134,6 +140,32 @@ class Game extends \Table
         $this->gamestate->nextState("back");
     }
 
+    public function actDiscardCollectedTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $this->checkCardLocation($tileCard, "hand", $player_id);
+
+        $this->tile_cards->moveCard($tileCard_id, "discard");
+
+        $this->notifyAllPlayers(
+            "discardCollectedTile",
+            clienttranslate('${player_name} discards a collected tile'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "tileCard_id" => $tileCard_id,
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard_id"],
+            ]
+        );
+
+        $this->globals->set(HAS_EXPANDED_TILES, true);
+        $this->gamestate->nextState("revealTile");
+    }
+
     public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -141,6 +173,10 @@ class Game extends \Table
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
         $explorableTiles = $this->explorableTiles($player_id, true);
+
+        if (!$explorableTiles) {
+            $explorableTiles = $this->expandedExplorableTiles($player_id, true);
+        }
 
         if (!array_key_exists($tileCard_id, $explorableTiles)) {
             throw new \BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
@@ -437,11 +473,20 @@ class Game extends \Table
         $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
         $explorableTiles = $this->explorableTiles($player_id);
 
+        $hasExpandedTiles = $this->globals->get(HAS_EXPANDED_TILES);
+        $expandedRevealableTiles = [];
+
+        if ($hasExpandedTiles) {
+            $expandedRevealableTiles = $this->expandedRevealableTiles($player_id);
+        }
+
         return [
-            "revealableTiles" => $this->revealableTiles($player_id),
+            "revealableTiles" => $revealableTiles,
+            "expandedRevealableTiles" => $expandedRevealableTiles,
+            "explorableTiles" => $explorableTiles,
             "revealsLimit" => $revealsLimit,
             "skippable" => !!$explorableTiles,
-            "_no_notify" => !$revealableTiles || $revealsLimit >= 2,
+            "_no_notify" => (!$revealableTiles && !$hasExpandedTiles) || ($hasExpandedTiles && !$expandedRevealableTiles) || $revealsLimit >= 2,
         ];
     }
 
@@ -450,7 +495,36 @@ class Game extends \Table
         $args = $this->argRevealTile();
 
         if ($args["_no_notify"]) {
+            if (!$args["revealableTiles"] && !$args["explorableTiles"] && !$args["expandedRevealableTiles"]) {
+                $this->gamestate->nextState("discardCollectedTile");
+                return;
+            }
+
             $this->gamestate->nextState("moveExplorer");
+        }
+    }
+
+    public function argDiscardCollectedTile(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $collectedTiles = $this->getCollectedTiles($player_id);
+
+        return ["collectedTiles" => $collectedTiles];
+    }
+
+    public function stDiscardCollectedTile(): void
+    {
+        $args = $this->argDiscardCollectedTile();
+
+        $collectedTiles = $args["collectedTiles"];
+
+        if (count($collectedTiles) === 1) {
+            $tileCard = array_shift($collectedTiles);
+            $tileCard_id = (int) $tileCard["id"];
+
+            $this->actDiscardCollectedTile($tileCard_id);
+            return;
         }
     }
 
@@ -462,11 +536,16 @@ class Game extends \Table
         $revealableTiles = $this->revealableTiles($player_id);
         $revealsLimit = $this->globals->get(REVEALS_LIMIT);
 
+        if (!$explorableTiles) {
+            $explorableTiles = $this->expandedExplorableTiles($player_id);
+            $revealableTiles = $this->expandedRevealableTiles($player_id);
+        }
+
         return [
             "explorableTiles" => $explorableTiles,
             "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
-            "_no_notify" => !$explorableTiles || !!$this->globals->get(HAS_MOVED_EXPLORER)
+            "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER)
         ];
     }
 
@@ -577,16 +656,26 @@ class Game extends \Table
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
+        $this->globals->set(HAS_EXPANDED_TILES, false);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
 
-        $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
+        $castlePlayers = $this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1");
 
-        if ($castlePlayersCount === $this->getPlayersNumber()) {
+        if ($castlePlayers && count($castlePlayers) === $this->getPlayersNumber()) {
             $this->gamestate->nextState("finalScoring");
             return;
         }
+
+        $this->notifyAllPlayers(
+            "passTurn",
+            clienttranslate('${player_name} passes'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id)
+            ]
+        );
 
         $this->giveExtraTime($player_id);
         $this->activeNextPlayer();
@@ -640,6 +729,13 @@ class Game extends \Table
         return $face;
     }
 
+    public function checkCardLocation(array $card, string | int $location, int $location_arg)
+    {
+        if ($card["location"] != $location || $card["location_arg"] != $location_arg) {
+            throw new \BgaVisibleSystemException("Unexpected card location: $location, $location_arg");
+        }
+    }
+
     public function hideCard(array $card, bool $hideOrder = false, string | int $fakeId = null): array
     {
         if ($fakeId) {
@@ -691,17 +787,20 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function adjacentTiles(int $player_id): array
+    public function adjacentTiles(int $player_id, ?int $tileHex = null): array
     {
         $adjacentTiles = [];
 
-        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        if (!$tileHex) {
+            $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-        if ($explorerCard["location"] === "scene") {
-            return $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
+            if ($explorerCard["location"] === "scene") {
+                return $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
+            }
+
+            $tileHex = $explorerCard["location_arg"];
         }
 
-        $tileHex = $explorerCard["location_arg"];
         $tileRow = ceil(($tileHex + 1) / 7);
 
         $leftHex = $tileHex - 1;
@@ -763,10 +862,10 @@ class Game extends \Table
         $adjacentTiles =  $this->adjacentTiles($player_id);
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
 
-        foreach ($adjacentTiles as $card_id => $tileCard) {
-            if (!key_exists($card_id, $revealedTiles)) {
+        foreach ($adjacentTiles as $tileCard_id => $tileCard) {
+            if (!key_exists($tileCard_id, $revealedTiles)) {
                 if ($associative) {
-                    $revealableTiles[$card_id] = $tileCard;
+                    $revealableTiles[$tileCard_id] = $tileCard;
                     continue;
                 }
 
@@ -777,40 +876,17 @@ class Game extends \Table
         return $this->hideCards($revealableTiles);
     }
 
-    public function occupiedTiles(): array
-    {
-        $occupiedTiles = [];
-
-        $explorers = $this->getExplorers();
-        foreach ($explorers as $card_id => $explorerCard) {
-            $explorerTile = $explorerCard["location_arg"];
-
-            if ($explorerCard["location"] === "board") {
-                $tileCard = $this->getObjectFromDB($this->deckSelectQuery . "from tile 
-                WHERE card_location='board' AND card_location_arg=$explorerTile");
-
-                if ($tileCard) {
-                    $tileCard_id = $tileCard["id"];
-                    $occupiedTiles[$tileCard_id] = $tileCard;
-                }
-            }
-        }
-
-        return $occupiedTiles;
-    }
-
     public function explorableTiles(int $player_id, bool $associative = false): array
     {
         $explorableTiles = [];
 
         $adjacentTiles = $this->adjacentTiles($player_id);
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
-        $occupiedTiles = (array) $this->occupiedTiles();
 
-        foreach ($adjacentTiles as $card_id => $tileCard) {
-            if (key_exists($card_id, $revealedTiles) && !key_exists($card_id, $occupiedTiles)) {
+        foreach ($adjacentTiles as $tileCard_id => $tileCard) {
+            if (key_exists($tileCard_id, $revealedTiles)) {
                 if ($associative) {
-                    $explorableTiles[$card_id] = $tileCard;
+                    $explorableTiles[$tileCard_id] = $tileCard;
                     continue;
                 }
 
@@ -818,7 +894,77 @@ class Game extends \Table
             }
         }
 
-        return $this->hideCards($explorableTiles);
+        return $explorableTiles;
+    }
+
+    public function expandedAdjacentTiles(int $player_id, array $adjacentTiles): array
+    {
+        $expandedAdjacentTiles = [];
+
+        foreach ($adjacentTiles as $tileCard) {
+            $tileHex = (int) $tileCard["location_arg"];
+
+            $expandedTiles = $this->adjacentTiles($player_id, $tileHex);
+
+            if (!$expandedTiles) {
+                $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $expandedTiles);
+                return $expandedAdjacentTiles;
+            }
+
+            foreach ($this->adjacentTiles($player_id, $tileHex) as $expandedTileCard_id => $expandedTileCard) {
+                $expandedAdjacentTiles[$expandedTileCard_id] = $expandedTileCard;
+            }
+        }
+
+        return $expandedAdjacentTiles;
+    }
+
+    public function expandedRevealableTiles(int $player_id, bool $associative = false): array
+    {
+        $expandedRevealableTiles = [];
+        $adjacentTiles = $this->adjacentTiles($player_id);
+
+        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentTiles);
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+
+        foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
+            if (key_exists($tileCard_id, $revealedTiles)) {
+                continue;
+            }
+
+            if ($associative) {
+                $expandedRevealableTiles[$tileCard_id] = $tileCard;
+                continue;
+            }
+
+            $expandedRevealableTiles[] = $tileCard;
+        }
+
+        return $expandedRevealableTiles;
+    }
+
+    public function expandedExplorableTiles(int $player_id, bool $associative = false): array
+    {
+        $expandedExplorableTiles = [];
+        $adjacentTiles = $this->adjacentTiles($player_id);
+
+        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentTiles);
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+
+        foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
+            if (!key_exists($tileCard_id, $revealedTiles)) {
+                continue;
+            }
+
+            if ($associative) {
+                $expandedExplorableTiles[$tileCard_id] = $tileCard;
+                continue;
+            }
+
+            $expandedExplorableTiles[] = $tileCard;
+        }
+
+        return $expandedExplorableTiles;
     }
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
@@ -905,6 +1051,8 @@ class Game extends \Table
         if ($region_id === 5) {
             $this->reachCastle($player_id);
         }
+
+        return true;
     }
 
     public function reachFlorest(int $player_id): bool

@@ -37,7 +37,18 @@ $machinestates = [
         "args" => "argRevealTile",
         "action" => "stRevealTile",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["repeat" => 2, "moveExplorer" => 3, "skip" => 3]
+        "transitions" => ["repeat" => 2, "discardCollectedTile" => 20, "moveExplorer" => 3, "skip" => 3]
+    ],
+
+    20 => [
+        "name" => "discardCollectedTile",
+        "description" => clienttranslate('${actplayer} has no free adjacent tile and must discard one from his Victory Pile'),
+        "descriptionmyturn" => clienttranslate('${you} have no free adjacent tile and must discard one from your Victory Pile'),
+        "type" => "activeplayer",
+        "args" => "argDiscardCollectedTile",
+        "action" => "stDiscardCollectedTile",
+        "possibleactions" => ["actDiscardCollectedTile"],
+        "transitions" => ["revealTile" => 2]
     ],
 
     3 => [
@@ -48,7 +59,7 @@ $machinestates = [
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "rainbowTile" => 30, "optionalActions" => 32]
+        "transitions" => ["back" => 2, "rainbowTile" => 30, "optionalActions" => 4]
     ],
 
     30 => [
@@ -90,7 +101,7 @@ $machinestates = [
         "args" => "argRestoreRelic",
         "action" => "stRestoreRelic",
         "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 4]
+        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6]
     ],
 
     6 => [
