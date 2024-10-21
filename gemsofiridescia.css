@@ -336,11 +336,13 @@
 
 .goi_selectedTile {
   transform: scale(1.025);
+  z-index: 1;
 }
 
-.goi_tileContainer:has(.goi_selectedTile)::after {
+.goi_selectedTile::after {
   position: absolute;
   bottom: 24px;
+  left: 80px;
 
   animation: pickaxe infinite 2s;
   content: "";

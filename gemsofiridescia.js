@@ -778,6 +778,19 @@ define([
           }
         );
 
+        this.goi_stocks[player_id].tiles.victoryPile.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          if (selection.length > 0) {
+            this.goi_selections.tile = lastChange;
+          } else {
+            this.goi_selections.tile = null;
+          }
+
+          this.handleConfirmationButton();
+        };
+
         const collectedTiles = this.goi_globals.collectedTiles[player_id];
         for (const tileCard_id in collectedTiles) {
           const tileCard = collectedTiles[tileCard_id];
@@ -897,9 +910,10 @@ define([
           const revealsLimit = args.args.revealsLimit;
           const skippable = args.args.skippable;
 
-          console.log(expandedRevealableTiles, "expanded");
-
           if (!skippable) {
+            this.gamedatas.gamestate.description = _(
+              "${actplayer} must reveal a tile"
+            );
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} must reveal a tile"
             );
@@ -932,6 +946,12 @@ define([
           );
 
           return;
+        }
+
+        if (stateName === "discardCollectedTile") {
+          this.goi_stocks[this.player_id].tiles.victoryPile.setSelectionMode(
+            "single"
+          );
         }
 
         if (stateName === "moveExplorer") {
@@ -1016,7 +1036,6 @@ define([
 
         if (stateName === "transferGem") {
           const availableCargos = args.args.availableCargos;
-          console.log(availableCargos, "cargos");
           this.goi_globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
@@ -1098,17 +1117,7 @@ define([
           this.addActionButton(
             "goi_skip_btn",
             _("Skip and finish turn"),
-            () => {
-              this.confirmationDialog(
-                _(
-                  "Your turn will be finished. You won't be able to change your mind."
-                ),
-                () => {
-                  this.actSkipRestoreRelic();
-                }
-              );
-              return;
-            },
+            "actSkipRestoreRelic",
             null,
             false,
             "red"
@@ -1178,6 +1187,10 @@ define([
 
       if (stateName === "revealTile") {
         this.goi_stocks.tiles.board.setSelectionMode("none");
+      }
+
+      if (stateName === "discardCollectedTile") {
+        this.goi_stocks[this.player_id].tiles.hand.setSelectionMode("none");
       }
 
       if (stateName === "moveExplorer") {
@@ -1259,10 +1272,10 @@ define([
         }
       }
 
-      if (stateName === "moveExplorer") {
+      if (stateName === "discardCollectedTile") {
         const selectedTile = this.goi_selections.tile;
         if (selectedTile) {
-          this.addActionButton(elementId, message, "actMoveExplorer");
+          this.addActionButton(elementId, message, "actDiscardCollectedTile");
           return;
         }
       }
@@ -1272,6 +1285,14 @@ define([
 
         if (selectedGem) {
           this.addActionButton(elementId, message, "actPickRainbowGem");
+          return;
+        }
+      }
+
+      if (stateName === "moveExplorer") {
+        const selectedTile = this.goi_selections.tile;
+        if (selectedTile) {
+          this.addActionButton(elementId, message, "actMoveExplorer");
           return;
         }
       }
@@ -1389,6 +1410,12 @@ define([
 
     actUndoSkipRevealTile: function () {
       this.performAction("actUndoSkipRevealTile");
+    },
+
+    actDiscardCollectedTile: function () {
+      this.performAction("actDiscardCollectedTile", {
+        tileCard_id: this.goi_selections.tile.id,
+      });
     },
 
     actMoveExplorer: function () {
