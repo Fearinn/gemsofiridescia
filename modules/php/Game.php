@@ -1866,24 +1866,24 @@ class Game extends \Table
 
         $maxPoints = 0;
 
-        // Try to form tech-tech-tech (9 points)
-        if ($tech >= 3) {
-            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 3, $lore, $jewelry, $iridia, $memo));
-        } elseif ($tech >= 2 && $iridia >= 1) {
-            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
-        } elseif ($tech >= 1 && $iridia >= 2) {
-            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
+        // Try to form lore-lore-lore (9 points)
+        if ($lore >= 3) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech, $lore - 3, $jewelry, $iridia, $memo));
+        } elseif ($lore >= 2 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
+        } elseif ($lore >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
         } elseif ($iridia >= 3) {
             $maxPoints = max($maxPoints, 9 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
         }
 
-        // Try to form lore-lore-lore (7 points)
-        if ($lore >= 3) {
-            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 3, $jewelry, $iridia, $memo));
-        } elseif ($lore >= 2 && $iridia >= 1) {
-            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 2, $jewelry, $iridia - 1, $memo));
-        } elseif ($lore >= 1 && $iridia >= 2) {
-            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore - 1, $jewelry, $iridia - 2, $memo));
+        // Try to form tech-tech-tech (7 points)
+        if ($tech >= 3) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech - 3, $lore, $jewelry, $iridia, $memo));
+        } elseif ($tech >= 2 && $iridia >= 1) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech - 2, $lore, $jewelry, $iridia - 1, $memo));
+        } elseif ($tech >= 1 && $iridia >= 2) {
+            $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech - 1, $lore, $jewelry, $iridia - 2, $memo));
         } elseif ($iridia >= 3) {
             $maxPoints = max($maxPoints, 7 + $this->relicsDp($tech, $lore, $jewelry, $iridia - 3, $memo));
         }
