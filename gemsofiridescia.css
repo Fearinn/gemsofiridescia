@@ -39,6 +39,7 @@
   --boardSize: 2500px;
   --playerBoardSize: 600px;
   --tileSize: 200px;
+  --tileSpacing: 5px;
   --explorerSize: 175px;
   --gemSize: 90px;
   --dieSize: 80px;
@@ -289,7 +290,6 @@
 }
 
 .goi_tilesGrid {
-  --tileSpacing: 5px;
   position: absolute;
   top: 275px;
   left: 275px;
@@ -312,8 +312,6 @@
   align-items: center;
   justify-content: center;
 
-  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
-  background-color: rgba(0, 0, 0, 0.75);
   margin-bottom: calc((var(--tileSpacing) - var(--tileSize)) * 0.28);
   height: calc((var(--tileSize) + var(--tileSpacing)) * 1.15);
   width: calc(var(--tileSize) + var(--tileSpacing));
@@ -324,14 +322,18 @@
 }
 
 .goi_tile {
+  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+  background-color: #343131;
   bottom: 2px;
   left: 2px;
-  height: 230px;
-  width: var(--tileSize);
+  height: calc((var(--tileSize) + var(--tileSpacing)) * 1.15);
+  width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
 .goi_tile .card-side {
   box-shadow: none !important;
+  height: 230px;
+  width: var(--tileSize);
 }
 
 .goi_selectedTile {
@@ -535,7 +537,7 @@
   box-shadow: none !important;
 }
 
-.goi_tileContainer:hover > .goi_explorer {
+.goi_tileContainer:hover > .goi_tile ~ .goi_explorer {
   opacity: 0.4;
   transition: 2s;
 }
