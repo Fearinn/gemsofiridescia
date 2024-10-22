@@ -215,6 +215,10 @@
   top: 3%;
 }
 
+.goi_objective.goi_logImage {
+  width: 150px;
+}
+
 .goi_objectiveContent {
   font-family: "rooney-web", serif;
   font-weight: 400;

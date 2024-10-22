@@ -260,11 +260,10 @@ class Game extends \Table
             clienttranslate('You discard the ${objective_name} objective'),
             [
                 "player_id" => $player_id,
-                "objective_id" => $objective_id,
                 "objective_name" => $objective_info["tr_name"],
                 "objectiveCard" => $objectiveCard,
                 "i18n" => ["objectiveName"],
-                "preserve" => ["objective_id"]
+                "preserve" => ["objectiveCard"]
             ]
         );
 
@@ -1950,7 +1949,7 @@ class Game extends \Table
         $relicCards = $this->relic_cards->getCardsInLocation("hand", $player_id);
         foreach ($relicCards as $relicCard) {
             $relic_id = (int) $relicCard["type_arg"];
-            $type_id = (int) $this->relic_info[$relic_id]["type"];
+            $type_id = (int) $this->relics_info[$relic_id]["type"];
             $relicsCountsByType[$type_id]++;
         }
 
@@ -1991,11 +1990,10 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "objectiveCard" => $objectiveCard,
-                "objective_id" => $objective_id,
                 "objective_name" => $objective->tr_name,
+                "objectiveCard" => $objectiveCard,
                 "i18n" => ["objective_name"],
-                "preserve" => ["objective_id"]
+                "preserve" => ["objectiveCard"]
             ]
         );
 
@@ -2011,7 +2009,8 @@ class Game extends \Table
                     "objective_name" => $objective->tr_name,
                     "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
-                    "i18n" => ["objective_name"]
+                    "i18n" => ["objective_name"],
+                    "preserve" => ["objectiveCard"]
                 ]
             );
         }

@@ -1821,17 +1821,35 @@ define([
       const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
 
       const spritePosition =
-            backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
+        backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
       const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
       const relicName = this.goi_info.relics[relic_id].tr_name;
 
-      const div = `<div class="goi_logImage goi_card" 
-      style="background-image: ${background}; background-position: ${backgroundPosition}">
+      const tooltip = `<div class="goi_logImage goi_card" 
+      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(relicName)}</span>
       </div>`;
 
-      return div;
+      return tooltip;
+    },
+
+    getObjectiveTooltip: function (objective_id) {
+      const objectiveInfo = this.goi_info.objectives[objective_id];
+      const objectiveName = objectiveInfo.tr_name;
+      const objectiveContent = objectiveInfo.content;
+
+      const backgroundPosition = this.calcBackgroundPosition(objective_id);
+
+      const tooltip = `<div class="goi_logImage goi_objective goi_card" 
+      style="position: relative; background-image: url(${g_gamethemeurl}img/objectives.png); background-position: ${backgroundPosition}">
+        <span class="goi_cardTitle">${_(objectiveName)}</span>
+        <span class="goi_objectiveContent">${_(objectiveContent)}</span>
+      </div>`;
+
+      console.log(tooltip, "tooltip");
+
+      return tooltip;
     },
 
     addCustomTooltip: function (container, html) {
@@ -1900,6 +1918,22 @@ define([
             )}</span>`;
 
             const tooltip = this.getRelicTooltip(relic_id);
+
+            this.registerCustomTooltip(tooltip, elementId);
+          }
+
+          if (args.objectiveCard && args.objective_name) {
+            const objectiveCard = args.objectiveCard;
+
+            const objective_id = Number(objectiveCard.type_arg);
+            const uid = `${Date.now()}${objective_id}`;
+            const elementId = `goi_objectiveLog:${uid}`;
+
+            args.objective_name = `<span id="${elementId}" style="font-weight: bold;">${_(
+              args.objective_name
+            )}</span>`;
+
+            const tooltip = this.getObjectiveTooltip(objective_id);
 
             this.registerCustomTooltip(tooltip, elementId);
           }
