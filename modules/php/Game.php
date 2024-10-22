@@ -190,10 +190,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to ${tile_image}'),
+            clienttranslate('${player_name} moves his explorer to a new tile (hex ${hex}) ${tile_image}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "hex" => $tileCard["location_arg"],
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
@@ -1695,7 +1696,8 @@ class Game extends \Table
                 "player_name" => $this->getPlayerNameById($player_id),
                 "relic_name" => $relic_info["tr_name"],
                 "relicCard" => $relicCard,
-                "i18n" => ["relic_name"]
+                "i18n" => ["relic_name"],
+                "preserve" => ["relicCard"],
             ]
         );
 
@@ -1716,10 +1718,11 @@ class Game extends \Table
             "replaceRelic",
             clienttranslate('A new Relic is revealed: the ${relic_name}'),
             [
-                "relicCard" => $relicCard,
-                "relicsDeckTop" => $this->hideCard($relicsDeckTop, true, "fake"),
                 "relic_name" => $relic_info["tr_name"],
-                "i18n" => ["relic_name"]
+                "relicsDeckTop" => $this->hideCard($relicsDeckTop, true, "fake"),
+                "relicCard" => $relicCard,
+                "i18n" => ["relic_name"],
+                "preserve" => ["relicCard"],
             ]
         );
     }

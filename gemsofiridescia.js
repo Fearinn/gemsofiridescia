@@ -30,6 +30,9 @@ define([
     constructor: function () {
       console.log("gemsofiridescia constructor");
 
+      this._registeredCustomTooltips = {};
+      this._attachedTooltips = {};
+
       this.goi_info = {};
       this.goi_globals = {};
       this.goi_managers = {};
@@ -1247,8 +1250,7 @@ define([
     onUpdateActionButtons: function (stateName, args) {
       console.log("onUpdateActionButtons: " + stateName, args);
 
-      if (this.isCurrentPlayerActive()) {
-      }
+      this.attachRegisteredTooltips();
     },
 
     ///////////////////////////////////////////////////
@@ -1814,6 +1816,24 @@ define([
 
     /* LOGS MANIPULATION */
 
+    getRelicTooltip: function (relic_id) {
+      const backgroundCode = Math.ceil(relic_id / 12);
+      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+
+      const spritePosition =
+            backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
+      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
+
+      const relicName = this.goi_info.relics[relic_id].tr_name;
+
+      const div = `<div class="goi_logImage goi_card" 
+      style="background-image: ${background}; background-position: ${backgroundPosition}">
+        <span class="goi_cardTitle">${_(relicName)}</span>
+      </div>`;
+
+      return div;
+    },
+
     addCustomTooltip: function (container, html) {
       this.addTooltipHtml(container, html, 1000);
     },
@@ -1854,7 +1874,6 @@ define([
         if (log && args && !args.processed) {
           args.processed = true;
 
-          console.log(args, "log args");
           if (args.tile_image !== undefined) {
             const tileCard = args.tileCard;
             const tile_id = Number(tileCard.type_arg);
@@ -1866,7 +1885,23 @@ define([
               tile_id - 13 * (region_id - 1) - 1
             );
 
-            args.tile_image = `<div class='goi_tile goi_logImage' style='background-image: ${background}; background-position: ${backgroundPosition}'></div>`;
+            args.tile_image = `<div class="goi_tile goi_logImage" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
+          }
+
+          if (args.relicCard && args.relic_name) {
+            const relicCard = args.relicCard;
+
+            const relic_id = Number(relicCard.type_arg);
+            const uid = `${Date.now()}${relic_id}`;
+            const elementId = `goi_relicLog:${uid}`;
+
+            args.relic_name = `<span id="${elementId}" style="font-weight: bold;">${_(
+              args.relic_name
+            )}</span>`;
+
+            const tooltip = this.getRelicTooltip(relic_id);
+
+            this.registerCustomTooltip(tooltip, elementId);
           }
         }
       } catch (e) {

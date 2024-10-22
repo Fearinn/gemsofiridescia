@@ -59,6 +59,14 @@
   width: var(--cardSize);
 }
 
+.goi_card.goi_logImage {
+  width: 300px;
+}
+
+.goi_logImage .goi_cardTitle {
+  font-size: 2em;
+}
+
 .goi_card,
 .goi_card .card-side {
   border-radius: 12px;
@@ -331,6 +339,7 @@
 }
 
 .goi_tile.goi_logImage {
+  position: relative;
   background-size: cover;
   height: 57.5px;
   width: 50px;
