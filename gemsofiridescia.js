@@ -452,15 +452,13 @@ define([
       ) => {
         const stateName = this.getStateName();
 
-        if (stateName === "revealTile" || stateName === "moveExplorer") {
-          if (selected.length === 0) {
-            this.goi_selections.tile = null;
-          } else {
-            this.goi_selections.tile = lastChange;
-          }
-
-          this.handleConfirmationButton();
+        if (selected.length === 0) {
+          this.goi_selections.tile = null;
+        } else {
+          this.goi_selections.tile = lastChange;
         }
+
+        this.handleConfirmationButton();
       };
 
       const tilesBoard = this.goi_globals.tilesBoard;
@@ -944,6 +942,10 @@ define([
           );
         }
 
+        if (stateName === "discardTile") {
+          this.goi_stocks.tiles.board.setSelectionMode("single");
+        }
+
         if (stateName === "moveExplorer") {
           const explorableTiles = args.args.explorableTiles;
           const revealsLimit = args.args.revealsLimit;
@@ -1269,6 +1271,14 @@ define([
         }
       }
 
+      if (stateName === "discardTile") {
+        const selectedTile = this.goi_selections.tile;
+        if (selectedTile) {
+          this.addActionButton(elementId, message, "actDiscardTile");
+          return;
+        }
+      }
+
       if (stateName === "rainbowTile") {
         const selectedGem = this.goi_selections.gem;
 
@@ -1407,6 +1417,12 @@ define([
       });
     },
 
+    actDiscardTile: function () {
+      this.performAction("actDiscardTile", {
+        tileCard_id: this.goi_selections.tile.id,
+      });
+    },
+
     actMoveExplorer: function () {
       this.performAction("actMoveExplorer", {
         tileCard_id: this.goi_selections.tile.id,
@@ -1473,6 +1489,8 @@ define([
       console.log("notifications subscriptions setup");
       const notifications = [
         { event: "revealTile" },
+        { event: "discardCollectedTile" },
+        { event: "discardTile" },
         { event: "moveExplorer" },
         { event: "resetExplorer" },
         { event: "incRoyaltyPoints" },
@@ -1489,7 +1507,6 @@ define([
         { event: "restoreRelic" },
         { event: "replaceRelic", duration: 1000 },
         { event: "collectTile" },
-        { event: "discardCollectedTile" },
         { event: "updateMarketValue" },
         {
           event: "discardObjective",
@@ -1541,6 +1558,13 @@ define([
       const tileCard = notif.args.tileCard;
 
       this.goi_stocks[player_id].tiles.victoryPile.removeCard(tileCard);
+    },
+
+    notif_discardTile: function (notif) {
+      const player_id = notif.args.player_id;
+      const tileCard = notif.args.tileCard;
+
+      this.goi_stocks.tiles.board.removeCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
@@ -1894,7 +1918,7 @@ define([
               tile_id - 13 * (region_id - 1) - 1
             );
 
-            args.tile_image = `<div class="goi_tile goi_logImage" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
+            args.tile_image = `<div class="goi_logImage goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
           }
 
           if (args.relicCard && args.relic_name) {

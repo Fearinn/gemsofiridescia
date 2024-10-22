@@ -166,6 +166,32 @@ class Game extends \Table
         $this->gamestate->nextState("revealTile");
     }
 
+    public function actDiscardTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $this->checkCardLocation($tileCard, "board");
+
+        $this->tile_cards->moveCard($tileCard_id, "discard");
+
+        $this->notifyAllPlayers(
+            "discardTile",
+            clienttranslate('${player_name} discards a tile from the board (hex ${hex}) ${tile_image}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "hex" => $tileCard["location_arg"],
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard"],
+                "tile_image" => ""
+            ]
+        );
+
+        $this->gamestate->nextState("betweenTurns");
+    }
+
     public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -481,13 +507,16 @@ class Game extends \Table
             $expandedRevealableTiles = $this->expandedRevealableTiles($player_id);
         }
 
+        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
+
         return [
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "explorableTiles" => $explorableTiles,
             "revealsLimit" => $revealsLimit,
             "skippable" => !!$explorableTiles,
-            "_no_notify" => (!$revealableTiles && !$hasExpandedTiles) || ($hasExpandedTiles && !$expandedRevealableTiles) || $revealsLimit >= 2,
+            "hasReachedCastle" => $hasReachedCastle,
+            "_no_notify" => (!$revealableTiles && !$hasExpandedTiles) || ($hasExpandedTiles && !$expandedRevealableTiles) || $revealsLimit >= 2 || $hasReachedCastle,
         ];
     }
 
@@ -496,6 +525,11 @@ class Game extends \Table
         $args = $this->argRevealTile();
 
         if ($args["_no_notify"]) {
+            if ($args["hasReachedCastle"]) {
+                $this->gamestate->nextState("discardTile");
+                return;
+            }
+
             if (!$args["revealableTiles"] && !$args["explorableTiles"] && !$args["expandedRevealableTiles"]) {
                 $this->gamestate->nextState("discardCollectedTile");
                 return;
@@ -650,9 +684,13 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        if (!$this->collectTile($player_id)) {
-            return;
-        };
+        $hasReachedCastle = $this->DbQuery("SELECT castle from player WHERE player_id=$player_id");
+
+        if (!$hasReachedCastle) {
+            if (!$this->collectTile($player_id)) {
+                return;
+            };
+        }
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
@@ -730,9 +768,9 @@ class Game extends \Table
         return $face;
     }
 
-    public function checkCardLocation(array $card, string | int $location, int $location_arg)
+    public function checkCardLocation(array $card, string | int $location, int $location_arg = null)
     {
-        if ($card["location"] != $location || $card["location_arg"] != $location_arg) {
+        if ($card["location"] != $location || ($location_arg && $card["location_arg"] != $location_arg)) {
             throw new \BgaVisibleSystemException("Unexpected card location: $location, $location_arg");
         }
     }
@@ -780,7 +818,7 @@ class Game extends \Table
         return $explorer;
     }
 
-    public function getTileBoard(): array
+    public function getTilesBoard(): array
     {
         $tilesBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
         FROM tile WHERE card_location='board'");
@@ -1152,7 +1190,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "reacheCastle",
-            clienttranslate('${player_name} reachs the Castle Row'),
+            clienttranslate('${player_name} reachs the Castle row'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id)
@@ -2076,7 +2114,7 @@ class Game extends \Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["tilesBoard"] = $this->getTileBoard();
+        $result["tilesBoard"] = $this->getTilesBoard();
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
         $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
         $result["collectedTiles"] = $this->getCollectedTiles(null);

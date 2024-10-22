@@ -197,6 +197,7 @@
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
+  font-size: 1.2em;
 
   position: absolute;
   left: 0;
@@ -316,7 +317,6 @@
 }
 
 .goi_tile.goi_logImage {
-  position: relative;
   background-size: cover;
   height: 57.5px;
   width: 50px;

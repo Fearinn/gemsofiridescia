@@ -37,18 +37,29 @@ $machinestates = [
         "args" => "argRevealTile",
         "action" => "stRevealTile",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["repeat" => 2, "discardCollectedTile" => 20, "moveExplorer" => 3, "skip" => 3]
+        "transitions" => ["repeat" => 2, "discardCollectedTile" => 20, "discardTile" => 21, "moveExplorer" => 3, "skip" => 3]
     ],
 
     20 => [
         "name" => "discardCollectedTile",
-        "description" => clienttranslate('${actplayer} has no free adjacent tile and must discard one from his Victory Pile'),
-        "descriptionmyturn" => clienttranslate('${you} have no free adjacent tile and must discard one from your Victory Pile'),
+        "description" => clienttranslate('${actplayer} has no free adjacent tiles and must discard one from his Victory Pile'),
+        "descriptionmyturn" => clienttranslate('${you} have no free adjacent tiles and must discard one from your Victory Pile'),
         "type" => "activeplayer",
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
         "possibleactions" => ["actDiscardCollectedTile"],
         "transitions" => ["revealTile" => 2]
+    ],
+
+    21 => [
+        "name" => "discardTile",
+        "description" => clienttranslate('${actplayer} must discard a tile from the board'),
+        "descriptionmyturn" => clienttranslate('${you} must discard a tile from the board'),
+        "type" => "activeplayer",
+        // "args" => "argDiscardTile",
+        // "action" => "stDiscardTile",
+        "possibleactions" => ["actDiscardTile"],
+        "transitions" => ["betweenTurns" => 6]
     ],
 
     3 => [
