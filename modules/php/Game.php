@@ -1749,14 +1749,16 @@ class Game extends \Table
 
         $this->incRoyaltyPoints($gemsPoints, $player_id, true);
 
-        $this->notifyAllPlayers(
-            "computeGemsPoints",
-            clienttranslate('${player_name} scores ${points} points from Gems'),
-            [
-                "player_name" => $this->getPlayerNameById($player_id),
-                "points" => $gemsPoints,
-            ]
-        );
+        if ($gemsPoints > 0) {
+            $this->notifyAllPlayers(
+                "computeGemsPoints",
+                clienttranslate('${player_name} scores ${points} points from Gems'),
+                [
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "points" => $gemsPoints,
+                ]
+            );
+        }
     }
 
     function tilesDp($gemsCounts, &$memo)
@@ -1839,15 +1841,17 @@ class Game extends \Table
 
         $tilesPoints = $this->calcMaxTilesPoints($tilesCountsByGem);
 
-        $this->notifyAllPlayers(
-            "computeTilesPoints",
-            clienttranslate('${player_name} scores ${points} from tiles'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "points" => $tilesPoints
-            ],
-        );
+        if ($tilesPoints) {
+            $this->notifyAllPlayers(
+                "computeTilesPoints",
+                clienttranslate('${player_name} scores ${points} from tiles'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "points" => $tilesPoints
+                ],
+            );
+        }
 
         $this->incRoyaltyPoints($tilesPoints, $player_id, true);
     }
@@ -1952,19 +1956,21 @@ class Game extends \Table
         $lore = $relicsCountsByType[2];
         $tech = $relicsCountsByType[3];
 
-        $maxPoints = $this->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
+        $relicsPoints = $this->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
 
-        $this->notifyAllPlayers(
-            "computeRelicsPoints",
-            clienttranslate('${player_name} scores ${points} from relics'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "points" => $maxPoints
-            ],
-        );
+        if ($relicsPoints > 0) {
+            $this->notifyAllPlayers(
+                "computeRelicsPoints",
+                clienttranslate('${player_name} scores ${points} from relics'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "points" => $relicsPoints
+                ],
+            );
+        }
 
-        $this->incRoyaltyPoints($maxPoints, $player_id, true);
+        $this->incRoyaltyPoints($relicsPoints, $player_id, true);
     }
 
     public function computeObjectivePoints(int $player_id): void
@@ -2000,6 +2006,7 @@ class Game extends \Table
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
                     "objective_name" => $objective->tr_name,
+                    "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
                     "i18n" => ["objective_name"]
                 ]

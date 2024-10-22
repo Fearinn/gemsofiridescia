@@ -56,7 +56,9 @@ class ObjectiveManager
                 }
             }
 
-            return ($currentTiles + $rainbowTiles) >= $maxTiles;
+            $playerTiles = $currentTiles + $rainbowTiles;
+
+            return $playerTiles > 0 && $playerTiles >= $maxTiles;
         }
 
         if ($this->id >= 7 && $this->id <= 10) {
@@ -78,7 +80,9 @@ class ObjectiveManager
                 }
             }
 
-            return ($currentRelics + $iridiaRelics) >= $maxRelics;
+            $playerRelics = $currentRelics + $iridiaRelics;
+
+            return $playerRelics > 0 && $playerRelics >= $maxRelics;
         }
 
         if ($this->id >= 12 && $this->id <= 14) {
@@ -100,7 +104,9 @@ class ObjectiveManager
                 }
             }
 
-            return ($currentRelics + $iridiaRelics) >= $maxRelics;
+            $playerRelics = $currentRelics + $iridiaRelics;
+
+            return  $playerRelics > 0 && $playerRelics >= $maxRelics;
         }
 
         if ($this->id === 6) {
