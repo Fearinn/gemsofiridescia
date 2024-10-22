@@ -97,8 +97,6 @@ define([
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.objectives = gamedatas.objectives;
 
-      console.log(this.goi_globals);
-
       this.goi_info.defaultSelections = {
         tile: null,
         gem: null,
@@ -201,25 +199,6 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "absolute";
-
-          const location = card.location;
-          const player_id = card.location_arg;
-
-          const playerZoneContainerElement = document.getElementById(
-            `goi_playerZoneContainer:${player_id}`
-          );
-
-          if (location === "hand") {
-            playerZoneContainerElement.onmouseleave = () => {
-              playerZoneContainerElement.classList.add("goi_lockHeight");
-
-              clearTimeout(this.goi_globals.timeout_id);
-
-              this.goi_globals.timeout_id = setTimeout(() => {
-                playerZoneContainerElement.classList.remove("goi_lockHeight");
-              }, 1000);
-            };
-          }
         },
         setupFrontDiv: (card, div) => {
           const backgroundCode = card.type;
@@ -283,25 +262,6 @@ define([
           div.classList.add("goi_card");
           div.classList.add("goi_relic");
           div.style.position = "relative";
-
-          const location = card.location;
-          const player_id = card.location_arg;
-
-          const playerZoneContainerElement = document.getElementById(
-            `goi_playerZoneContainer:${player_id}`
-          );
-
-          if (location === "hand") {
-            playerZoneContainerElement.onmouseleave = () => {
-              playerZoneContainerElement.classList.add("goi_lockHeight");
-
-              clearTimeout(this.goi_globals.timeout_id);
-
-              this.goi_globals.timeout_id = setTimeout(() => {
-                playerZoneContainerElement.classList.remove("goi_lockHeight");
-              }, 1000);
-            };
-          }
         },
         setupFrontDiv: (card, div) => {
           if (!card.type_arg || card.id === "fake") {
@@ -343,8 +303,8 @@ define([
       });
 
       this.goi_managers.objectives = new CardManager(this, {
-        cardHeight: 273,
-        cardWidth: 200,
+        cardHeight: 409,
+        cardWidth: 300,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -379,11 +339,21 @@ define([
             div.appendChild(cardContent);
           }
 
-          const backgroundPosition = this.calcBackgroundPosition(objective_id);
+          const backgroundCode = Math.ceil(objective_id / 8);
+          const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
+
+          const spritePosition = objective_id - 8 * (backgroundCode - 1);
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
+
+          div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
+          const background = `url(${g_gamethemeurl}img/objectives-1.png)`;
           const backgroundPosition = this.calcBackgroundPosition(0);
+
+          div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
         },
       });
@@ -420,7 +390,6 @@ define([
           player_id
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
-            <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
           </div>`;
 
         this.goi_counters[player_id].gems = {
@@ -466,37 +435,6 @@ define([
         this.goi_counters[player_id].coins.setValue(
           this.goi_globals.coins[player_id]
         );
-
-        this.goi_stocks[player_id].objectives.hand = new CardStock(
-          this.goi_managers.objectives,
-          document.getElementById(`goi_objectives:${player_id}`)
-        );
-
-        this.goi_stocks[player_id].objectives.hand.onSelectionChange = (
-          selection,
-          lastChange
-        ) => {
-          if (selection.length > 0) {
-            this.goi_selections.objective = lastChange;
-          } else {
-            this.goi_selections.objective = null;
-          }
-
-          this.handleConfirmationButton();
-        };
-
-        const objectives = this.goi_globals.objectives[player_id];
-        for (const objectiveCard_id in objectives) {
-          const objectiveCard = objectives[objectiveCard_id];
-          this.goi_stocks[player_id].objectives.hand.addCard(objectiveCard);
-
-          if (player_id != this.player_id) {
-            this.goi_stocks[player_id].objectives.hand.setCardVisible(
-              objectiveCard,
-              false
-            );
-          }
-        }
       }
 
       /* BOARDS */
@@ -636,6 +574,7 @@ define([
                 </div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
+              <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile" data-pile=true></div>
                 <div id="goi_tilesPile:${player_id}" class="goi_tilesPile" data-pile=true></div>
@@ -649,6 +588,20 @@ define([
 
       let currentStoneDie_id = 1;
       for (const player_id in this.goi_globals.players) {
+        const playerZoneContainerElement = document.getElementById(
+          `goi_playerZoneContainer:${player_id}`
+        );
+
+        playerZoneContainerElement.onmouseleave = () => {
+          playerZoneContainerElement.classList.add("goi_lockHeight");
+
+          clearTimeout(this.goi_globals.timeout_id);
+
+          this.goi_globals.timeout_id = setTimeout(() => {
+            playerZoneContainerElement.classList.remove("goi_lockHeight");
+          }, 1000);
+        };
+
         const player_color = this.goi_globals.players[player_id].color;
 
         this.goi_stocks[player_id].dice.scene = new DiceStock(
@@ -769,6 +722,40 @@ define([
         for (const gemCard_id in gemCards) {
           const gemCard = gemCards[gemCard_id];
           this.addGemToCargo(gemCard, player_id);
+        }
+
+        /*  OBJECTIVES */
+
+        this.goi_stocks[player_id].objectives.hand = new AllVisibleDeck(
+          this.goi_managers.objectives,
+          document.getElementById(`goi_objectives:${player_id}`),
+          { horizontalShift: "0px", verticalShift: "48px" }
+        );
+
+        this.goi_stocks[player_id].objectives.hand.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          if (selection.length > 0) {
+            this.goi_selections.objective = lastChange;
+          } else {
+            this.goi_selections.objective = null;
+          }
+
+          this.handleConfirmationButton();
+        };
+
+        const objectives = this.goi_globals.objectives[player_id];
+        for (const objectiveCard_id in objectives) {
+          const objectiveCard = objectives[objectiveCard_id];
+          this.goi_stocks[player_id].objectives.hand.addCard(objectiveCard);
+
+          if (player_id != this.player_id) {
+            this.goi_stocks[player_id].objectives.hand.setCardVisible(
+              objectiveCard,
+              false
+            );
+          }
         }
 
         /* VICTORY PILE */
@@ -1839,10 +1826,14 @@ define([
       const objectiveName = objectiveInfo.tr_name;
       const objectiveContent = objectiveInfo.content;
 
-      const backgroundPosition = this.calcBackgroundPosition(objective_id);
+      const backgroundCode = Math.ceil(objective_id / 8);
+      const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
+
+      const spritePosition = objective_id - 8 * (backgroundCode - 1);
+      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
       const tooltip = `<div class="goi_logImage goi_objective goi_card" 
-      style="position: relative; background-image: url(${g_gamethemeurl}img/objectives.png); background-position: ${backgroundPosition}">
+      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(objectiveName)}</span>
         <span class="goi_objectiveContent">${_(objectiveContent)}</span>
       </div>`;

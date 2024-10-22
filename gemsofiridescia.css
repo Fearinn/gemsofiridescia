@@ -193,37 +193,10 @@
   width: 100%;
 }
 
-.goi_objectives {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.goi_objective {
-  height: 202px;
-  width: 150px;
-}
-
-.goi_objective .card-side {
-  background-image: url("img/objectives.png");
-}
-
-.goi_objective .goi_cardTitle {
-  font-size: 0.8em;
-  top: 3%;
-}
-
-.goi_objective.goi_logImage {
-  width: 150px;
-}
-
 .goi_objectiveContent {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 0.65em;
 
   position: absolute;
   left: 0;
@@ -389,12 +362,12 @@
 }
 
 .goi_playerZones {
-  display: grid;
+  display: flex;
   align-items: stretch;
   justify-content: center;
   grid-template-columns: repeat(
     auto-fit,
-    minmax(calc(var(--playerBoardSize) * 1.5), auto)
+    minmax(calc(var(--playerBoardSize) * 2), auto)
   );
   gap: 16px;
   width: 100%;
