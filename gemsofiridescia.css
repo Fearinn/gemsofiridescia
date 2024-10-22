@@ -330,6 +330,13 @@
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
+.goi_tile.goi_logImage {
+  background-size: cover;
+  height: 57.5px;
+  width: 50px;
+  margin: 0 auto;
+}
+
 .goi_tile .card-side {
   box-shadow: none !important;
   height: 230px;

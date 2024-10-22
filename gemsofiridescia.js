@@ -1811,5 +1811,69 @@ define([
 
       this.displayScoring(objectiveElement.id, player_color, points);
     },
+
+    /* LOGS MANIPULATION */
+
+    addCustomTooltip: function (container, html) {
+      this.addTooltipHtml(container, html, 1000);
+    },
+
+    setLoader: function (image_progress, logs_progress) {
+      this.inherited(arguments); // required, this is "super()" call, do not remove
+      if (!this.isLoadingLogsComplete && logs_progress >= 100) {
+        this.isLoadingLogsComplete = true; // this is to prevent from calling this more then once
+        this.onLoadingLogsComplete();
+      }
+    },
+
+    onLoadingLogsComplete: function () {
+      console.log("Loading logs complete");
+
+      this.attachRegisteredTooltips();
+    },
+
+    registerCustomTooltip(html, id) {
+      this._registeredCustomTooltips[id] = html;
+      return id;
+    },
+
+    attachRegisteredTooltips() {
+      console.log("Attaching toolips");
+
+      for (const id in this._registeredCustomTooltips) {
+        this.addCustomTooltip(id, this._registeredCustomTooltips[id]);
+        this._attachedTooltips[id] = this._registeredCustomTooltips[id];
+      }
+
+      this._registeredCustomTooltips = {};
+    },
+
+    // @Override
+    format_string_recursive: function (log, args) {
+      try {
+        if (log && args && !args.processed) {
+          args.processed = true;
+
+          console.log(args, "log args");
+          if (args.tile_image !== undefined) {
+            const tileCard = args.tileCard;
+            const tile_id = Number(tileCard.type_arg);
+            const region_id = Number(tileCard.type);
+
+            const background = `url(${g_gamethemeurl}/img/tiles-${region_id}.png)`;
+
+            const backgroundPosition = this.calcBackgroundPosition(
+              tile_id - 13 * (region_id - 1) - 1
+            );
+
+            args.tile_image = `<div class='goi_tile goi_logImage' style='background-image: ${background}; background-position: ${backgroundPosition}'></div>`;
+          }
+        }
+      } catch (e) {
+        console.error(log, args, "Exception thrown", e.stack);
+      }
+
+      return this.inherited(arguments);
+    },
   });
 });

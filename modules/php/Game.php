@@ -94,17 +94,17 @@ class Game extends \Table
         $revealedTiles[$tileCard_id] = $tileCard;
         $this->globals->set(REVEALED_TILES, $revealedTiles);
 
-        $region_id = $tileCard["type"];
-
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a tile from the ${region_label} region'),
+            clienttranslate('${player_name} reveals a tile (hex ${hex})${tile_image}'),
             [
                 "i18n" => ["region_label"],
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "region_label" => $this->regions_info[$region_id]["tr_name"],
+                "hex" => $tileCard["location_arg"],
                 "tileCard" => $tileCard,
+                "preserve" => ["tileCard"],
+                "tile_image" => "",
             ]
         );
 
@@ -152,13 +152,13 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected tile'),
+            clienttranslate('${player_name} discards a collected tile ${tile_image}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "tileCard_id" => $tileCard_id,
                 "tileCard" => $tileCard,
-                "preserve" => ["tileCard_id"],
+                "preserve" => ["tileCard"],
+                "tile_image" => ""
             ]
         );
 
@@ -190,14 +190,15 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to a tile from the ${region_label} region'),
+            clienttranslate('${player_name} moves his explorer to ${tile_image}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "region_label" => $this->regions_info[$region_id]["tr_name"],
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
+                "preserve" => ["tileCard"],
+                "tile_image" => "",
             ]
         );
 
@@ -1035,7 +1036,6 @@ class Game extends \Table
             "",
             [
                 "player_id" => $player_id,
-                "tile_id" => $tile_id,
                 "tileCard" => $tileCard,
             ]
         );
@@ -1372,7 +1372,7 @@ class Game extends \Table
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
                 "tileCard" => $tileCard,
-                "i18n" => ["gem_label"]
+                "i18n" => ["gem_label"],
             ]
         );
 
