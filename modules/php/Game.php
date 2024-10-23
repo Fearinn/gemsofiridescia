@@ -208,8 +208,6 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
         }
 
-        $region_id = (int) $tileCard["type"];
-
         $explorerCard = $this->getExplorerByPlayerId($player_id);
 
         $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["location_arg"]);
@@ -259,9 +257,7 @@ class Game extends \Table
 
         $objectiveCard = $this->objective_cards->getCard($objectiveCard_id);
 
-        if ($objectiveCard["location"] !== "hand" || $objectiveCard["location_arg"] != $player_id) {
-            throw new \BgaVisibleSystemException("You can't discard this objective now: actDiscardObjective, $objectiveCard_id");
-        }
+        $this->checkCardLocation($objectiveCard, "hand", $player_id);
 
         $this->objective_cards->moveCard($objectiveCard_id, "discard");
 
@@ -293,7 +289,9 @@ class Game extends \Table
             ]
         );
 
-        $this->gamestate->nextState("betweenTurns");
+        $tileCard = $this->globals->get("currentTile");
+
+        $this->resolveTileEffect($tileCard, $player_id);
     }
 
     public function actMine(#[IntParam(min: 0, max: 4)] int $newStoneDiceCount): void
@@ -330,14 +328,14 @@ class Game extends \Table
         $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
         $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
 
-        $mined = 0;
+        $minedGems = 0;
 
         if ($roll1 >= $gemMarketValue) {
-            $mined++;
+            $minedGems++;
         }
 
         if ($roll2 >= $gemMarketValue) {
-            $mined++;
+            $minedGems++;
         }
 
         if ($newStoneDiceCount > 0) {
@@ -356,7 +354,7 @@ class Game extends \Table
             $roll = $this->rollDie($die_id, $player_id, "stone");
 
             if ($roll >= $gemMarketValue) {
-                $mined++;
+                $minedGems++;
             }
         }
 
@@ -378,7 +376,7 @@ class Game extends \Table
             );
         }
 
-        if ($mined === 0) {
+        if ($minedGems === 0) {
             $this->notifyAllPlayers(
                 "failToMine",
                 clienttranslate('${player_name} fails to mine his tile'),
@@ -388,7 +386,7 @@ class Game extends \Table
                 ]
             );
         } else {
-            if (!$this->incGem($mined, $gem_id, $player_id, $tileCard, true)) {
+            if (!$this->incGem($minedGems, $gem_id, $player_id, $tileCard, true)) {
                 return;
             };
         }
@@ -432,15 +430,10 @@ class Game extends \Table
 
         $player_id = (int) $this->getActivePlayerId();
 
-        $gem_id = (int) $gemCard["type_arg"];
-        $gemName = $this->gems_info[$gem_id]["name"];
-
         $gemCard_id = (int) $gemCard["id"];
         $gemCard = $this->gem_cards->getCard($gemCard_id);
 
-        if ($gemCard["location"] === "hand" && $gemCard["location_arg"] !== $player_id) {
-            throw new \BgaVisibleSystemException("You can't transfer this gem now: actTransferGem, $gem_id");
-        }
+        $this->checkCardLocation($gemCard, "hand", $player_id);
 
         $availableCargos = $this->availableCargos($player_id);
 
@@ -597,13 +590,13 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $can_mine = $this->hasEnoughCoins(3, $player_id);
-        $can_sellGems = $this->getGemsCounts($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
+        $canMine = $this->hasEnoughCoins(3, $player_id);
+        $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
         return [
-            "can_mine" => $can_mine,
-            "can_sellGems" => $can_sellGems,
-            "_no_notify" => !$can_mine && !$can_sellGems,
+            "canMine" => $canMine,
+            "canSellGems" => $canSellGems,
+            "_no_notify" => !$canMine && !$canSellGems,
         ];
     }
 
@@ -632,6 +625,12 @@ class Game extends \Table
 
         if ($args["_no_notify"]) {
             $anchorState_id = $this->globals->get(ANCHOR_STATE);
+
+            if ($anchorState_id === 32) 
+            {
+                $anchorState_id === 4;
+            }
+
             $this->gamestate->jumpToState($anchorState_id);
             return;
         }
@@ -687,9 +686,7 @@ class Game extends \Table
         $hasReachedCastle = $this->DbQuery("SELECT castle from player WHERE player_id=$player_id");
 
         if (!$hasReachedCastle) {
-            if (!$this->collectTile($player_id)) {
-                return;
-            };
+            $this->collectTile($player_id);
         }
 
         $this->globals->set(REVEALS_LIMIT, 0);
@@ -1014,6 +1011,14 @@ class Game extends \Table
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
+        $hasReachedFlorest =!!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
+
+        if (!$hasReachedFlorest) {
+            $this->globals->set("currentTile", $tileCard);
+            $this->reachFlorest($player_id, $tileCard);
+            return;
+        }
+
         if ($gem_id === 0) {
             $this->gamestate->nextState("rainbowTile");
             return;
@@ -1082,10 +1087,6 @@ class Game extends \Table
             $this->updateMarketValue($gem_id);
         }
 
-        if ($region_id === 3) {
-            return $this->reachFlorest($player_id);
-        }
-
         if ($region_id === 5) {
             $this->reachCastle($player_id);
         }
@@ -1093,14 +1094,8 @@ class Game extends \Table
         return true;
     }
 
-    public function reachFlorest(int $player_id): bool
+    public function reachFlorest(int $player_id): void
     {
-        $hasReachedFlorest = $this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
-
-        if ($hasReachedFlorest) {
-            return false;
-        }
-
         $this->DbQuery("UPDATE player SET florest=1 WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
@@ -1112,8 +1107,8 @@ class Game extends \Table
             ]
         );
 
+
         $this->gamestate->nextState("discardObjective");
-        return true;
     }
 
     public function getIridiaStoneOwner(): int | null
@@ -1416,7 +1411,6 @@ class Game extends \Table
 
         if ($this->getTotalGemsCount($player_id) > 7) {
             $anchorState_id = $this->gamestate->state_id();
-
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(31);
             return false;

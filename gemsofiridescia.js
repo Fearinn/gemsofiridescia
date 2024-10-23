@@ -987,8 +987,8 @@ define([
         }
 
         if (stateName === "optionalActions") {
-          const can_mine = args.args.can_mine;
-          const can_sellGems = args.args.can_sellGems;
+          const canMine = args.args.canMine;
+          const canSellGems = args.args.canSellGems;
 
           this.addActionButton(
             "goi_skip_btn",
@@ -999,7 +999,7 @@ define([
             "red"
           );
 
-          if (can_mine) {
+          if (canMine) {
             this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
 
             const selectableDice = this.goi_stocks[this.player_id].dice.scene
@@ -1016,7 +1016,7 @@ define([
             }
           }
 
-          if (can_sellGems) {
+          if (canSellGems) {
             this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
               "multiple",
               this.goi_stocks[this.player_id].gems.cargo.getCards()
@@ -1120,7 +1120,7 @@ define([
         }
 
         if (stateName === "discardObjective") {
-          this.goi_stocks.objectives.hand.setSelectionMode("single");
+          this.goi_stocks[this.player_id].objectives.hand.setSelectionMode("single");
         }
 
         return;
@@ -1191,6 +1191,10 @@ define([
 
       if (stateName === "rainbowTile") {
         this.goi_stocks.gems.rainbowOptions.removeAll();
+      }
+
+      if (stateName === "discardObjective") {
+        this.goi_stocks[this.player_id].objectives.hand.setSelectionMode("none");
       }
 
       if (stateName === "optionalActions") {

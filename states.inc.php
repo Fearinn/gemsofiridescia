@@ -70,7 +70,7 @@ $machinestates = [
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "rainbowTile" => 30, "optionalActions" => 4]
+        "transitions" => ["back" => 2, "rainbowTile" => 30, "discardObjective" => 32, "optionalActions" => 4]
     ],
 
     30 => [
@@ -91,6 +91,15 @@ $machinestates = [
         "action" => "stTransferGem",
         "possibleactions" => ["actTransferGem", "actDiscardGem"],
         "transitions" => ["repeat" => 31],
+    ],
+
+    32 => [
+        "name" => "discardObjective",
+        "description" => clienttranslate('${actplayer} must discard a Secret Objective'),
+        "descriptionmyturn" => clienttranslate('${you} must discard a Secret Objective'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actDiscardObjective"],
+        "transitions" => ["optionalActions" => 4]
     ],
 
     4 => [
@@ -120,16 +129,7 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "discardObjective" => 60, "finalScoring" => 7]
-    ],
-
-    60 => [
-        "name" => "discardObjective",
-        "description" => clienttranslate('${actplayer} must discard a Secret Objective'),
-        "descriptionmyturn" => clienttranslate('${you} must discard a Secret Objective'),
-        "type" => "activeplayer",
-        "possibleactions" => ["actDiscardObjective"],
-        "transitions" => ["betweenTurns" => 6]
+        "transitions" => ["nextTurn" => 2, "finalScoring" => 7]
     ],
 
     7 => [
