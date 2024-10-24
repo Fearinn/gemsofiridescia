@@ -1800,7 +1800,7 @@ class Game extends \Table
     {
         $totalGemsCount = $this->getTotalGemsCount($player_id);
 
-        $gemsPoints = (int) ceil($totalGemsCount / 2);
+        $gemsPoints = (int) ($totalGemsCount - ($totalGemsCount % 2)) / 2;
 
         $this->incRoyaltyPoints($gemsPoints, $player_id, true);
 
