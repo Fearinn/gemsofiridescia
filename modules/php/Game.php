@@ -1489,6 +1489,14 @@ class Game extends \Table
         if ($marketValue === 6) {
             $this->globals->set($marketValueCode, 1);
             $marketValue = 1;
+            $this->notifyAllPlayers(
+                'crashMarket',
+                clienttranslate('The market crashes for ${gem_label}'),
+                [
+                    "gem_label" => $gem_info["tr_name"],
+                    "i18n" => ["gem_label"]
+                ]
+            );
         } else {
             $marketValue = $this->globals->inc($marketValueCode, 1);
         }
