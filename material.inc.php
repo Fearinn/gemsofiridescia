@@ -850,3 +850,61 @@ $this->objectives_info = [
         "points" => 7
     ]
 ];
+
+$this->items_info = [
+    1 => [
+        "name" => "Cauldron of Fortune",
+        "content" => clienttranslate("Trade any two gems in your cargo hold for one gem of your choice from the supply."),
+        "tr_name" => clienttranslate("Cauldron of Fortune"),
+    ],
+    2 => [
+        "name" => "Marvelous Mine Cart",
+        "content" => clienttranslate("Gain 2x gems when mining this turn (when rolling your mining dice)."),
+        "tr_name" => clienttranslate("Marvelous Mine Cart"),
+    ],
+    3 => [
+        "name" => "Axe of Awesomeness",
+        "content" => clienttranslate("Split one gem in your cargo hold into two gems of the same type."),
+        "tr_name" => clienttranslate("Axe of Awesomeness"),
+    ],
+    4 => [
+        "name" => "Epic Elixir",
+        "content" => clienttranslate("Take an additional turn."),
+        "tr_name" => clienttranslate("Epic Elixir"),
+    ],
+    5 => [
+        "name" => "Lucky Libation",
+        "content" => clienttranslate("Re-roll any of your dice or roll up to 4 gem market dice."),
+        "tr_name" => clienttranslate("Lucky Libation"),
+    ],
+    6 => [
+        "name" => "Jolty Jackhammer",
+        "content" => clienttranslate("Modify one die by +/-1. This can either be a die that you’ve rolled in a mining attempt or one of the gem value market dice."),
+        "tr_name" => clienttranslate("Jolty Jackhammer"),
+    ],
+    7 => [
+        "name" => "Dazzling Dynamite",
+        "content" => clienttranslate("Modify one die by +/-2. This can either be a die that you’ve rolled in a mining attempt or one of the gem value market dice."),
+        "tr_name" => clienttranslate("Dazzling Dynamite"),
+    ],
+    8 => [
+        "name" => "Swapping Stones",
+        "content" => clienttranslate("Swap location with any player. (Must be played at the beginning of your turn, prior to revealing tiles.)"),
+        "tr_name" => clienttranslate("Swapping Stones"),
+    ],
+    9 => [
+        "name" => "Regal Reference Book",
+        "content" => clienttranslate("Search the relic deck for a card of your choice or take one from relic row. Gain that relic card and place this card on top of it. Only you can restore this relic."),
+        "tr_name" => clienttranslate("Regal Reference Book"),
+    ],
+    10 => [
+        "name" => "Prosperous Pickaxe",
+        "content" => clienttranslate("For every gem gained from mining on one tile this turn, gain a gem from a revealed adjacent tile."),
+        "tr_name" => clienttranslate("Prosperous Pickaxe"),
+    ],
+    11 => [
+        "name" => "Clever Catapult",
+        "content" => clienttranslate("Jump over one adjacent tile space onto an unoccupied tile space. If the tile is not yet revealed, reveal it after landing. (Must be played at the start of your turn, prior to revealing tiles.)"),
+        "tr_name" => clienttranslate("Clever Catapult"),
+    ]
+];

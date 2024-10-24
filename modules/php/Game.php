@@ -61,6 +61,9 @@ class Game extends \Table
         $this->objective_cards = $this->getNew("module.common.deck");
         $this->objective_cards->init("objective");
 
+        $this->item_cards = $this->getNew("module.common.deck");
+        $this->items_cards->init("item");
+
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
     }
@@ -2303,6 +2306,13 @@ class Game extends \Table
         foreach ($players as $player_id => $player) {
             $this->objective_cards->pickCardsForLocation(2, "deck", "hand", $player_id);
         }
+
+        $itemCards = [];
+        foreach ($this->items_info as $item_id => $item_info) {
+            $itemCards[] = ["type" => $item_info["cost"], "type_arg" => $item_id, "nbr" => 3];
+        }
+        $this->item_cards->createCards($itemCards, "deck");
+        $this->item_cards->shuffle("deck");
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
