@@ -725,7 +725,9 @@ define([
         /*  OBJECTIVES */
 
         if (player_id != this.player_id) {
-          document.getElementById(`goi_objectives:${player_id}`).classList.add("goi_opponentObjectives");
+          document
+            .getElementById(`goi_objectives:${player_id}`)
+            .classList.add("goi_opponentObjectives");
         }
 
         this.goi_stocks[player_id].objectives.hand = new AllVisibleDeck(
@@ -1124,7 +1126,9 @@ define([
         }
 
         if (stateName === "discardObjective") {
-          this.goi_stocks[this.player_id].objectives.hand.setSelectionMode("single");
+          this.goi_stocks[this.player_id].objectives.hand.setSelectionMode(
+            "single"
+          );
         }
 
         return;
@@ -1198,7 +1202,9 @@ define([
       }
 
       if (stateName === "discardObjective") {
-        this.goi_stocks[this.player_id].objectives.hand.setSelectionMode("none");
+        this.goi_stocks[this.player_id].objectives.hand.setSelectionMode(
+          "none"
+        );
       }
 
       if (stateName === "optionalActions") {
@@ -1504,6 +1510,7 @@ define([
         { event: "incRoyaltyPoints" },
         { event: "obtainStoneDie" },
         { event: "activateStoneDie" },
+        { event: "resetStoneDice" },
         { event: "rollDie", duration: 0 },
         { event: "syncDieRolls", duration: 1000 },
         { event: "incCoin" },
@@ -1736,6 +1743,18 @@ define([
         active: true,
         face: this.goi_globals.stoneDiceFaces[die_id],
       });
+    },
+
+    notif_resetStoneDice: function (notif) {
+      const player_id = notif.args.player_id;
+
+      const activeDice = this.goi_stocks[player_id].dice.scene
+        .getDice()
+        .filter((die) => {
+          return !!die.active;
+        });
+
+      this.goi_stocks.dice.market.addDice(activeDice);
     },
 
     notif_rollDie: function (notif) {

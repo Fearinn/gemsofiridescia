@@ -36,6 +36,7 @@ const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
+const CURRENT_TILE = "currentTile";
 
 class Game extends \Table
 {
@@ -289,7 +290,7 @@ class Game extends \Table
             ]
         );
 
-        $tileCard = $this->globals->get("currentTile");
+        $tileCard = $this->globals->get(CURRENT_TILE);
 
         $this->resolveTileEffect($tileCard, $player_id);
     }
@@ -626,7 +627,7 @@ class Game extends \Table
         if ($args["_no_notify"]) {
             $anchorState_id = $this->globals->get(ANCHOR_STATE);
 
-            if ($anchorState_id === 32) {
+            if ($anchorState_id === 30 || $anchorState_id === 32) {
                 $anchorState_id === 4;
             }
 
@@ -685,7 +686,7 @@ class Game extends \Table
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
         if (!$hasReachedCastle) {
-            $this->dump("passed", "passed");
+            $this->resetStoneDice($player_id);
             $this->collectTile($player_id);
         }
 
@@ -696,6 +697,7 @@ class Game extends \Table
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
+        $this->globals->set(CURRENT_TILE, null);
 
         $castlePlayers = $this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1");
 
@@ -1014,7 +1016,7 @@ class Game extends \Table
         $hasReachedFlorest = !!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
 
         if ($region_id === 3 && !$hasReachedFlorest) {
-            $this->globals->set("currentTile", $tileCard);
+            $this->globals->set(CURRENT_TILE, $tileCard);
             $this->reachFlorest($player_id, $tileCard);
             return;
         }
@@ -1609,6 +1611,22 @@ class Game extends \Table
         );
 
         return true;
+    }
+
+    public function resetStoneDice(int $player_id): void
+    {
+        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+
+        $this->dbQuery("UPDATE player SET stone_die=stone_die-$activeStoneDiceCount WHERE player_id=$player_id");
+        $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $activeStoneDiceCount);
+
+        $this->notifyAllPlayers(
+            "resetStoneDice",
+            "",
+            [
+                "player_id" => $player_id,
+            ]
+        );
     }
 
     public function getRelicsDeck(bool $onlyTop = false): array
