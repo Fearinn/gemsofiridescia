@@ -181,7 +181,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardTile",
-            clienttranslate('${player_name} discards a tile from the board (hex ${hex}) '),
+            clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
