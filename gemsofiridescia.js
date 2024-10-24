@@ -590,15 +590,15 @@ define([
           `goi_playerZoneContainer:${player_id}`
         );
 
-        playerZoneContainerElement.onmouseleave = () => {
-          playerZoneContainerElement.classList.add("goi_lockHeight");
+        // playerZoneContainerElement.onmouseleave = () => {
+        //   playerZoneContainerElement.classList.add("goi_lockHeight");
 
-          clearTimeout(this.goi_globals.timeout_id);
+        //   clearTimeout(this.goi_globals.timeout_id);
 
-          this.goi_globals.timeout_id = setTimeout(() => {
-            playerZoneContainerElement.classList.remove("goi_lockHeight");
-          }, 1000);
-        };
+        //   this.goi_globals.timeout_id = setTimeout(() => {
+        //     playerZoneContainerElement.classList.remove("goi_lockHeight");
+        //   }, 1000);
+        // };
 
         const player_color = this.goi_globals.players[player_id].color;
 
