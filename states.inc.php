@@ -37,7 +37,13 @@ $machinestates = [
         "args" => "argRevealTile",
         "action" => "stRevealTile",
         "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
-        "transitions" => ["repeat" => 2, "discardCollectedTile" => 20, "discardTile" => 21, "moveExplorer" => 3, "skip" => 3]
+        "transitions" => [
+            "repeat" => 2,
+            "discardCollectedTile" => 20,
+            "discardTile" => 21,
+            "skip" => 3,
+            "moveExplorer" => 3
+        ]
     ],
 
     20 => [

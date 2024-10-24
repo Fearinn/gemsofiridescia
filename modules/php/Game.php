@@ -626,8 +626,7 @@ class Game extends \Table
         if ($args["_no_notify"]) {
             $anchorState_id = $this->globals->get(ANCHOR_STATE);
 
-            if ($anchorState_id === 32) 
-            {
+            if ($anchorState_id === 32) {
                 $anchorState_id === 4;
             }
 
@@ -683,9 +682,10 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $hasReachedCastle = !!$this->DbQuery("SELECT castle from player WHERE player_id=$player_id");
+        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
         if (!$hasReachedCastle) {
+            $this->dump("passed", "passed");
             $this->collectTile($player_id);
         }
 
@@ -1011,7 +1011,7 @@ class Game extends \Table
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
-        $hasReachedFlorest =!!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
+        $hasReachedFlorest = !!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
 
         if ($region_id === 3 && !$hasReachedFlorest) {
             $this->globals->set("currentTile", $tileCard);
