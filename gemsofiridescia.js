@@ -513,14 +513,19 @@ define([
       this.goi_stocks.dice.market = new DiceStock(
         this.goi_managers.dice,
         document.getElementById("goi_gemDice"),
-        {}
+        {
+          sort: (die, otherDie) => {
+            return die.id - otherDie.id;
+          },
+        }
       );
 
       for (const gemName in this.goi_globals.marketValues) {
+        const gem_id = this.goi_info.gemIds[gemName];
         const value = this.goi_globals.marketValues[gemName];
 
         this.goi_stocks.dice.market.addDie({
-          id: gemName,
+          id: gem_id,
           face: value,
           type: "gem",
         });
@@ -1798,10 +1803,10 @@ define([
 
     notif_updateMarketValue: function (notif) {
       const marketValue = notif.args.marketValue;
-      const gemName = notif.args.gemName;
+      const gem_id = notif.args.gem_id;
 
       const die = this.goi_stocks.dice.market.getDice().find((die) => {
-        return gemName === die.id;
+        return gem_id == die.id;
       });
 
       this.goi_stocks.dice.market.removeDie(die);

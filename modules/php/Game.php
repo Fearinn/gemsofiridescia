@@ -1498,7 +1498,7 @@ class Game extends \Table
             clienttranslate('The market value of the ${gem_label} is ${marketValue} now'),
             [
                 "marketValue" => $marketValue,
-                "gemName" => $gemName,
+                "gem_id" => $gem_id,
                 "gem_label" => $gem_info["tr_name"],
                 "i18n" => ["gem_label"]
             ]

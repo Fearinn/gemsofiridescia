@@ -40,14 +40,14 @@ const faceToBackgroundPosition = {
   5: { x: 200, y: 0 },
   6: { x: 200, y: 100 },
 };
-const gemToMultiplier = { amethyst: 1, citrine: 2, emerald: 3, sapphire: 4 };
+
 const colorToMultiplier = { ff0000: 5, "0000ff": 6, "008000": 7, ffa500: 8 };
 
 function calcBackgroundPosition(face, type, type_arg) {
   let multiplier = 0;
 
   if (type === "gem") {
-    multiplier = gemToMultiplier[type_arg];
+    multiplier = type_arg;
   }
 
   if (type === "mining") {
