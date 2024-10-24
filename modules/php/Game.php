@@ -683,7 +683,7 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $hasReachedCastle = $this->DbQuery("SELECT castle from player WHERE player_id=$player_id");
+        $hasReachedCastle = !!$this->DbQuery("SELECT castle from player WHERE player_id=$player_id");
 
         if (!$hasReachedCastle) {
             $this->collectTile($player_id);
