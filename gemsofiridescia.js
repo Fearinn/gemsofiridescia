@@ -339,10 +339,11 @@ define([
             div.appendChild(cardContent);
           }
 
-          const backgroundCode = Math.ceil(objective_id / 8);
+          const backgroundCode = Math.ceil(objective_id / 7);
           const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
 
-          const spritePosition = objective_id - 8 * (backgroundCode - 1);
+          let spritePosition = objective_id - 8 * (backgroundCode - 1);
+
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
 
@@ -1164,19 +1165,6 @@ define([
           this.updatePageTitle();
         }
       }
-
-      if (stateName === "betweenTurns") {
-        this.goi_stocks[this.player_id].dice.scene.getDice().forEach((die) => {
-          if (!die.active) {
-            return;
-          }
-
-          die.active = false;
-          die.face = this.goi_globals.stoneDiceFaces[die.id];
-          this.goi_stocks[this.player_id].dice.scene.removeDie(die);
-          this.goi_stocks[this.player_id].dice.scene.addDie(die);
-        });
-      }
     },
 
     // onLeavingState: this method is called each time we are leaving a game state.
@@ -1752,9 +1740,15 @@ define([
         .getDice()
         .filter((die) => {
           return !!die.active;
+        })
+        .map((die) => {
+          die.active = false;
+          return die;
         });
 
-      this.goi_stocks.dice.market.addDice(activeDice);
+      this.goi_stocks.dice.stone.addDice(activeDice);
+      this.goi_stocks.dice.stone.removeDice(activeDice);
+      this.goi_stocks.dice.stone.addDice(activeDice);
     },
 
     notif_rollDie: function (notif) {
@@ -1888,8 +1882,6 @@ define([
         <span class="goi_cardTitle">${_(objectiveName)}</span>
         <span class="goi_objectiveContent">${_(objectiveContent)}</span>
       </div>`;
-
-      console.log(tooltip, "tooltip");
 
       return tooltip;
     },

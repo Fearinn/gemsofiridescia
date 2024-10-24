@@ -108,6 +108,8 @@ class StoneDie extends Die {
 
     if (die.active) {
       element.classList.add("goi_activeDie");
+    } else {
+      element.classList.remove("goi_activeDie");
     }
   }
 
