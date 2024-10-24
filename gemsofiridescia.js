@@ -120,7 +120,7 @@ define([
       }
 
       const aidBackgroundPosition = this.calcBackgroundPosition(
-        this.goi_globals.playerBoards[this.player_id] - 1
+        this.goi_globals.playerBoards[this.player_id] - 1 || 0
       );
 
       const sentence3a = this.format_string(
@@ -1177,6 +1177,10 @@ define([
     //
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
+
+      if (!this.goi_globals.player) {
+        return;
+      }
 
       if (stateName === "revealTile") {
         this.goi_stocks.tiles.board.setSelectionMode("none");
