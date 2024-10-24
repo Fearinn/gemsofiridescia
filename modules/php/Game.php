@@ -62,7 +62,7 @@ class Game extends \Table
         $this->objective_cards->init("objective");
 
         $this->item_cards = $this->getNew("module.common.deck");
-        $this->items_cards->init("item");
+        $this->item_cards->init("item");
 
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
