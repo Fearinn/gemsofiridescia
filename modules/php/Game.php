@@ -97,7 +97,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a tile (hex ${hex})${tile_image}'),
+            clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
             [
                 "i18n" => ["region_label"],
                 "player_id" => $player_id,
@@ -105,7 +105,8 @@ class Game extends \Table
                 "hex" => $tileCard["location_arg"],
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
-                "tile_image" => "",
+                "i18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
             ]
         );
 
@@ -153,13 +154,14 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected tile ${tile_image}'),
+            clienttranslate('${player_name} discards a collected ${tile}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
-                "tile_image" => ""
+                "18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
             ]
         );
 
@@ -179,14 +181,15 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardTile",
-            clienttranslate('${player_name} discards a tile from the board (hex ${hex}) ${tile_image}'),
+            clienttranslate('${player_name} discards a tile from the board (hex ${hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "hex" => $tileCard["location_arg"],
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
-                "tile_image" => ""
+                "i18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
             ]
         );
 
@@ -215,7 +218,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to a new tile (hex ${hex}) ${tile_image}'),
+            clienttranslate('${player_name} moves his explorer to a new ${tile} (hex ${hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -224,7 +227,7 @@ class Game extends \Table
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
                 "preserve" => ["tileCard"],
-                "tile_image" => "",
+                "tile" => clienttranslate("tile"),
             ]
         );
 

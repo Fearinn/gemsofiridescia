@@ -322,10 +322,8 @@
 }
 
 .goi_tile.goi_logImage {
-  background-size: cover;
-  height: 57.5px;
-  width: 50px;
-  margin: 0 auto;
+  height: 230px;
+  width: 200px;
 }
 
 .goi_tile .card-side {

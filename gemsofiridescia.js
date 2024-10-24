@@ -1848,6 +1848,17 @@ define([
 
     /* LOGS MANIPULATION */
 
+    getTileTooltip: function (tile_id, region_id) {
+      const background = `url(${g_gamethemeurl}/img/tiles-${region_id}.png)`;
+
+      const backgroundPosition = this.calcBackgroundPosition(
+        tile_id - 13 * (region_id - 1) - 1
+      );
+
+      const tooltip = `<div class="goi_logImage goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
+      return tooltip;
+    },
+
     getRelicTooltip: function (relic_id) {
       const backgroundCode = Math.ceil(relic_id / 12);
       const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
@@ -1926,18 +1937,21 @@ define([
         if (log && args && !args.processed) {
           args.processed = true;
 
-          if (args.tile_image !== undefined) {
+          if (args.tile && args.tileCard) {
             const tileCard = args.tileCard;
+
             const tile_id = Number(tileCard.type_arg);
             const region_id = Number(tileCard.type);
 
-            const background = `url(${g_gamethemeurl}/img/tiles-${region_id}.png)`;
+            const uid = `${Date.now()}${tile_id}`;
+            const elementId = `goi_tileLog:${uid}`;
 
-            const backgroundPosition = this.calcBackgroundPosition(
-              tile_id - 13 * (region_id - 1) - 1
-            );
+            args.tile = `<span id="${elementId}" style="font-weight: bold;">${_(
+              args.tile
+            )}</span>`;
 
-            args.tile_image = `<div class="goi_logImage goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
+            const tooltip = this.getTileTooltip(tile_id, region_id);
+            this.registerCustomTooltip(tooltip, elementId);
           }
 
           if (args.relicCard && args.relic_name) {
@@ -1952,7 +1966,6 @@ define([
             )}</span>`;
 
             const tooltip = this.getRelicTooltip(relic_id);
-
             this.registerCustomTooltip(tooltip, elementId);
           }
 
