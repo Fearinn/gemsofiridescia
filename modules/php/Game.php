@@ -1013,7 +1013,7 @@ class Game extends \Table
 
         $hasReachedFlorest =!!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
 
-        if (!$hasReachedFlorest) {
+        if ($region_id === 3 && !$hasReachedFlorest) {
             $this->globals->set("currentTile", $tileCard);
             $this->reachFlorest($player_id, $tileCard);
             return;

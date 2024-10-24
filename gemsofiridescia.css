@@ -194,6 +194,10 @@
   width: 100%;
 }
 
+.goi_opponentObjectives {
+  pointer-events: none;
+}
+
 .goi_objectiveContent {
   font-family: "rooney-web", serif;
   font-weight: 400;

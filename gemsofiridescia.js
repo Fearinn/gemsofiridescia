@@ -724,6 +724,10 @@ define([
 
         /*  OBJECTIVES */
 
+        if (player_id != this.player_id) {
+          document.getElementById(`goi_objectives:${player_id}`).classList.add("goi_opponentObjectives");
+        }
+
         this.goi_stocks[player_id].objectives.hand = new AllVisibleDeck(
           this.goi_managers.objectives,
           document.getElementById(`goi_objectives:${player_id}`),
