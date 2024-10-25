@@ -48,10 +48,18 @@
   text-rendering: optimizeLegibility;
 
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
   gap: 16px;
   padding: 0 8px;
+}
+
+.goi_mainSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 .goi_card {
@@ -270,21 +278,44 @@
   background-image: url("img/dice.png");
 }
 
-.goi_mainSection {
+.goi_secondarySection {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  flex-wrap: wrap-reverse;
+  flex-direction: column;
   gap: 16px;
+  width: var(--cardSize * 2.1);
+}
+
+.goi_itemDiscard {
+  height: 409px;
+  width: 100%;
 }
 
 .goi_merchant {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, var(--cardSize));
+  gap: 8px;
+  width: 100%;
 }
 
 .goi_item .card-side {
   background-image: url("img/items.png");
+}
+
+.goi_itemContent {
+  font-family: "rooney-web", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 0.7em;
+
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 2%;
+  top: 72%;
+  text-align: center;
+  height: 15%;
+  overflow-y: auto;
+  width: 95%;
 }
 
 .goi_board {

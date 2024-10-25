@@ -11,13 +11,12 @@
 -->
 <link rel="stylesheet" href="https://use.typekit.net/jim0ypy.css" />
 <div id="goi_gameArea" class="goi_gameArea">
-  <div id="goi_gemVoid"></div>
-  <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
-  <div class="goi_relicsContainer">
-    <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
-    <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
-  </div>
   <div id="goi_mainSection" class="goi_mainSection">
+    <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
+    <div class="goi_relicsContainer">
+      <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
+      <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
+    </div>
     <div id="goi_board" class="goi_board">
       <div class="goi_tilesGrid">
         <div id="goi_tilesRow-9" class="goi_tilesRow">
@@ -101,12 +100,13 @@
       <div id="goi_explorersBoard" class="goi_explorersBoard"></div>
       <div id="goi_stoneDice" class="goi_stoneDice"></div>
     </div>
-    <div id="goi_merchant" class="goi_merchant">
-      <div id="goi_itemsDeck" class="goi_itemsDeck"></div>
-      <div id="goi_itemsMarket" class="goi_itemsMarket"></div>
-    </div>
+    <div id="goi_playerZones" class="goi_playerZones"></div>
   </div>
-  <div id="goi_playerZones" class="goi_playerZones"></div>
+  <div id="goi_secondarySection" class="goi_secondarySection">
+    <div id="goi_itemDiscard" class="goi_itemDiscard"></div>
+    <div id="goi_merchant" class="goi_merchant"></div>
+    <div id="goi_gemVoid"></div>
+  </div>
 </div>
 
 {OVERALL_GAME_FOOTER}

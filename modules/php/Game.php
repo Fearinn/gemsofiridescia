@@ -1797,6 +1797,12 @@ class Game extends \Table
         return $this->hideCards($itemsDeck, true, true);
     }
 
+    public function getItemsMarket(): array {
+        $itemsMarket = $this->item_cards->getCardsInLocation("market");
+
+        return $itemsMarket;
+    }
+
     public function getObjectives(int $current_player_id, bool $unique = false): array
     {
         if ($unique) {
@@ -2168,6 +2174,7 @@ class Game extends \Table
         $result["restoredRelics"] = $this->getRestoredRelics(null);
         $result["itemsInfo"] = $this->items_info;
         $result["itemsDeck"] = $this->getItemsDeck();
+        $result["itemsMarket"] = $this->getItemsMarket();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 
@@ -2322,6 +2329,8 @@ class Game extends \Table
         }
         $this->item_cards->createCards($itemCards, "deck");
         $this->item_cards->shuffle("deck");
+
+        $this->item_cards->pickCardsForLocation(5, "deck", "market");
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);

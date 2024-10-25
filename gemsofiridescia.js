@@ -98,6 +98,7 @@ define([
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.itemsDeck = gamedatas.itemsDeck;
+      this.goi_globals.itemsMarket = gamedatas.itemsMarket;
       this.goi_globals.objectives = gamedatas.objectives;
 
       this.goi_info.defaultSelections = {
@@ -939,7 +940,7 @@ define([
 
       this.goi_stocks.items.deck = new Deck(
         this.goi_managers.items,
-        document.getElementById("goi_itemsDeck"),
+        document.getElementById("goi_merchant"),
         {
           counter: {
             id: "goi_itemsDeckCounter",
@@ -959,8 +960,15 @@ define([
 
       this.goi_stocks.items.market = new CardStock(
         this.goi_managers.items,
-        document.getElementById("goi_itemsMarket")
+        document.getElementById("goi_merchant")
       );
+
+      const itemsMarket = this.goi_globals.itemsMarket;
+      for (const itemCard_id in itemsMarket) {
+        const itemCard = itemsMarket[itemCard_id];
+
+        this.goi_stocks.items.market.addCard(itemCard);
+      }
 
       this.setupNotifications();
 
