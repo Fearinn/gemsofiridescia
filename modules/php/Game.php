@@ -1797,10 +1797,68 @@ class Game extends \Table
         return $this->hideCards($itemsDeck, true, true);
     }
 
-    public function getItemsMarket(): array {
+    public function getItemsMarket(): array
+    {
         $itemsMarket = $this->item_cards->getCardsInLocation("market");
 
         return $itemsMarket;
+    }
+
+    public function checkItemsMarket(): bool
+    {
+        $itemsMarket = $this->getItemsMarket();
+
+        $itemsCounts = [];
+        $pairsCount = 0;
+
+        foreach ($itemsMarket as $itemCard_id => $itemCard) {
+            $item_id = (int) $itemCard["type_arg"];
+
+            if (!key_exists($item_id, $itemsCounts)) {
+                $itemsCounts[$item_id] = 0;
+            }
+
+            $itemsCounts[$item_id]++;
+
+            if ($itemsCounts[$item_id] === 2) {
+                $pairsCount++;
+            }
+        }
+
+        $trio = max($itemsCounts) >= 3;
+        $pairs = $pairsCount >= 2;
+
+        $isValid = !$trio && !$pairs;
+
+        return $isValid;
+    }
+
+    public function reshuffleItemsDeck(bool $setup = false)
+    {
+        $this->item_cards->moveAllCardsInLocation(null, "deck");
+        $this->item_cards->shuffle("deck");
+        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+
+        if (!$this->checkItemsMarket()) {
+            $this->reshuffleItemsDeck($setup);
+            return;
+        };
+
+        $itemsDeck = $this->getItemsDeck();
+        $itemsMarket = $this->getItemsMarket();
+
+        if ($setup) {
+            return;
+        }
+
+        $this->notifyAllPlayers(
+            "reshuffleItemsDeck",
+            clienttranslate('The merchant&apos;s market is reshuffled'),
+            [
+                "itemsDeck" => $itemsDeck,
+                "itemsMarket" => $itemsMarket,
+            ]
+        );
     }
 
     public function getObjectives(int $current_player_id, bool $unique = false): array
@@ -2331,6 +2389,12 @@ class Game extends \Table
         $this->item_cards->shuffle("deck");
 
         $this->item_cards->pickCardsForLocation(5, "deck", "market");
+
+        if (
+            !$this->checkItemsMarket()
+        ) {
+            $this->reshuffleItemsDeck(true);
+        };
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);

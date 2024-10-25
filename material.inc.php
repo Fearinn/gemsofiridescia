@@ -871,45 +871,45 @@ $this->items_info = [
         "cost" => 4,
     ],
     4 => [
-        "name" => "Axe of Awesomeness",
-        "tr_name" => clienttranslate("Axe of Awesomeness"),
-        "content" => clienttranslate("Split one gem in your cargo hold into two gems of the same type."),
-        "cost" => 6,
-    ],
-    5 => [
         "name" => "Epic Elixir",
         "tr_name" => clienttranslate("Epic Elixir"),
         "content" => clienttranslate("Take an additional turn."),
-        "cost" => 2,
+        "cost" => 6,
     ],
-    6 => [
+    5 => [
         "name" => "Lucky Libation",
         "tr_name" => clienttranslate("Lucky Libation"),
         "content" => clienttranslate("Re-roll any of your dice or roll up to 4 gem market dice."),
         "cost" => 2,
     ],
-    7 => [
+    6 => [
         "name" => "Jolty Jackhammer",
         "tr_name" => clienttranslate("Jolty Jackhammer"),
         "content" => clienttranslate("Modify one die by +/-1. This can either be a die that you’ve rolled in a mining attempt or one of the gem value market dice."),
-        "cost" => 3,
+        "cost" => 2,
     ],
-    8 => [
+    7 => [
         "name" => "Dazzling Dynamite",
         "tr_name" => clienttranslate("Dazzling Dynamite"),
         "content" => clienttranslate("Modify one die by +/-2. This can either be a die that you’ve rolled in a mining attempt or one of the gem value market dice."),
         "cost" => 3,
     ],
-    9 => [
-        "name" => "Swapping Stones",
-        "tr_name" => clienttranslate("Swapping Stones"),
-        "content" => clienttranslate("Swap location with any player. (Must be played at the beginning of your turn, prior to revealing tiles.)"),
-        "cost" => 6,
+    8 => [
+        "name" => "Axe of Awesomeness",
+        "tr_name" => clienttranslate("Axe of Awesomeness"),
+        "content" => clienttranslate("Split one gem in your cargo hold into two gems of the same type."),
+        "cost" => 3,
     ],
-    10 => [
+    9 => [
         "name" => "Prosperous Pickaxe",
         "tr_name" => clienttranslate("Prosperous Pickaxe"),
         "content" => clienttranslate("For every gem gained from mining on one tile this turn, gain a gem from a revealed adjacent tile."),
+        "cost" => 6,
+    ],
+    10 => [
+        "name" => "Swapping Stones",
+        "tr_name" => clienttranslate("Swapping Stones"),
+        "content" => clienttranslate("Swap location with any player. (Must be played at the beginning of your turn, prior to revealing tiles.)"),
         "cost" => 3,
     ],
     11 => [
@@ -919,3 +919,4 @@ $this->items_info = [
         "cost" => 3,
     ]
 ];
+
