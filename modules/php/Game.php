@@ -1790,6 +1790,13 @@ class Game extends \Table
         );
     }
 
+    public function getItemsDeck(): array
+    {
+        $itemsDeck = $this->item_cards->getCardsInLocation("deck");
+
+        return $this->hideCards($itemsDeck, true, true);
+    }
+
     public function getObjectives(int $current_player_id, bool $unique = false): array
     {
         if ($unique) {
@@ -2159,6 +2166,8 @@ class Game extends \Table
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
         $result["relicsMarket"] = $this->getRelicsMarket();
         $result["restoredRelics"] = $this->getRestoredRelics(null);
+        $result["itemsInfo"] = $this->items_info;
+        $result["itemsDeck"] = $this->getItemsDeck();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 

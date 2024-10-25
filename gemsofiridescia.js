@@ -46,6 +46,7 @@ define([
         dice: {},
         relics: {},
         objectives: {},
+        items: {},
       };
     },
 
@@ -63,6 +64,7 @@ define([
 
       this.goi_info.relics = gamedatas.relicsInfo;
       this.goi_info.objectives = gamedatas.objectivesInfo;
+      this.goi_info.items = gamedatas.itemsInfo;
 
       this.goi_info.gemIds = {
         iridescia: 0,
@@ -95,6 +97,7 @@ define([
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
+      this.goi_globals.itemsDeck = gamedatas.itemsDeck;
       this.goi_globals.objectives = gamedatas.objectives;
 
       this.goi_info.defaultSelections = {
@@ -401,17 +404,6 @@ define([
         },
         setupBackDiv: (card, div) => {},
       });
-
-      this.goi_stocks.items.deck = new Deck(
-        this.goi_managers.items,
-        document.getElementById("goi_itemsDeck"),
-        {}
-      );
-
-      this.goi_stocks.items.market = new CardStock(
-        this.goi_managers.items,
-        document.getElementById("goi_itemsMarket")
-      );
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
         this.goi_managers.gems,
@@ -898,7 +890,7 @@ define([
         document.getElementById("goi_relicsDeck"),
         {
           counter: {
-            id: "relicsDeckCounter",
+            id: "goi_relicsDeckCounter",
             position: "top",
             extraClasses: "goi_deckCounter",
           },
@@ -942,6 +934,33 @@ define([
 
         this.goi_stocks.relics.market.addCard(relicCard);
       }
+
+      /* ITEMS */
+
+      this.goi_stocks.items.deck = new Deck(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsDeck"),
+        {
+          counter: {
+            id: "goi_itemsDeckCounter",
+            position: "top",
+            extraClasses: "goi_deckCounter",
+          },
+        }
+      );
+
+      const itemsDeck = this.goi_globals.itemsDeck;
+      for (const itemCard_id in itemsDeck) {
+        const itemCard = itemsDeck[itemCard_id];
+
+        this.goi_stocks.items.deck.addCard(itemCard);
+        this.goi_stocks.items.deck.setCardVisible(itemCard, false);
+      }
+
+      this.goi_stocks.items.market = new CardStock(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsMarket")
+      );
 
       this.setupNotifications();
 

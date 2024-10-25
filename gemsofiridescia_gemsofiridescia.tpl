@@ -17,7 +17,7 @@
     <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
     <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
   </div>
-  <div id="goi_mainRegion" class="goi_mainRegion">
+  <div id="goi_mainSection" class="goi_mainSection">
     <div id="goi_board" class="goi_board">
       <div class="goi_tilesGrid">
         <div id="goi_tilesRow-9" class="goi_tilesRow">
