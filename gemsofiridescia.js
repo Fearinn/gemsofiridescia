@@ -359,6 +359,60 @@ define([
         },
       });
 
+      this.goi_managers.items = new CardManager(this, {
+        cardHeight: 409,
+        cardWidth: 300,
+        selectedCardClass: "goi_selectedCard",
+        getId: (card) => `item-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_card");
+          div.classList.add("goi_item");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          const item_id = Number(card.type_arg);
+
+          if (!item_id) {
+            return;
+          }
+
+          const itemInfo = this.goi_info.items[item_id];
+          const itemName = itemInfo.tr_name;
+          const itemContent = itemInfo.content;
+
+          const cardTitle = document.createElement("span");
+          cardTitle.textContent = _(itemName);
+          cardTitle.classList.add("goi_cardTitle");
+
+          if (div.childElementCount === 0) {
+            div.appendChild(cardTitle);
+          }
+
+          const cardContent = document.createElement("span");
+          cardContent.textContent = _(itemContent);
+          cardContent.classList.add("goi_itemContent");
+
+          if (div.childElementCount === 1) {
+            div.appendChild(cardContent);
+          }
+
+          const backgroundPosition = this.calcBackgroundPosition(item_id);
+          div.style.backgroundPosition = backgroundPosition;
+        },
+        setupBackDiv: (card, div) => {},
+      });
+
+      this.goi_stocks.items.deck = new Deck(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsDeck"),
+        {}
+      );
+
+      this.goi_stocks.items.market = new CardStock(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsMarket")
+      );
+
       this.goi_stocks.gems.rainbowOptions = new CardStock(
         this.goi_managers.gems,
         document.getElementById("goi_rainbowOptions")
