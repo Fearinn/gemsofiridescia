@@ -340,7 +340,7 @@ define([
             div.appendChild(cardContent);
           }
 
-          const backgroundCode = Math.ceil(objective_id / 7);
+          const backgroundCode = objective_id <= 7 ? 1 : 2;
           const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
 
           let spritePosition = objective_id - 8 * (backgroundCode - 1);
@@ -1892,7 +1892,7 @@ define([
       const objectiveName = objectiveInfo.tr_name;
       const objectiveContent = objectiveInfo.content;
 
-      const backgroundCode = Math.ceil(objective_id / 8);
+      const backgroundCode = objective_id <= 7 ? 1 : 2;
       const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
 
       const spritePosition = objective_id - 8 * (backgroundCode - 1);
