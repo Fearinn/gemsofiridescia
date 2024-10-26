@@ -61,6 +61,9 @@ class Game extends \Table
         $this->objective_cards = $this->getNew("module.common.deck");
         $this->objective_cards->init("objective");
 
+        $this->item_cards = $this->getNew("module.common.deck");
+        $this->item_cards->init("item");
+
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
     }
@@ -1787,6 +1790,77 @@ class Game extends \Table
         );
     }
 
+    public function getItemsDeck(): array
+    {
+        $itemsDeck = $this->item_cards->getCardsInLocation("deck");
+
+        return $this->hideCards($itemsDeck, true, true);
+    }
+
+    public function getItemsMarket(): array
+    {
+        $itemsMarket = $this->item_cards->getCardsInLocation("market");
+
+        return $itemsMarket;
+    }
+
+    public function checkItemsMarket(): bool
+    {
+        $itemsMarket = $this->getItemsMarket();
+
+        $itemsCounts = [];
+        $pairsCount = 0;
+
+        foreach ($itemsMarket as $itemCard_id => $itemCard) {
+            $item_id = (int) $itemCard["type_arg"];
+
+            if (!key_exists($item_id, $itemsCounts)) {
+                $itemsCounts[$item_id] = 0;
+            }
+
+            $itemsCounts[$item_id]++;
+
+            if ($itemsCounts[$item_id] === 2) {
+                $pairsCount++;
+            }
+        }
+
+        $trio = max($itemsCounts) >= 3;
+        $pairs = $pairsCount >= 2;
+
+        $isValid = !$trio && !$pairs;
+
+        return $isValid;
+    }
+
+    public function reshuffleItemsDeck(bool $setup = false)
+    {
+        $this->item_cards->moveAllCardsInLocation(null, "deck");
+        $this->item_cards->shuffle("deck");
+        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+
+        if (!$this->checkItemsMarket()) {
+            $this->reshuffleItemsDeck($setup);
+            return;
+        };
+
+        $itemsDeck = $this->getItemsDeck();
+        $itemsMarket = $this->getItemsMarket();
+
+        if ($setup) {
+            return;
+        }
+
+        $this->notifyAllPlayers(
+            "reshuffleItemsDeck",
+            clienttranslate('The merchant&apos;s market is reshuffled'),
+            [
+                "itemsDeck" => $itemsDeck,
+                "itemsMarket" => $itemsMarket,
+            ]
+        );
+    }
+
     public function getObjectives(int $current_player_id, bool $unique = false): array
     {
         if ($unique) {
@@ -2156,6 +2230,9 @@ class Game extends \Table
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);
         $result["relicsMarket"] = $this->getRelicsMarket();
         $result["restoredRelics"] = $this->getRestoredRelics(null);
+        $result["itemsInfo"] = $this->items_info;
+        $result["itemsDeck"] = $this->getItemsDeck();
+        $result["itemsMarket"] = $this->getItemsMarket();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 
@@ -2303,6 +2380,21 @@ class Game extends \Table
         foreach ($players as $player_id => $player) {
             $this->objective_cards->pickCardsForLocation(2, "deck", "hand", $player_id);
         }
+
+        $itemCards = [];
+        foreach ($this->items_info as $item_id => $item_info) {
+            $itemCards[] = ["type" => $item_info["cost"], "type_arg" => $item_id, "nbr" => 3];
+        }
+        $this->item_cards->createCards($itemCards, "deck");
+        $this->item_cards->shuffle("deck");
+
+        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+
+        if (
+            !$this->checkItemsMarket()
+        ) {
+            $this->reshuffleItemsDeck(true);
+        };
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);

@@ -47,10 +47,18 @@
 
   text-rendering: optimizeLegibility;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  grid-template-areas:
+    "d d d d d ."
+    "a a a a a b"
+    "a a a a a b"
+    "a a a a a b"
+    "a a a a a b"
+    "a a a a a b"
+    "c c c c c c";
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
   padding: 0 8px;
 }
 
@@ -270,10 +278,64 @@
   background-image: url("img/dice.png");
 }
 
+.goi_merchant {
+  grid-area: b;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: calc(var(--cardSize) * 2 + 16px);
+}
+
+.goi_itemDiscard {
+  position: absolute;
+  height: 409px;
+  width: var(--cardSize);
+}
+
+.goi_itemsDeck {
+  position: absolute !important;
+  top: 14px;
+}
+
+.goi_itemsMarket {
+  display: grid;
+  grid-template-columns: repeat(2, var(--cardSize));
+  gap: 16px;
+  width: 100%;
+}
+
+.goi_itemPlaceholder {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.goi_item .card-side {
+  background-image: url("img/items.png");
+}
+
+.goi_itemContent {
+  font-family: "rooney-web", serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 0.7em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 2%;
+  top: 72%;
+  text-align: center;
+  height: 15%;
+  overflow-y: auto;
+  width: 95%;
+}
+
 .goi_board {
+  grid-area: a;
   display: flex;
   position: relative;
-
   background-image: url("img/board.jpg");
   background-size: cover;
   aspect-ratio: 1.178;
@@ -365,9 +427,10 @@
 }
 
 .goi_playerZones {
-  display: flex;
+  grid-area: c;
+  display: grid;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   grid-template-columns: repeat(
     auto-fit,
     minmax(calc(var(--playerBoardSize) * 2), auto)
@@ -543,6 +606,7 @@
 }
 
 .goi_relicsContainer {
+  grid-area: d;
   display: flex;
   justify-content: center;
   gap: 8px;

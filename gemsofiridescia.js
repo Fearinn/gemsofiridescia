@@ -46,6 +46,7 @@ define([
         dice: {},
         relics: {},
         objectives: {},
+        items: {},
       };
     },
 
@@ -64,6 +65,7 @@ define([
 
       this.goi_info.relics = gamedatas.relicsInfo;
       this.goi_info.objectives = gamedatas.objectivesInfo;
+      this.goi_info.items = gamedatas.itemsInfo;
 
       this.goi_info.gemIds = {
         iridescia: 0,
@@ -96,6 +98,8 @@ define([
       this.goi_globals.relicsDeckTop = gamedatas.relicsDeckTop;
       this.goi_globals.relicsMarket = gamedatas.relicsMarket;
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
+      this.goi_globals.itemsDeck = gamedatas.itemsDeck;
+      this.goi_globals.itemsMarket = gamedatas.itemsMarket;
       this.goi_globals.objectives = gamedatas.objectives;
 
       this.goi_info.defaultSelections = {
@@ -358,6 +362,49 @@ define([
           div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
         },
+      });
+
+      this.goi_managers.items = new CardManager(this, {
+        cardHeight: 409,
+        cardWidth: 300,
+        selectedCardClass: "goi_selectedCard",
+        getId: (card) => `item-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_card");
+          div.classList.add("goi_item");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          const item_id = Number(card.type_arg);
+
+          if (!item_id) {
+            return;
+          }
+
+          const itemInfo = this.goi_info.items[item_id];
+          const itemName = itemInfo.tr_name;
+          const itemContent = itemInfo.content;
+
+          const cardTitle = document.createElement("span");
+          cardTitle.textContent = _(itemName);
+          cardTitle.classList.add("goi_cardTitle");
+
+          if (div.childElementCount === 0) {
+            div.appendChild(cardTitle);
+          }
+
+          const cardContent = document.createElement("span");
+          cardContent.textContent = _(itemContent);
+          cardContent.classList.add("goi_itemContent");
+
+          if (div.childElementCount === 1) {
+            div.appendChild(cardContent);
+          }
+
+          const backgroundPosition = this.calcBackgroundPosition(item_id);
+          div.style.backgroundPosition = backgroundPosition;
+        },
+        setupBackDiv: (card, div) => {},
       });
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
@@ -845,7 +892,7 @@ define([
         document.getElementById("goi_relicsDeck"),
         {
           counter: {
-            id: "relicsDeckCounter",
+            id: "goi_relicsDeckCounter",
             position: "top",
             extraClasses: "goi_deckCounter",
           },
@@ -888,6 +935,40 @@ define([
         const relicCard = relicsMarket[relicCard_id];
 
         this.goi_stocks.relics.market.addCard(relicCard);
+      }
+
+      /* ITEMS */
+
+      this.goi_stocks.items.deck = new Deck(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsDeck"),
+        {
+          counter: {
+            id: "goi_itemsDeckCounter",
+            position: "top",
+            extraClasses: "goi_deckCounter",
+          },
+        }
+      );
+
+      const itemsDeck = this.goi_globals.itemsDeck;
+      for (const itemCard_id in itemsDeck) {
+        const itemCard = itemsDeck[itemCard_id];
+
+        this.goi_stocks.items.deck.addCard(itemCard);
+        this.goi_stocks.items.deck.setCardVisible(itemCard, false);
+      }
+
+      this.goi_stocks.items.market = new CardStock(
+        this.goi_managers.items,
+        document.getElementById("goi_itemsMarket")
+      );
+
+      const itemsMarket = this.goi_globals.itemsMarket;
+      for (const itemCard_id in itemsMarket) {
+        const itemCard = itemsMarket[itemCard_id];
+
+        this.goi_stocks.items.market.addCard(itemCard);
       }
 
       this.setupNotifications();
@@ -1519,6 +1600,7 @@ define([
         { event: "obtainRoyaltyToken" },
         { event: "restoreRelic" },
         { event: "replaceRelic", duration: 1000 },
+        { event: "reshuffleItemsDeck", duration: 5000 },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -1797,6 +1879,28 @@ define([
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
       this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+    },
+
+    notif_reshuffleItemsDeck: function (notif) {
+      const itemsMarket = notif.args.itemsMarket;
+
+      const previousMarket = this.goi_stocks.items.market.getCards();
+
+      this.goi_stocks.items.deck
+        .addCards(previousMarket, {
+          fromStock: this.goi_stocks.items.market,
+        })
+        .then(() => {
+          return this.goi_stocks.items.deck.shuffle();
+        })
+        .then(() => {
+          for (const itemCard_id in itemsMarket) {
+            const itemCard = itemsMarket[itemCard_id];
+            this.goi_stocks.items.market.addCard(itemCard, {
+              fromStock: this.goi_stocks.items.deck,
+            });
+          }
+        });
     },
 
     notif_collectTile: function (notif) {
