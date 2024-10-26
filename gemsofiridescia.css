@@ -291,10 +291,15 @@
 }
 
 .goi_merchant {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: calc(var(--cardSize) * 2 + 16px);
+}
+
+.goi_itemsDeck {
+  position: absolute !important;
 }
 
 .goi_itemsMarket {
@@ -302,6 +307,11 @@
   grid-template-columns: repeat(2, var(--cardSize));
   gap: 16px;
   width: 100%;
+}
+
+.goi_itemPlaceholder {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .goi_item .card-side {

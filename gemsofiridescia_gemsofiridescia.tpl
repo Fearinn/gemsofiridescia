@@ -106,7 +106,9 @@
     <div id="goi_itemDiscard" class="goi_itemDiscard"></div>
     <div id="goi_merchant" class="goi_merchant">
       <div id="goi_itemsDeck" class="goi_itemsDeck"></div>
-      <div id="goi_itemsMarket" class="goi_itemsMarket"></div>
+      <div id="goi_itemsMarket" class="goi_itemsMarket">
+        <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
+      </div>
     </div>
     <div id="goi_gemVoid"></div>
   </div>
