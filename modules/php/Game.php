@@ -268,9 +268,6 @@ class Game extends \Table
 
         $this->objective_cards->moveCard($objectiveCard_id, "discard");
 
-        $points = (int) $objectiveCard["type"];
-        $this->incRoyaltyPoints($points, $player_id);
-
         $objective_id = (int) $objectiveCard["type_arg"];
         $objective_info = $this->objectives_info[$objective_id];
 
@@ -1584,7 +1581,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
-            $silent ? "" : clienttranslate('${player_name} obtains ${delta} Royalty Point(s)'),
+            $silent ? "" : clienttranslate('${player_name} scores ${delta} Royalty Point(s)'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
