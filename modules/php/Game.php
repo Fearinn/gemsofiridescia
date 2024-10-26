@@ -600,8 +600,13 @@ class Game extends \Table
         $canMine = $this->hasEnoughCoins(3, $player_id);
         $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
+        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+        $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id) - $activeStoneDiceCount;
+
         return [
             "canMine" => $canMine,
+            "activeStoneDiceCount" => $activeStoneDiceCount,
+            "activableStoneDiceCount" => $activableStoneDiceCount,
             "canSellGems" => $canSellGems,
             "_no_notify" => !$canMine && !$canSellGems,
         ];

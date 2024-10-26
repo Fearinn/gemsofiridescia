@@ -666,23 +666,6 @@ define([
           }
         );
 
-        this.goi_stocks[player_id].dice.scene.onSelectionChange = (
-          selection,
-          lastChange
-        ) => {
-          const selectedDiceCount = selection.length;
-          this.goi_selections.diceCount = selectedDiceCount;
-
-          const message =
-            selectedDiceCount === 0
-              ? _("Mine")
-              : this.format_string(_("Mine (activate ${count} Stone dice)"), {
-                  count: selectedDiceCount,
-                });
-
-          this.handleConfirmationButton("goi_mine_btn", message);
-        };
-
         const dice = [
           {
             id: `1:${player_id}`,
@@ -1083,6 +1066,8 @@ define([
         if (stateName === "optionalActions") {
           const canMine = args.args.canMine;
           const canSellGems = args.args.canSellGems;
+          const activeStoneDiceCount = args.args.activeStoneDiceCount;
+          const activableStoneDiceCount = args.args.activableStoneDiceCount;
 
           this.addActionButton(
             "goi_skip_btn",
@@ -1094,20 +1079,40 @@ define([
           );
 
           if (canMine) {
-            this.addActionButton("goi_mine_btn", _("Mine"), "actMine");
+            this.addActionButton("goi_mine_btn", _("Mine"), () => {
+              if (activableStoneDiceCount === 0) {
+                this.goi_selections.diceCount = 0;
+                this.actMine();
+                return;
+              }
 
-            const selectableDice = this.goi_stocks[this.player_id].dice.scene
-              .getDice()
-              .filter((die) => {
-                return die.type === "stone" && !die.active;
-              });
+              const options = [];
 
-            if (selectableDice.length > 0) {
-              this.goi_stocks[this.player_id].dice.scene.setSelectionMode(
-                "multiple",
-                selectableDice
+              for (
+                let option = 0;
+                option <= activableStoneDiceCount;
+                option++
+              ) {
+                options.push(option);
+              }
+
+              this.multipleChoiceDialog(
+                this.format_string(
+                  _(
+                    "How many Stone Dice would like to activate? You have ${activeStoneDiceCount} active now"
+                  ),
+                  {
+                    activeStoneDiceCount,
+                  }
+                ),
+                options,
+                (choice) => {
+                  this.goi_selections.diceCount = choice;
+                  this.actMine();
+                }
               );
-            }
+              return;
+            });
           }
 
           if (canSellGems) {
@@ -1288,7 +1293,6 @@ define([
 
       if (stateName === "optionalActions") {
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
-        this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
       }
 
       if (stateName === "transferGem") {
