@@ -1114,6 +1114,17 @@ define([
         }
 
         if (stateName === "client_sellGems") {
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
+
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple",
             this.goi_stocks[this.player_id].gems.cargo.getCards()
@@ -1123,6 +1134,17 @@ define([
         if (stateName === "client_mine") {
           const activableStoneDiceCount =
             args.client_args.activableStoneDiceCount;
+
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
 
           for (let option = 1; option <= activableStoneDiceCount; option++) {
             console.log(option, "option");
