@@ -320,7 +320,7 @@ class Game extends \Table
 
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id !== 0) {
+        if ($gem_id !== 0 && $gem_id !== 10) {
             $gemName = $this->gems_info[$gem_id]["name"];
             $gemMarketValue = $this->globals->get("$gemName:MarketValue");
         } else {
@@ -1106,7 +1106,7 @@ class Game extends \Table
         $gem_id = (int) $tile_info["gem"];
         $region_id = (int) $tile_info["region"];
 
-        $statName = $gem_id === 0 ? "rainbow:Tiles" : "$gem_id:GemTiles";
+        $statName = $gem_id === 0 || $gem_id === 10 ? "rainbow:Tiles" : "$gem_id:GemTiles";
         $this->incStat(1, $statName, $player_id);
 
         $this->notifyAllPlayers(
@@ -1118,7 +1118,7 @@ class Game extends \Table
             ]
         );
 
-        if ($gem_id !== 0) {
+        if ($gem_id !== 0 && $gem_id !== 10) {
             $this->updateMarketValue($gem_id);
         }
 
@@ -1430,7 +1430,8 @@ class Game extends \Table
 
         $gemCards = $this->gem_cards->pickCardsForLocation($delta, $gemName, "hand", $player_id);
 
-        $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') : clienttranslate('${player_name} collects ${delta} ${gem_label}');
+        $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') :
+            clienttranslate('${player_name} collects ${delta} ${gem_label}');
 
         $this->notifyAllPlayers(
             "incGem",
