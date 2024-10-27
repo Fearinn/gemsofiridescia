@@ -722,10 +722,7 @@ define([
               this.goi_selections.gems = [];
             }
 
-            this.handleConfirmationButton(
-              "goi_sellGems_btn",
-              _("Sell selected Gem(s)")
-            );
+            this.handleConfirmationButton();
             return;
           }
 
@@ -1146,7 +1143,7 @@ define([
             "red"
           );
 
-          for (let option = 1; option <= activableStoneDiceCount; option++) {
+          for (let option = 0; option <= activableStoneDiceCount; option++) {
             const stoneDice =
               this.goi_stocks[this.player_id].dice.scene.getDice();
 
