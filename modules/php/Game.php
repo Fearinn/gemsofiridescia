@@ -710,7 +710,7 @@ class Game extends \Table
         $this->globals->set(ANCHOR_STATE, null);
         $this->globals->set(CURRENT_TILE, null);
 
-        $castlePlayers = $this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1");
+        $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
 
         if ($castlePlayers && count($castlePlayers) === $this->getPlayersNumber()) {
             $this->gamestate->nextState("finalScoring");
@@ -766,7 +766,7 @@ class Game extends \Table
 
                 continue;
             }
-            
+
             $hex = (int) $explorerCard["location_arg"];
 
             $tileRow = ceil(($hex + 1) / 7);
@@ -1238,7 +1238,8 @@ class Game extends \Table
             ]
         );
 
-        $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
+        $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
+        $castlePlayersCount = count($castlePlayers);
 
         if ($castlePlayersCount === 1) {
             $score_aux = 100;
