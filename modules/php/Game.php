@@ -178,9 +178,17 @@ class Game extends \Table
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
+        $region_id = (int) $tileCard["type"];
+
+        if ($region_id === 5) {
+            throw new \BgaVisibleSystemException("You can't discard tiles from the Castle region");
+        }
+
         $this->checkCardLocation($tileCard, "board");
 
         $this->tile_cards->moveCard($tileCard_id, "discard");
+
+        $hex = (int) $tileCard["location_arg"];
 
         $this->notifyAllPlayers(
             "discardTile",
@@ -188,7 +196,7 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "hex" => $tileCard["location_arg"],
+                "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
                 "i18n" => ["tile"],

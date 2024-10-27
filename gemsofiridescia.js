@@ -1017,7 +1017,16 @@ define([
         }
 
         if (stateName === "discardTile") {
-          this.goi_stocks.tiles.board.setSelectionMode("single");
+          const discardableTiles = this.goi_stocks.tiles.board
+            .getCards()
+            .filter((tileCard) => {
+              return tileCard.type != 5;
+            });
+
+          this.goi_stocks.tiles.board.setSelectionMode(
+            "single",
+            discardableTiles
+          );
         }
 
         if (stateName === "moveExplorer") {
@@ -1150,12 +1159,9 @@ define([
             this.addActionButton(`goi_mineOption_btn:${option}`, option, () => {
               this.goi_selections.stoneDice = stoneDice
                 .filter((die) => {
-                  console.log(die);
                   return die.type === "stone";
                 })
                 .slice(0, option);
-
-              console.log(this.goi_selections.stoneDice);
 
               this.actMine();
             });
