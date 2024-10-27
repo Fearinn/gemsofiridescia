@@ -758,9 +758,15 @@ class Game extends \Table
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
             if ($explorerCard["location"] === "scene") {
+                $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
+
+                if ($hasReachedCastle) {
+                    $progression += 1;
+                }
+
                 continue;
             }
-
+            
             $hex = (int) $explorerCard["location_arg"];
 
             $tileRow = ceil(($hex + 1) / 7);
