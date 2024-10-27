@@ -874,8 +874,8 @@ class Game extends \Table
         $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52, 58];
 
         if ($this->getPlayersNumber() === 2) {
-            $leftEdges = [2, 8, 15, 21, 28, 34, 41, 46, 54];
-            $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51, 57];
+            $leftEdges = [2, 8, 15, 21, 28, 34, 41, 46, 53];
+            $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51, 58];
         }
 
         if (in_array($tileHex, $leftEdges)) {
@@ -2367,7 +2367,7 @@ class Game extends \Table
             if (count($players) === 2) {
                 $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
                 WHERE card_location='board' AND 
-                card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52, 53, 58)");
+                card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
             }
         }
 
