@@ -65,7 +65,7 @@ $machinestates = [
         // "args" => "argDiscardTile",
         // "action" => "stDiscardTile",
         "possibleactions" => ["actDiscardTile"],
-        "transitions" => ["betweenTurns" => 6]
+        "transitions" => ["betweenTurns" => 6],
     ],
 
     3 => [
@@ -135,7 +135,8 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "finalScoring" => 7]
+        "transitions" => ["nextTurn" => 2, "finalScoring" => 7],
+        "updateGameProgression" => true,
     ],
 
     7 => [

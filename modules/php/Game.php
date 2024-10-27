@@ -747,9 +747,25 @@ class Game extends \Table
      */
     public function getGameProgression()
     {
-        // TODO: compute and return the game progression
+        $players = $this->loadPlayersBasicInfos();
 
-        return 0;
+        $progression = 0;
+
+        foreach ($players as $player_id => $player) {
+            $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+            if ($explorerCard["location"] === "scene") {
+                continue;
+            }
+
+            $hex = (int) $explorerCard["location_arg"];
+
+            $tileRow = ceil(($hex + 1) / 7);
+
+            $progression += $tileRow / 9;
+        }
+
+        return round($progression / count($players) * 100);
     }
 
     /*   Utility functions */
@@ -1140,7 +1156,7 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("The Iridia Stone has already been found: collectIridiaStone");
         }
 
-        $this->DbQuery("UPDATE player SET iridia_stone=1 WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=1000 WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
             "obtainIridiaStone",
@@ -1214,14 +1230,17 @@ class Game extends \Table
         $castlePlayersCount = count($this->getObjectFromDB("SELECT player_id FROM player WHERE castle=1"));
 
         if ($castlePlayersCount === 1) {
+            $score_aux = 100;
             $token_id = 3;
         }
 
         if ($castlePlayersCount === 2) {
+            $score_aux = 10;
             $token_id = 2;
         }
 
         if ($castlePlayersCount === 3) {
+            $score_aux = 1;
             $token_id = 1;
         }
 
@@ -1247,7 +1266,7 @@ class Game extends \Table
             ]
         );
 
-        $this->DbQuery("UPDATE player SET $tokenName=1 WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=$score_aux WHERE player_id=$player_id");
         $this->incRoyaltyPoints($tokenPoints, $player_id);
     }
 
