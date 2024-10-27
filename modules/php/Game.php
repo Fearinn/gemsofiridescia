@@ -1071,6 +1071,8 @@ class Game extends \Table
 
         if ($gem_id === 10) {
             $this->obtainIridiaStone($player_id);
+            $this->gamestate->nextState("rainbowTile");
+            return;
         }
 
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {

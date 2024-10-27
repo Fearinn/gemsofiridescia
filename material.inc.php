@@ -404,14 +404,14 @@ $this->tiles_info = [
     ],
     57 => [
         "region" => 5,
-        "gem" => 0,
+        "gem" => 10,
         "effect" => 2,
     ],
     58 => [
         "region" => 5,
-        "gem" => 10,
+        "gem" => 0,
         "effect" => 2,
-    ]
+    ],
 ];
 
 $this->royaltyTokens_info = [
@@ -919,4 +919,3 @@ $this->items_info = [
         "cost" => 3,
     ]
 ];
-
