@@ -706,7 +706,7 @@ define([
         ) => {
           const stateName = this.getStateName();
 
-          if (stateName === "optionalActions") {
+          if (stateName === "client_sellGems") {
             if (selection.length > 0) {
               if (selection[0].type === lastChange.type) {
                 this.goi_selections.gems.push(lastChange);
@@ -1078,51 +1078,59 @@ define([
             "red"
           );
 
-          if (canMine) {
-            this.addActionButton("goi_mine_btn", _("Mine"), () => {
-              if (activableStoneDiceCount === 0) {
-                this.goi_selections.diceCount = 0;
-                this.actMine();
-                return;
-              }
-
-              const options = [];
-
-              for (
-                let option = 0;
-                option <= activableStoneDiceCount;
-                option++
-              ) {
-                options.push(option);
-              }
-
-              this.multipleChoiceDialog(
-                this.format_string(
-                  _(
-                    "How many Stone Dice would like to activate? You have ${activeStoneDiceCount} active now"
-                  ),
-                  {
-                    activeStoneDiceCount,
-                  }
+          this.addActionButton("goi_mine_btn", _("Mine"), () => {
+            if (activableStoneDiceCount === 0) {
+              this.goi_selections.diceCount = 0;
+              this.actMine();
+            } else {
+              this.setClientState("client_mine", {
+                descriptionmyturn: _(
+                  "How many Stone Dice would ${you} like to roll? Currently active: ${activeStoneDiceCount}"
                 ),
-                options,
-                (choice) => {
-                  this.goi_selections.diceCount = choice;
-                  this.actMine();
-                }
-              );
-              return;
-            });
+                client_args: { activableStoneDiceCount, activeStoneDiceCount },
+              });
+            }
+          });
+
+          if (!canMine) {
+            document.getElementById("goi_mine_btn").classList.add("disabled");
           }
 
-          if (canSellGems) {
-            this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
-              "multiple",
-              this.goi_stocks[this.player_id].gems.cargo.getCards()
-            );
+          this.addActionButton("goi_sellGems_btn", _("Sell Gem(s)"), () => {
+            this.setClientState("client_sellGems", {
+              descriptionmyturn: _(
+                "${you} may select Gem(s) to sell (all from the same type)"
+              ),
+            });
+          });
+
+          if (!canSellGems) {
+            document
+              .getElementById("goi_sellGems_btn")
+              .classList.add("disabled");
           }
 
           return;
+        }
+
+        if (stateName === "client_sellGems") {
+          this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
+            "multiple",
+            this.goi_stocks[this.player_id].gems.cargo.getCards()
+          );
+        }
+
+        if (stateName === "client_mine") {
+          const activableStoneDiceCount =
+            args.client_args.activableStoneDiceCount;
+
+          for (let option = 1; option <= activableStoneDiceCount; option++) {
+            console.log(option, "option");
+            this.addActionButton(`goi_mineOption_btn:${option}`, option, () => {
+              this.goi_selections.diceCount = option;
+              this.actMine();
+            });
+          }
         }
 
         if (stateName === "transferGem") {
@@ -1291,7 +1299,7 @@ define([
         );
       }
 
-      if (stateName === "optionalActions") {
+      if (stateName === "client_sellGems") {
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
 
@@ -1393,18 +1401,9 @@ define([
         }
       }
 
-      if (stateName === "optionalActions") {
-        if (
-          elementId === "goi_sellGems_btn" &&
-          this.goi_selections.gems.length > 0
-        ) {
-          this.addActionButton(elementId, message, "actSellGems");
-          return;
-        }
-
-        if (elementId === "goi_mine_btn") {
-          this.addActionButton(elementId, message, "actMine");
-        }
+      if (stateName === "client_sellGems") {
+        this.addActionButton(elementId, message, "actSellGems");
+        return;
       }
 
       if (stateName === "transferGem") {
