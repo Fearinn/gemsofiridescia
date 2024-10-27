@@ -441,7 +441,7 @@ class Game extends \Table
 
         $availableCargos = $this->availableCargos($player_id);
 
-        if (!$opponent_id && !$availableCargos) {
+        if (!$availableCargos) {
             $this->discardGem($gemCard, $player_id);
         } else {
             $this->transferGem($gemCard, $opponent_id, $player_id);
@@ -655,14 +655,21 @@ class Game extends \Table
             }
         }
 
-        if ($typesOfGems === 1 && count($availableCargos) === 1) {
-            $opponent_id = array_shift($availableCargos);
-
+        if ($typesOfGems === 1) {
             $gemCard = $this->getObjectFromDB("$this->deckSelectQuery FROM gem 
             WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
 
-            $this->transferGem($gemCard, $opponent_id, $player_id);
-            $this->gamestate->nextState("repeat");
+            if (!$availableCargos) {
+                $this->discardGem($gemCard, $player_id);
+                return;
+            }
+
+            if (count($availableCargos) === 1) {
+                $opponent_id = array_shift($availableCargos);
+
+                $this->transferGem($gemCard, $opponent_id, $player_id);
+                $this->gamestate->nextState("repeat");
+            }
         }
     }
 

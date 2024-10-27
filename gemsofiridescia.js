@@ -1273,6 +1273,8 @@ define([
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
 
+      this.goi_selections = this.goi_info.defaultSelections;
+
       if (!this.goi_globals.player) {
         return;
       }
@@ -1334,8 +1336,6 @@ define([
       if (stateName === "restoreRelic") {
         this.goi_stocks.relics.market.setSelectionMode("none");
       }
-
-      this.goi_selections = this.goi_info.defaultSelections;
     },
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
