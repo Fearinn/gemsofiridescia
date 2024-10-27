@@ -1471,11 +1471,9 @@ class Game extends \Table
         $gemName = $this->gems_info[$gem_id]["name"];
 
         foreach ($gemCards as $gemCard_id => $gemCard) {
-            if ($gemCard["location"] !== "hand" || $gemCard["location_arg"] != $player_id) {
-                throw new \BgaVisibleSystemException("This gem is not yours: decGem, $gemCard_id");
-            }
+            $this->checkCardLocation($gemCard, "hand", $player_id);
 
-            $this->gem_cards->insertCardOnExtremePosition($gemCard_id, "deck", false);
+            $this->gem_cards->insertCardOnExtremePosition($gemCard_id, $gemName, false);
         }
 
         $this->notifyAllPlayers(
