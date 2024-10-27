@@ -106,7 +106,7 @@ define([
         tile: null,
         gem: null,
         gems: [],
-        diceCount: 0,
+        stoneDice: [],
         opponent: null,
       };
 
@@ -1080,7 +1080,7 @@ define([
 
           this.addActionButton("goi_mine_btn", _("Mine"), () => {
             if (activableStoneDiceCount === 0) {
-              this.goi_selections.diceCount = 0;
+              this.goi_selections.stoneDice = [];
               this.actMine();
             } else {
               this.setClientState("client_mine", {
@@ -1147,9 +1147,19 @@ define([
           );
 
           for (let option = 1; option <= activableStoneDiceCount; option++) {
-            console.log(option, "option");
+            const stoneDice =
+              this.goi_stocks[this.player_id].dice.scene.getDice();
+
             this.addActionButton(`goi_mineOption_btn:${option}`, option, () => {
-              this.goi_selections.diceCount = option;
+              this.goi_selections.stoneDice = stoneDice
+                .filter((die) => {
+                  console.log(die);
+                  return die.type === "stone";
+                })
+                .slice(0, option);
+
+              console.log(this.goi_selections.stoneDice);
+
               this.actMine();
             });
           }
@@ -1555,7 +1565,7 @@ define([
 
     actMine: function () {
       this.performAction("actMine", {
-        newStoneDiceCount: this.goi_selections.diceCount,
+        stoneDice: JSON.stringify(this.goi_selections.stoneDice),
       });
     },
 

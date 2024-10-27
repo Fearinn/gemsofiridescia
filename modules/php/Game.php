@@ -298,16 +298,22 @@ class Game extends \Table
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
-    public function actMine(#[IntParam(min: 0, max: 4)] int $newStoneDiceCount): void
+    public function actMine(#[JsonParam(alphanum: false)] array $stoneDice): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $activeStoneDiceCount = $this->globals->inc(ACTIVE_STONE_DICE_COUNT, $newStoneDiceCount);
+        $stoneDiceCount = count($stoneDice);
+
+        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+
+        if ($stoneDiceCount > $activeStoneDiceCount) {
+            $this->globals->set(ACTIVE_STONE_DICE_COUNT, $stoneDiceCount);
+        }
 
         $privateStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
-        if ($activeStoneDiceCount > $privateStoneDiceCount) {
-            throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $activeStoneDiceCount, $privateStoneDiceCount");
+        if ($stoneDiceCount > $privateStoneDiceCount) {
+            throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
         }
 
         $this->decCoin(3, $player_id, true);
@@ -342,19 +348,8 @@ class Game extends \Table
             $minedGems++;
         }
 
-        if ($newStoneDiceCount > 0) {
-            $this->notifyAllPlayers(
-                "informActiveStoneDice",
-                clienttranslate('${player_name} has ${count} active Stone dice'),
-                [
-                    "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
-                    "count" => $this->globals->get(ACTIVE_STONE_DICE_COUNT),
-                ]
-            );
-        }
-
-        for ($die_id = $activeStoneDiceCount; $die_id > 0; $die_id--) {
+        foreach ($stoneDice as $die) {
+            $die_id = (int) $die["id"];
             $roll = $this->rollDie($die_id, $player_id, "stone");
 
             if ($roll >= $gemMarketValue) {
@@ -368,8 +363,9 @@ class Game extends \Table
             []
         );
 
+        foreach ($stoneDice as $die) {
+            $die_id = (int) $die["id"];
 
-        for ($die_id = $activeStoneDiceCount; $die_id > 0; $die_id--) {
             $this->notifyAllPlayers(
                 "activateStoneDie",
                 "",
@@ -598,7 +594,7 @@ class Game extends \Table
         $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
-        $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id) - $activeStoneDiceCount;
+        $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
         return [
             "canMine" => $canMine,
