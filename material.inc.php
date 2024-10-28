@@ -82,8 +82,8 @@ $this->regions_info = [
         "tr_name" => clienttranslate("Canyon")
     ],
     3 => [
-        "name" => "Florest",
-        "tr_name" => clienttranslate("Florest")
+        "name" => "Forest",
+        "tr_name" => clienttranslate("Forest")
     ],
     4 => [
         "name" => "Ruins",

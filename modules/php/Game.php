@@ -64,6 +64,12 @@ class Game extends \Table
         $this->item_cards = $this->getNew("module.common.deck");
         $this->item_cards->init("item");
 
+        $this->rhom_cards = $this->getNew("module.common.deck");
+        $this->rhom_cards->init("rhom");
+
+        $this->barrier_cards = $this->getNew("module.common.deck");
+        $this->barrier_cards->init("barrier");
+
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
     }
@@ -1054,11 +1060,11 @@ class Game extends \Table
         $tileInfo = $this->tiles_info[$tile_id];
         $gem_id = (int) $tileInfo["gem"];
 
-        $hasReachedFlorest = !!$this->getUniqueValueFromDB("SELECT florest from player WHERE player_id=$player_id");
+        $hasReachedForest = !!$this->getUniqueValueFromDB("SELECT forest from player WHERE player_id=$player_id");
 
-        if ($region_id === 3 && !$hasReachedFlorest) {
+        if ($region_id === 3 && !$hasReachedForest) {
             $this->globals->set(CURRENT_TILE, $tileCard);
-            $this->reachFlorest($player_id, $tileCard);
+            $this->reachForest($player_id, $tileCard);
             return;
         }
 
@@ -1139,13 +1145,13 @@ class Game extends \Table
         return true;
     }
 
-    public function reachFlorest(int $player_id): void
+    public function reachForest(int $player_id): void
     {
-        $this->DbQuery("UPDATE player SET florest=1 WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET forest=1 WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
-            "reachFlorest",
-            clienttranslate('${player_name} reaches the Florest region'),
+            "reachForest",
+            clienttranslate('${player_name} reaches the Forest region'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
