@@ -1319,7 +1319,9 @@ define([
       }
 
       if (stateName === "discardCollectedTile") {
-        this.goi_stocks[this.player_id].tiles.hand.setSelectionMode("none");
+        this.goi_stocks[this.player_id].tiles.victoryPile.setSelectionMode(
+          "none"
+        );
       }
 
       if (stateName === "moveExplorer") {

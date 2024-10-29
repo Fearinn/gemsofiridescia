@@ -24,6 +24,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
+use BgaUserException;
 use BgaVisibleSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
@@ -163,7 +164,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected ${tile}'),
+            clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -515,6 +516,7 @@ class Game extends \Table
         }
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
+
         $noRevealableTile = $hasExpandedTiles && !$expandedRevealableTiles;
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
@@ -540,7 +542,7 @@ class Game extends \Table
                 return;
             }
 
-            if (!$args["mustDiscardCollectedTile"]) {
+            if ($args["mustDiscardCollectedTile"]) {
                 $this->gamestate->nextState("discardCollectedTile");
                 return;
             }
@@ -555,7 +557,12 @@ class Game extends \Table
 
         $collectedTiles = $this->getCollectedTiles($player_id);
 
-        return ["collectedTiles" => $collectedTiles];
+        $auto = count($collectedTiles) === 1;
+
+        return [
+            "collectedTiles" => $collectedTiles,
+            "_no_notify" => $auto
+        ];
     }
 
     public function stDiscardCollectedTile(): void
@@ -564,7 +571,7 @@ class Game extends \Table
 
         $collectedTiles = $args["collectedTiles"];
 
-        if (count($collectedTiles) === 1) {
+        if ($args["_no_notify"]) {
             $tileCard = array_shift($collectedTiles);
             $tileCard_id = (int) $tileCard["id"];
 
@@ -946,6 +953,7 @@ class Game extends \Table
     public function revealableTiles(int $player_id, bool $associative = false): array
     {
         $revealableTiles = [];
+        return [];
 
         $adjacentTiles =  $this->adjacentTiles($player_id);
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
