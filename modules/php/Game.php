@@ -2176,7 +2176,7 @@ class Game extends \Table
             0 => 0,
             1 => 0,
             2 => 0,
-            3 => 0
+            3 => 0,
         ];
 
         $relicCards = $this->relic_cards->getCardsInLocation("hand", $player_id);
