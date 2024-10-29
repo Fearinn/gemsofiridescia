@@ -2131,6 +2131,18 @@ define([
             this.registerCustomTooltip(tooltip, elementId);
           }
         }
+
+        if (this.getGameUserPreference(101) == 1) {
+          if (args.gem_label) {
+            const gem_id = args.gem_id;
+            const backgroundPosition = this.calcBackgroundPosition(gem_id);
+            args.gem_label = `<span class="goi_gemIcon goi_log" style="background-position: ${backgroundPosition}"></span>`;
+          }
+
+          if (args.coin) {
+            args.coin = `<span class="goi_gemIcon goi_log" style="background-position: -500% 0"></span>`;
+          }
+        }
       } catch (e) {
         console.error(log, args, "Exception thrown", e.stack);
       }

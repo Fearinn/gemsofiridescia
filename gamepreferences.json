@@ -3,7 +3,19 @@
     "name": "Thematic background",
     "values": {
       "0": { "name": "Disabled" },
-      "1": { "name": "Enabled", "cssPref": "goi_thematicBackground", "default": true }
+      "1": {
+        "name": "Enabled",
+        "cssPref": "goi_thematicBackground",
+        "default": true
+      }
+    },
+    "needReload": true
+  },
+  "101": {
+    "name": "Resources in the log",
+    "values": {
+      "0": { "name": "Plain text" },
+      "1": { "name": "Icons", "default": true }
     },
     "needReload": true
   }

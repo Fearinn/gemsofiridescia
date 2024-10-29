@@ -1429,6 +1429,8 @@ class Game extends \Table
                 "gemName" => $gem_info["name"],
                 "gemCard" => $gemCard,
                 "18n" => ["gem_label"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
             ]
         );
     }
@@ -1442,9 +1444,10 @@ class Game extends \Table
             clienttranslate('${player_name} returns 1 ${gem_label} to the supply'),
             [
                 "player_name" => $this->getPlayerNameById($player_id),
-                "gem_id" => $gem_id,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
-                "i18n" => ["gem_label"]
+                "i18n" => ["gem_label"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
             ]
         );
 
@@ -1472,6 +1475,8 @@ class Game extends \Table
                 "gemCards" => $gemCards,
                 "tileCard" => $tileCard,
                 "i18n" => ["gem_label"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
             ]
         );
 
@@ -1510,11 +1515,12 @@ class Game extends \Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
-                "gem_id" => $gem_id,
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
-                "i18n" => ["gem_label"]
+                "i18n" => ["gem_label"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
             ]
         );
     }
@@ -1553,7 +1559,9 @@ class Game extends \Table
                 clienttranslate('The market crashes for ${gem_label}'),
                 [
                     "gem_label" => $gem_info["tr_name"],
-                    "i18n" => ["gem_label"]
+                    "i18n" => ["gem_label"],
+                    "preserve" => ["gem_id"],
+                    "gem_id" => $gem_id,
                 ]
             );
         } else {
@@ -1562,12 +1570,13 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "updateMarketValue",
-            clienttranslate('The market value of the ${gem_label} is ${marketValue} now'),
+            clienttranslate('The market value of ${gem_label} is ${marketValue} now'),
             [
                 "marketValue" => $marketValue,
-                "gem_id" => $gem_id,
                 "gem_label" => $gem_info["tr_name"],
-                "i18n" => ["gem_label"]
+                "i18n" => ["gem_label"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
             ]
         );
     }
@@ -1600,11 +1609,13 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incCoin",
-            clienttranslate('${player_name} obtains ${delta} coin(s)'),
+            clienttranslate('${player_name} obtains ${delta} ${coin}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "delta" => $delta
+                "delta" => $delta,
+                "coin" => clienttranslate("coin(s)"),
+                "i18n" => ["coin"],
             ]
         );
     }
@@ -1619,12 +1630,14 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incCoin",
-            clienttranslate('${player_name} spends ${abs_delta} coin(s)'),
+            clienttranslate('${player_name} spends ${abs_delta} ${coin}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "abs_delta" => $delta,
-                "delta" => -$delta
+                "delta" => -$delta,
+                "coin" => clienttranslate("coin(s)"),
+                "i18n" => ["coin"]
             ]
         );
     }
