@@ -231,8 +231,9 @@ class Game extends \Table
         }
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $hex = (int) $tileCard["location_arg"];
 
-        $this->explorer_cards->moveCard($explorerCard["id"], "board", $tileCard["location_arg"]);
+        $this->explorer_cards->moveCard($explorerCard["id"], "board", $hex);
 
         $this->notifyAllPlayers(
             "moveExplorer",
@@ -240,7 +241,7 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "hex" => $tileCard["location_arg"],
+                "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
                 "i18n" => ["region_label"],
@@ -511,8 +512,10 @@ class Game extends \Table
         $hasExpandedTiles = $this->globals->get(HAS_EXPANDED_TILES, false);
 
         $expandedRevealableTiles = [];
+        $expandedExplorableTiles = [];
         if ($hasExpandedTiles) {
             $expandedRevealableTiles = $this->expandedRevealableTiles($player_id);
+            $expandedExplorableTiles = $this->expandedExplorableTiles($player_id);
         }
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
@@ -521,7 +524,7 @@ class Game extends \Table
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
-        $singleRevealableTile = count($revealableTiles) === 1 || ($hasExpandedTiles && count($expandedRevealableTiles) === 1);
+        $singleRevealableTile = (!$explorableTiles && count($revealableTiles) === 1) || ($hasExpandedTiles && !$expandedExplorableTiles && count($expandedRevealableTiles) === 1);
 
         return [
             "auto" => $singleRevealableTile,
@@ -747,11 +750,23 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $this->resetStoneDice($player_id);
+        $this->collectTile($player_id);
+
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
-        if (!$hasReachedCastle) {
-            $this->resetStoneDice($player_id);
-            $this->collectTile($player_id);
+        if ($hasReachedCastle) {
+            $explorerCard = $this->getExplorerByPlayerId($player_id);
+            $this->explorer_cards->moveCard($explorerCard["id"], "scene");
+
+            $this->notifyAllPlayers(
+                "resetExplorer",
+                "",
+                [
+                    "player_id" => $player_id,
+                    "explorerCard" => $explorerCard,
+                ]
+            );
         }
 
         $this->globals->set(REVEALS_LIMIT, 0);
@@ -1144,9 +1159,14 @@ class Game extends \Table
         $this->gamestate->nextState("optionalActions");
     }
 
-    public function collectTile(int $player_id): bool
+    public function collectTile(int $player_id): void
     {
         $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+        if ($explorerCard["location"] === "scene") {
+            return;
+        }
+
         $hex = (int) $explorerCard["location_arg"];
 
         $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
@@ -1180,8 +1200,6 @@ class Game extends \Table
         if ($region_id === 5) {
             $this->reachCastle($player_id);
         }
-
-        return true;
     }
 
     public function reachForest(int $player_id): void
@@ -1275,19 +1293,10 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "reacheCastle",
-            clienttranslate('${player_name} reachs the Castle row'),
+            clienttranslate('${player_name} reaches the Castle row'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id)
-            ]
-        );
-
-        $this->notifyAllPlayers(
-            "resetExplorer",
-            "",
-            [
-                "player_id" => $player_id,
-                "explorerCard" => $this->getExplorerByPlayerId($player_id)
             ]
         );
 
@@ -1729,6 +1738,10 @@ class Game extends \Table
     public function resetStoneDice(int $player_id): void
     {
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+
+        if ($activeStoneDiceCount === 0) {
+            return;
+        }
 
         $this->dbQuery("UPDATE player SET stone_die=stone_die-$activeStoneDiceCount WHERE player_id=$player_id");
         $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $activeStoneDiceCount);
