@@ -635,7 +635,7 @@ define([
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
                 <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
                 <div id="goi_castlePile:${player_id}" class="goi_castlePile">
-                  s<div id="goi_iridiaStone:${player_id}"></div>
+                  <div id="goi_iridiaStone:${player_id}"></div>
                   <div id="goi_royaltyToken:${player_id}"></div> 
                 </div>
               </div>

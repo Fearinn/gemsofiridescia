@@ -521,14 +521,18 @@ class Game extends \Table
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
+        $singleRevealableTile = count($revealableTiles) === 1 || ($hasExpandedTiles && count($expandedRevealableTiles) === 1);
+
         return [
+            "auto" => $singleRevealableTile,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
             "revealsLimit" => $revealsLimit,
             "skippable" => !!$explorableTiles,
             "hasReachedCastle" => $hasReachedCastle,
-            "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $revealsLimit === 2 || $hasReachedCastle,
+            "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
+                || $revealsLimit === 2 || $hasReachedCastle,
         ];
     }
 
@@ -545,6 +549,19 @@ class Game extends \Table
             if ($args["mustDiscardCollectedTile"]) {
                 $this->gamestate->nextState("discardCollectedTile");
                 return;
+            }
+
+            if ($args["auto"]) {
+                $revealableTiles = (array) $args["revealableTiles"];
+
+                if (!$revealableTiles) {
+                    $revealableTiles = (array) $args["expandedRevealableTiles"];
+                }
+
+                $tileCard = array_shift($revealableTiles);
+                $tileCard_id = (int) $tileCard["id"];
+
+                $this->actRevealTile($tileCard_id);
             }
 
             $this->gamestate->nextState("moveExplorer");
@@ -593,11 +610,14 @@ class Game extends \Table
             $revealableTiles = $this->expandedRevealableTiles($player_id);
         }
 
+        $singleExplorableTile = count($explorableTiles) === 1 && ($revealsLimit === 2 || !$revealableTiles);
+
         return [
+            "auto" => $singleExplorableTile,
             "explorableTiles" => $explorableTiles,
             "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
-            "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER)
+            "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER) || $singleExplorableTile
         ];
     }
 
@@ -606,6 +626,15 @@ class Game extends \Table
         $args = $this->argMoveExplorer();
 
         if ($args["_no_notify"]) {
+            if ($args["auto"]) {
+                $explorableTiles = $args["explorableTiles"];
+                $tileCard = array_shift($explorableTiles);
+                $tileCard_id = (int) $tileCard["id"];
+
+                $this->actMoveExplorer($tileCard_id);
+                return;
+            }
+
             $this->gamestate->nextState("optionalActions");
         }
     }
