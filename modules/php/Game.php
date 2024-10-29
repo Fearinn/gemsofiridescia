@@ -520,7 +520,7 @@ class Game extends \Table
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
 
-        $noRevealableTile = $hasExpandedTiles && !$expandedRevealableTiles;
+        $noRevealableTile = (!$hasExpandedTiles && !$revealableTiles) || ($hasExpandedTiles && !$expandedRevealableTiles);
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
