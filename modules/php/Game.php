@@ -1443,6 +1443,7 @@ class Game extends \Table
         $gem_id = (int) $gemCard["type_arg"];
         $gemCard_id = (int) $gemCard["id"];
         $gem_info = $this->gems_info[$gem_id];
+        $gemName = $gem_info["name"];
 
         $this->gem_cards->moveCard($gemCard_id, "hand", $opponent_id);
 
@@ -1455,7 +1456,7 @@ class Game extends \Table
                 "player_id2" => $opponent_id,
                 "player_name2" => $this->getPlayerNameById($opponent_id),
                 "gem_label" => $gem_info["tr_name"],
-                "gemName" => $gem_info["name"],
+                "gemName" => $gemName,
                 "gemCard" => $gemCard,
                 "18n" => ["gem_label"],
                 "preserve" => ["gem_id"],
@@ -2449,10 +2450,9 @@ class Game extends \Table
         $gemCards = [];
         foreach ($this->gems_info as $gem_id => $gem_info) {
             $gemName = $gem_info["name"];
-            $gemCards[] = ["type" => $gemName, "type_arg" => $gem_id, "nbr" => count($players) * 7];
+            $gemCards[] = ["type" => $gemName, "type_arg" => $gem_id, "nbr" => count($players) * 7 + 8];
         }
         $this->gem_cards->createCards($gemCards, "deck");
-
 
         foreach ($this->gems_info as $gem_id => $gem_info) {
             $gemName = $gem_info["name"];

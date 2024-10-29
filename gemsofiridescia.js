@@ -1791,7 +1791,7 @@ define([
       }
 
       this.goi_counters[player_id].gems[gemName].incValue(-1);
-      this.goi_counters[player_id].gems[gemName].incValue(1);
+      this.goi_counters[opponent_id].gems[gemName].incValue(1);
     },
 
     notif_obtainIridiaStone: function (notif) {
