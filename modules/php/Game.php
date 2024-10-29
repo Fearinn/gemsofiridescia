@@ -2396,12 +2396,12 @@ class Game extends \Table
                 $this->tile_cards->pickCardForLocation($temporaryLocation, "board", $hex);
                 $hex++;
             }
+        }
 
-            if (count($players) === 2) {
-                $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-                WHERE card_location='board' AND 
-                card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
-            }
+        if (count($players) === 2) {
+            $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
+            WHERE card_location='board' AND 
+            card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
         }
 
         $gemCards = [];
@@ -2439,9 +2439,14 @@ class Game extends \Table
 
         $itemCards = [];
         foreach ($this->items_info as $item_id => $item_info) {
+            if (count($players) === 2 && ($item_id === 10 || $item_id === 11)) {
+                continue;
+            }
+
             $itemCards[] = ["type" => $item_info["cost"], "type_arg" => $item_id, "nbr" => 3];
         }
         $this->item_cards->createCards($itemCards, "deck");
+
         $this->item_cards->shuffle("deck");
 
         $this->item_cards->pickCardsForLocation(5, "deck", "market");
