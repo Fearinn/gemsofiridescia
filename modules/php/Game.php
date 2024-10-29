@@ -507,23 +507,26 @@ class Game extends \Table
         $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
         $explorableTiles = $this->explorableTiles($player_id);
 
-        $hasExpandedTiles = $this->globals->get(HAS_EXPANDED_TILES);
-        $expandedRevealableTiles = [];
+        $hasExpandedTiles = $this->globals->get(HAS_EXPANDED_TILES, false);
 
+        $expandedRevealableTiles = [];
         if ($hasExpandedTiles) {
             $expandedRevealableTiles = $this->expandedRevealableTiles($player_id);
         }
+
+        $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
+        $noRevealableTile = $hasExpandedTiles && !$expandedRevealableTiles;
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
         return [
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
-            "explorableTiles" => $explorableTiles,
+            "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
             "revealsLimit" => $revealsLimit,
             "skippable" => !!$explorableTiles,
             "hasReachedCastle" => $hasReachedCastle,
-            "_no_notify" => (!$revealableTiles && !$hasExpandedTiles) || ($hasExpandedTiles && !$expandedRevealableTiles) || $revealsLimit >= 2 || $hasReachedCastle,
+            "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $revealsLimit === 2 || $hasReachedCastle,
         ];
     }
 
@@ -537,7 +540,7 @@ class Game extends \Table
                 return;
             }
 
-            if (!$args["revealableTiles"] && !$args["explorableTiles"] && !$args["expandedRevealableTiles"]) {
+            if (!$args["mustDiscardCollectedTile"]) {
                 $this->gamestate->nextState("discardCollectedTile");
                 return;
             }
