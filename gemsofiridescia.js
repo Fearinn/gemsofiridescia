@@ -602,11 +602,15 @@ define([
         const backgroundPosition = this.calcBackgroundPosition(spritePosition);
 
         const player = this.goi_globals.players[player_id];
-        const playerName = player.name;
+        const playerName =
+          this.player_id == player_id
+            ? `${_("You")} (${player.name})`
+            : player.name;
         const playerColor = player.color;
+        const order = this.player_id == player_id ? -1 : 0;
 
         document.getElementById("goi_playerZones").innerHTML += `
-        <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor};">
+        <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_playerZoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
@@ -628,10 +632,12 @@ define([
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
               <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
-                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile" data-pile=true></div>
-                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile" data-pile=true></div>
-                <div id="goi_royaltyToken:${player_id}" class="goi_royaltyTokenContainer"></div> 
-                <div id="goi_iridiaStone:${player_id}" class="goi_royaltyTokenContainer"></div> 
+                <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
+                <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
+                <div id="goi_castlePile:${player_id}" class="goi_castlePile">
+                  s<div id="goi_iridiaStone:${player_id}"></div>
+                  <div id="goi_royaltyToken:${player_id}"></div> 
+                </div>
               </div>
             </div>
           </div>
@@ -640,20 +646,6 @@ define([
 
       let currentStoneDie_id = 1;
       for (const player_id in this.goi_globals.players) {
-        const playerZoneContainerElement = document.getElementById(
-          `goi_playerZoneContainer:${player_id}`
-        );
-
-        // playerZoneContainerElement.onmouseleave = () => {
-        //   playerZoneContainerElement.classList.add("goi_lockHeight");
-
-        //   clearTimeout(this.goi_globals.timeout_id);
-
-        //   this.goi_globals.timeout_id = setTimeout(() => {
-        //     playerZoneContainerElement.classList.remove("goi_lockHeight");
-        //   }, 1000);
-        // };
-
         const player_color = this.goi_globals.players[player_id].color;
 
         this.goi_stocks[player_id].dice.scene = new DiceStock(

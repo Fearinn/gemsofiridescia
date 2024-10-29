@@ -953,7 +953,6 @@ class Game extends \Table
     public function revealableTiles(int $player_id, bool $associative = false): array
     {
         $revealableTiles = [];
-        return [];
 
         $adjacentTiles =  $this->adjacentTiles($player_id);
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
