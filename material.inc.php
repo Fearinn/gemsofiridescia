@@ -752,7 +752,8 @@ $this->objectives_info = [
         "name" => "Glimmering Gold",
         "tr_name" => clienttranslate("Glimmering Gold"),
         "content" => clienttranslate("Finish the game with the most coins"),
-        "points" => 7
+        "points" => 7,
+        "variable" => null,
     ],
     2 => [
         "name" => "Amethyst Aficionado",
@@ -787,6 +788,7 @@ $this->objectives_info = [
         "tr_name" => clienttranslate("Regal Rainbow"),
         "content" => clienttranslate("Restore 1 Relic from each Gem type"),
         "points" => 7,
+        "variable" => null,
     ],
     7 => [
         "name" => "All About Amethyst",
@@ -820,7 +822,8 @@ $this->objectives_info = [
         "name" => "Remarkable Restorer",
         "tr_name" => clienttranslate("Remarkable Restorer"),
         "content" => clienttranslate("Restore 5 or more Relics"),
-        "points" => 7
+        "points" => 7,
+        "variable" => null,
     ],
     12 => [
         "name" => "Jazzy Jeweler",
@@ -847,7 +850,8 @@ $this->objectives_info = [
         "name" => "Master Miner",
         "tr_name" => clienttranslate("Master Miner"),
         "content" => clienttranslate("Restore 1 Relic from each of the 3 categories"),
-        "points" => 7
+        "points" => 7,
+        "variable" => null,
     ]
 ];
 

@@ -2183,8 +2183,10 @@ define([
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};>
-              <span class="goi_markerValue goi_scoring">${args.points_log}</span>
+            const positionLeft = args.points_log >= 10 ? "24%" : "32%";
+
+            args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
+              <span class="goi_markerValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
             </span>`;
           }
         }
