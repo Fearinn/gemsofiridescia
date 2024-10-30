@@ -1649,11 +1649,12 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incCoin",
-            clienttranslate('${player_name} obtains ${delta} ${coin}'),
+            clienttranslate('${player_name} obtains ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
+                "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
                 "i18n" => ["coin"],
             ]
@@ -1670,11 +1671,12 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incCoin",
-            clienttranslate('${player_name} spends ${delta} ${coin}'),
+            clienttranslate('${player_name} spends ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
+                "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
                 "i18n" => ["coin"]
             ]
@@ -1687,12 +1689,13 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
-            $silent ? "" : clienttranslate('${player_name} scores ${points} point(s)'),
+            $silent ? "" : clienttranslate('${player_name} scores ${points_log} point(s)'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "points" => $delta,
-                "preserve" => ["points"],
+                "points_log" => $delta,
+                "preserve" => ["points_log"],
             ]
         );
     }
@@ -2002,11 +2005,12 @@ class Game extends \Table
         if ($gemsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeGemsPoints",
-                clienttranslate('${player_name} scores ${points} points from Gems'),
+                clienttranslate('${player_name} scores ${points_log} points from Gems'),
                 [
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $gemsPoints,
-                    "preserve" => ["points"],
+                    "points_log" => $gemsPoints,
+                    "preserve" => ["points_log"],
                 ]
             );
         }
@@ -2095,12 +2099,13 @@ class Game extends \Table
         if ($tilesPoints) {
             $this->notifyAllPlayers(
                 "computeTilesPoints",
-                clienttranslate('${player_name} scores ${points} points from tiles'),
+                clienttranslate('${player_name} scores ${points_log} points from tiles'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $tilesPoints,
-                    "preserve" => ["points", "finalScoring"],
+                    "preserve" => ["points_log", "finalScoring"],
+                    "points_log" => $tilesPoints,
                     "finalScoring" => true,
                 ],
             );
@@ -2214,12 +2219,13 @@ class Game extends \Table
         if ($relicsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeRelicsPoints",
-                clienttranslate('${player_name} scores ${points} points from relics'),
+                clienttranslate('${player_name} scores ${points_log} points from relics'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $relicsPoints,
-                    "preserve" => ["points", "finalScoring"],
+                    "preserve" => ["points_log", "finalScoring"],
+                    "points_log" => $relicsPoints,
                     "finalScoring" => true,
                 ],
             );
@@ -2255,7 +2261,7 @@ class Game extends \Table
 
             $this->notifyAllPlayers(
                 "completeObjective",
-                clienttranslate('${player_name} completes the ${objective_name} objective and scores ${points} points'),
+                clienttranslate('${player_name} completes the ${objective_name} objective and scores ${points_log} points'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
@@ -2263,7 +2269,8 @@ class Game extends \Table
                     "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
                     "i18n" => ["objective_name"],
-                    "preserve" => ["objectiveCard", "points", "finalScoring"],
+                    "preserve" => ["objectiveCard", "points_log", "finalScoring"],
+                    "points_log" => $objective->points,
                     "finalScoring" => true,
                 ]
             );

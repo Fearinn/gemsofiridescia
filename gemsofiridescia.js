@@ -357,7 +357,10 @@ define([
 
           this.addTooltip(
             div.id,
-            `${_(objectiveName)}: ${_(objectiveContent)}`,
+            this.format_string(_("${objectiveName}: ${objectiveContent}"), {
+              objectiveName: _(objectiveName),
+              objectiveContent: _(objectiveContent),
+            }),
             ""
           );
         },
@@ -410,7 +413,14 @@ define([
           const backgroundPosition = this.calcBackgroundPosition(item_id);
           div.style.backgroundPosition = backgroundPosition;
 
-          this.addTooltip(div.id, `${_(itemName)}: ${_(itemContent)}`, "");
+          this.addTooltip(
+            div.id,
+            this.format_string(_("${itemName}: ${itemContent}"), {
+              itemName: _(itemName),
+              itemContent: _(itemContent),
+            }),
+            ""
+          );
         },
         setupBackDiv: (card, div) => {},
       });
@@ -468,15 +478,19 @@ define([
             `goi_gemCounters:${player_id}`
           ).innerHTML += `<div class="goi_gemCounter">
                 <div class="goi_gemIcon" style="background-position: ${backgroundPosition}"></div>
-                <span id="goi_gemCounter:${player_id}-${gem}"></span>
+                <span id="goi_gemCounter:${player_id}-${gem}" class="goi_counterValue"></span>
               </div>`;
         }
 
+        const coins = this.goi_globals.coins[player_id];
+
+        const positionLeft = coins >= 10 ? "24%" : "32%";
         document.getElementById(
           `goi_gemCounters:${player_id}`
         ).innerHTML += `<div class="goi_gemCounter">
-        <div class="goi_gemIcon" style="background-position: -500%"></div>
-        <span id="goi_coinCounter:${player_id}"></span>
+        <div class="goi_gemIcon goi_coinIcon"> 
+          <span id="goi_coinCounter:${player_id}" class="goi_markerValue" style="left: ${positionLeft}"></span>
+        </div>
       </div>`;
 
         for (const gem in gemCounters) {
@@ -489,9 +503,7 @@ define([
         this.goi_counters[player_id].coins.create(
           `goi_coinCounter:${player_id}`
         );
-        this.goi_counters[player_id].coins.setValue(
-          this.goi_globals.coins[player_id]
-        );
+        this.goi_counters[player_id].coins.setValue(coins);
       }
 
       /* BOARDS */
@@ -1835,6 +1847,10 @@ define([
       const delta = notif.args.delta;
 
       this.goi_counters[player_id].coins.incValue(delta);
+
+      const finalValue = this.goi_counters[player_id].coins.getValue();
+      const positionLeft = finalValue >= 10 ? "24%" : "32%";
+      this.goi_counters[player_id].coins.span.style.left = positionLeft;
     },
 
     notif_incRoyaltyPoints: function (notif) {
@@ -2152,20 +2168,23 @@ define([
           }
 
           if (args.coin) {
+            const delta = args.delta_log;
+            const positionLeft = delta >= 10 ? "24%" : "32%";
+
             args.coin = `<span class="goi_logMarker">
-              <span class="goi_markerValue">${args.delta}</span>
+              <span class="goi_markerValue" style="left: ${positionLeft}">${delta}</span>
             </span>`;
 
-            args.delta = "";
+            args.delta_log = "";
           }
 
-          if (args.points) {
+          if (args.points_log) {
             const spritePosition = args.finalScoring ? 2 : 1;
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            args.points = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
-              <span class="goi_markerValue goi_scoring">${args.points}</span>
+            args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};>
+              <span class="goi_markerValue goi_scoring">${args.points_log}</span>
             </span>`;
           }
         }
