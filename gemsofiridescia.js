@@ -354,6 +354,12 @@ define([
 
           div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          this.addTooltip(
+            div.id,
+            `${_(objectiveName)}: ${_(objectiveContent)}`,
+            ""
+          );
         },
         setupBackDiv: (card, div) => {
           const background = `url(${g_gamethemeurl}img/objectives-1.png)`;
@@ -403,6 +409,8 @@ define([
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
           div.style.backgroundPosition = backgroundPosition;
+
+          this.addTooltip(div.id, `${_(itemName)}: ${_(itemContent)}`, "");
         },
         setupBackDiv: (card, div) => {},
       });
