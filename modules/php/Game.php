@@ -292,7 +292,8 @@ class Game extends \Table
             clienttranslate('${player_name} discards a Secret Objective'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
+                "player_name" => $this->getPlayerNameById($player_id),
+                "objectiveCard" => $this->hideCard($objectiveCard)
             ]
         );
 
@@ -1116,7 +1117,7 @@ class Game extends \Table
 
         $hasReachedForest = !!$this->getUniqueValueFromDB("SELECT forest from player WHERE player_id=$player_id");
 
-        if ($region_id === 3 && !$hasReachedForest) {
+        if ($region_id >= 3 && !$hasReachedForest) {
             $this->globals->set(CURRENT_TILE, $tileCard);
             $this->reachForest($player_id, $tileCard);
             return;

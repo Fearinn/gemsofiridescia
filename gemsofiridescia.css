@@ -296,8 +296,13 @@
   width: calc(var(--cardSize) * 2 + 16px);
 }
 
+.goi_void {
+  position: absolute !important;
+  bottom: 0;
+  left: 25%;
+}
+
 .goi_itemDiscard {
-  position: absolute;
   height: 409px;
   width: var(--cardSize);
 }

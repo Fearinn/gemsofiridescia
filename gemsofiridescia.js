@@ -427,7 +427,7 @@ define([
 
       this.goi_stocks.gems.void = new VoidStock(
         this.goi_managers.gems,
-        document.getElementById("goi_gemVoid"),
+        document.getElementById("goi_void"),
         {}
       );
 
@@ -787,6 +787,11 @@ define([
             );
           }
         }
+
+        this.goi_stocks.objectives.void = new VoidStock(
+          this.goi_managers.objectives,
+          document.getElementById("goi_void")
+        );
 
         /* VICTORY PILE */
         this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
@@ -1657,6 +1662,13 @@ define([
 
         dojo.subscribe(event, this, `notif_${event}`);
 
+        if (ignoreCurrentPlayer) {
+          this.notifqueue.setIgnoreNotificationCheck(event, (notif) => {
+            console.log(notif.args, this.player_id);
+            return notif.args.player_id == this.player_id;
+          });
+        }
+
         if (duration === 0) {
           return;
         }
@@ -1664,13 +1676,8 @@ define([
         if (!duration) {
           duration = 500;
         }
-        this.notifqueue.setSynchronous(event, duration);
 
-        if (ignoreCurrentPlayer) {
-          this.notifqueue.setIgnoreNotificationCheck(event, (notif) => {
-            return notif.args.player_id == this.player_id;
-          });
-        }
+        this.notifqueue.setSynchronous(event, duration);
       });
     },
 
@@ -1688,7 +1695,6 @@ define([
     },
 
     notif_discardTile: function (notif) {
-      const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
 
       this.goi_stocks.tiles.board.removeCard(tileCard);
@@ -1957,17 +1963,15 @@ define([
     },
 
     notif_discardObjective: function (notif) {
-      const player_id = notif.args.player_id;
       const objectiveCard = notif.args.objectiveCard;
 
-      this.goi_stocks[player_id].objectives.hand.removeCard(objectiveCard);
+      this.goi_stocks.objectives.void.addCard(objectiveCard);
     },
 
     notif_discardObjective_priv: function (notif) {
-      const player_id = notif.args.player_id;
       const objectiveCard = notif.args.objectiveCard;
 
-      this.goi_stocks[player_id].objectives.hand.removeCard(objectiveCard);
+      this.goi_stocks.objectives.void.addCard(objectiveCard);
     },
 
     notif_revealObjective: function (notif) {
