@@ -1755,7 +1755,7 @@ define([
       const gem_id = notif.args.gem_id;
       let gemCards = notif.args.gemCards;
 
-      this.goi_counters[player_id].gems[gemName].incValue(-delta);
+      this.goi_counters[player_id].gems[gemName].incValue(delta);
 
       if (!gemCards) {
         gemCards = this.goi_stocks[player_id].gems.cargo
@@ -1764,7 +1764,7 @@ define([
             return gemCard.type_arg == gem_id;
           });
 
-        gemCards = gemCards.slice(-delta);
+        gemCards = gemCards.slice(delta);
       }
 
       for (const gemCard_id in gemCards) {
@@ -1831,9 +1831,9 @@ define([
 
     notif_incRoyaltyPoints: function (notif) {
       const player_id = notif.args.player_id;
-      const delta = notif.args.delta;
+      const points = notif.args.points;
 
-      this.scoreCtrl[player_id].incValue(delta);
+      this.scoreCtrl[player_id].incValue(points);
     },
 
     notif_obtainStoneDie: function (notif) {
@@ -2140,11 +2140,25 @@ define([
           if (args.gem_label) {
             const gem_id = args.gem_id;
             const backgroundPosition = this.calcBackgroundPosition(gem_id);
-            args.gem_label = `<span class="goi_gemIcon goi_log" style="background-position: ${backgroundPosition}"></span>`;
+            args.gem_label = `<span class="goi_gemIcon goi_log" style="background-position: ${backgroundPosition};"></span>`;
           }
 
           if (args.coin) {
-            args.coin = `<span class="goi_gemIcon goi_log" style="background-position: -500% 0"></span>`;
+            args.coin = `<span class="goi_logMarker">
+              <span class="goi_markerValue">${args.delta}</span>
+            </span>`;
+
+            args.delta = "";
+          }
+
+          if (args.points) {
+            const spritePosition = args.finalScoring ? 2 : 1;
+            const backgroundPosition =
+              this.calcBackgroundPosition(spritePosition);
+
+            args.points = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
+              <span class="goi_markerValue goi_scoring">${args.points}</span>
+            </span>`;
           }
         }
       } catch (e) {

@@ -333,7 +333,7 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
         }
 
-        $this->decCoin(3, $player_id, true);
+        $this->decCoin(-3, $player_id, true);
 
         $explorer = $this->getExplorerByPlayerId($player_id);
         $hex = (int) $explorer["location_arg"];
@@ -1662,20 +1662,19 @@ class Game extends \Table
 
     public function decCoin(int $delta, int $player_id): void
     {
-        if (!$this->hasEnoughCoins($delta, $player_id)) {
+        if (!$this->hasEnoughCoins(abs($delta), $player_id)) {
             throw new \BgaVisibleSystemException("You don't have enough coins: decCoin, $delta");
         }
 
-        $this->dbQuery("UPDATE player SET coin=coin-$delta WHERE player_id=$player_id");
+        $this->dbQuery("UPDATE player SET coin=coin+$delta WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
             "incCoin",
-            clienttranslate('${player_name} spends ${abs_delta} ${coin}'),
+            clienttranslate('${player_name} spends ${delta} ${coin}'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "abs_delta" => $delta,
-                "delta" => -$delta,
+                "delta" => $delta,
                 "coin" => clienttranslate("coin(s)"),
                 "i18n" => ["coin"]
             ]
@@ -1688,11 +1687,12 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
-            $silent ? "" : clienttranslate('${player_name} scores ${delta} Royalty Point(s)'),
+            $silent ? "" : clienttranslate('${player_name} scores ${points} point(s)'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "delta" => $delta
+                "points" => $delta,
+                "preserve" => ["points"],
             ]
         );
     }
@@ -2006,6 +2006,7 @@ class Game extends \Table
                 [
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $gemsPoints,
+                    "preserve" => ["points"],
                 ]
             );
         }
@@ -2094,11 +2095,13 @@ class Game extends \Table
         if ($tilesPoints) {
             $this->notifyAllPlayers(
                 "computeTilesPoints",
-                clienttranslate('${player_name} scores ${points} from tiles'),
+                clienttranslate('${player_name} scores ${points} points from tiles'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
-                    "points" => $tilesPoints
+                    "points" => $tilesPoints,
+                    "preserve" => ["points", "finalScoring"],
+                    "finalScoring" => true,
                 ],
             );
         }
@@ -2211,11 +2214,13 @@ class Game extends \Table
         if ($relicsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeRelicsPoints",
-                clienttranslate('${player_name} scores ${points} from relics'),
+                clienttranslate('${player_name} scores ${points} points from relics'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
-                    "points" => $relicsPoints
+                    "points" => $relicsPoints,
+                    "preserve" => ["points", "finalScoring"],
+                    "finalScoring" => true,
                 ],
             );
         }
@@ -2258,7 +2263,8 @@ class Game extends \Table
                     "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
                     "i18n" => ["objective_name"],
-                    "preserve" => ["objectiveCard"]
+                    "preserve" => ["objectiveCard", "points", "finalScoring"],
+                    "finalScoring" => true,
                 ]
             );
         }

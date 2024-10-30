@@ -161,15 +161,43 @@
   font-family: "sketchnote-square", sans-serif;
 }
 
-.goi_helpCard .goi_coinIcon {
+.goi_coinIcon {
   position: relative;
   top: 2px;
   display: inline-block;
+  background-size: cover;
+}
+
+.goi_helpCard .goi_coinIcon {
+  display: inline-block;
   background-image: url("img/gems.png");
   background-position: -500% 0;
-  background-size: cover;
   height: 12px;
   width: 12px;
+}
+
+.goi_logMarker {
+  position: relative;
+  display: inline-block;
+  top: 5px;
+  background-image: url("img/logMarkers.png");
+  background-size: cover;
+  height: 20px;
+  width: 20px;
+}
+
+.goi_markerValue {
+  font-family: "sketchnote-square", sans-serif;
+
+  position: absolute;
+  font-size: 10px;
+  top: 18%;
+  left: 32%;
+}
+
+.goi_markerValue.goi_scoring {
+  color: white;
+  left: 30%;
 }
 
 .goi_playerPanel {
@@ -205,10 +233,10 @@
 
 .goi_gemIcon.goi_log {
   position: relative;
-  top: 3px;
+  top: 5px;
   display: inline-block;
-  height: 16px;
-  width: 16px;
+  height: 20px;
+  width: 20px;
 }
 
 .goi_opponentObjectives {
