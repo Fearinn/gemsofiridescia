@@ -122,6 +122,7 @@ define([
           dice: {},
           relics: {},
           objectives: {},
+          scoringMarkers: {},
         };
       }
 
@@ -432,13 +433,19 @@ define([
         getId: (card) => `scoringMarker-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_scoringMarker");
-          div.style.position = "relative";
+          div.style.backgroundColor = card.color;
 
-          const color = card.color;
-          div.style.backgroundColor = color;
+          if (card.score == 100) {
+            const scoreElement = document.createElement("span");
+            scoreElement.classList.add("goi_scoreHundred");
+            scoreElement.textContent = 100;
+            div.appendChild(scoreElement);
+          }
         },
         setupFrontDiv: (card, div) => {},
-        setupBackDiv: (card, div) => {},
+        setupBackDiv: (card, div) => {
+          div.style.backgroundColor = card.color;
+        },
       });
 
       const scoringTrack = document.getElementById("goi_scoringTrack");
@@ -454,14 +461,13 @@ define([
         {
           slotsIds,
           mapCardToSlot: (card) => {
-            return Number(card.value);
+            return Number(card.score);
           },
         }
       );
 
       scoringTrack.childNodes.forEach((slot) => {
         slot.style.position = "absolute";
-        slot.style.transform = "rotate(45deg)";
         slot.style.height = "50px";
         slot.style.width = "50px";
 
@@ -474,8 +480,8 @@ define([
         }
 
         if (slotId > 34 && slotId <= 74) {
-          slot.style.left = `${6.25 + (slotId - 34) * 2.125}%`;
-          slot.style.top = slotId % 2 === 0 ? "8.5%" : "6%";
+          slot.style.left = `${6.3 + (slotId - 34) * 2.125}%`;
+          slot.style.top = slotId % 2 === 0 ? "8.4%" : "5.9%";
           return;
         }
 
@@ -692,6 +698,7 @@ define([
 
         document.getElementById("goi_playerZones").innerHTML += `
         <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
+          <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_playerZoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
@@ -727,7 +734,8 @@ define([
 
       let currentStoneDie_id = 1;
       for (const player_id in this.goi_globals.players) {
-        const player_color = this.goi_globals.players[player_id].color;
+        const player = this.goi_globals.players[player_id];
+        const player_color = player.color;
 
         this.goi_stocks[player_id].dice.scene = new DiceStock(
           this.goi_managers.dice,
@@ -941,6 +949,45 @@ define([
         for (const relicCard_id in restoredRelics) {
           const relicCard = restoredRelics[relicCard_id];
           this.goi_stocks[player_id].relics.victoryPile.addCard(relicCard);
+        }
+
+        /* SCORING MARKERS */
+        this.goi_stocks[player_id].scoringMarkers.hundred = new CardStock(
+          this.goi_managers.scoringMarkers,
+          document.getElementById(`goi_scoringHundred:${player_id}`)
+        );
+
+        const score = player.score;
+
+        if (score >= 100) {
+          const completeScoringMarker = {
+            id: `${player_id}-100`,
+            color: `#${player_color}`,
+            score: 100,
+          };
+
+          const scoringMarker = {
+            id: player_id,
+            color: `#${player_color}`,
+            score: score - 100,
+          };
+
+          if (score === 100) {
+            this.goi_stocks.scoringMarkers.track.removeCard(scoringMarker);
+          } else {
+            this.goi_stocks.scoringMarkers.track.addCard(scoringMarker);
+          }
+
+          this.goi_stocks[player_id].scoringMarkers.hundred.addCard(
+            completeScoringMarker
+          );
+        } else {
+          const scoringMarker = {
+            id: player_id,
+            color: `#${player_color}`,
+            score,
+          };
+          this.goi_stocks.scoringMarkers.track.addCard(scoringMarker);
         }
       }
 
@@ -1919,6 +1966,42 @@ define([
       const points = notif.args.points;
 
       this.scoreCtrl[player_id].incValue(points);
+      const score = this.scoreCtrl[player_id].getValue();
+
+      const player_color = `#${this.goi_globals.players[player_id].color}`;
+
+      if (score >= 100) {
+        const scoringMarker = {
+          id: player_id,
+          color: player_color,
+          score: score - 100,
+        };
+
+        const completeScoringMarker = {
+          id: `${player_id}-100`,
+          color: player_color,
+          score: 100,
+        };
+
+        if (score === 100) {
+          this.goi_stocks.scoringMarkers.track.removeCard(scoringMarker);
+        } else {
+          this.goi_stocks.scoringMarkers.track.addCard(scoringMarker);
+        }
+
+        this.goi_stocks[player_id].scoringMarkers.hundred.addCard(
+          completeScoringMarker
+        );
+
+        return;
+      }
+
+      const scoringMarker = {
+        id: player_id,
+        score,
+      };
+
+      this.goi_stocks.scoringMarkers.track.addCard(scoringMarker);
     },
 
     notif_obtainStoneDie: function (notif) {
