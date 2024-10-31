@@ -1170,8 +1170,10 @@ define([
             );
           }
 
-          this.goi_stocks.tiles.board.setSelectionMode("single");
-          this.goi_stocks.tiles.board.setSelectableCards(explorableTiles);
+          this.goi_stocks.tiles.board.setSelectionMode(
+            "single",
+            explorableTiles
+          );
 
           return;
         }

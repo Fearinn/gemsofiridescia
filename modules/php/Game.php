@@ -24,6 +24,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
+use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -519,12 +520,12 @@ class Game extends \Table
         }
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
-
         $noRevealableTile = (!$hasExpandedTiles && !$revealableTiles) || ($hasExpandedTiles && !$expandedRevealableTiles);
 
-        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
+        $singleRevealableTile = (!$explorableTiles && count($revealableTiles) === 1) ||
+            ($hasExpandedTiles && !$expandedExplorableTiles && count($expandedRevealableTiles) === 1);
 
-        $singleRevealableTile = (!$explorableTiles && count($revealableTiles) === 1) || ($hasExpandedTiles && !$expandedExplorableTiles && count($expandedRevealableTiles) === 1);
+        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
         return [
             "auto" => $singleRevealableTile,
@@ -565,6 +566,7 @@ class Game extends \Table
                 $tileCard_id = (int) $tileCard["id"];
 
                 $this->actRevealTile($tileCard_id);
+                return;
             }
 
             $this->gamestate->nextState("moveExplorer");
@@ -931,7 +933,7 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function adjacentTiles(int $player_id, ?int $tileHex = null): array
+    public function adjacentTiles(int $player_id, ?int $tileHex = null, bool $onlyHexes = false): array
     {
         $adjacentTiles = [];
 
@@ -955,7 +957,7 @@ class Game extends \Table
         $leftEdges = [1, 7, 14, 20, 27, 33, 40, 46, 53];
         $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52, 58];
 
-        if ($this->getPlayersNumber() === 2) {
+        if ($this->getPlayersNumber() === 2 && !$onlyHexes) {
             $leftEdges = [2, 8, 15, 21, 28, 34, 41, 46, 53];
             $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51, 58];
         }
@@ -982,6 +984,22 @@ class Game extends \Table
             $topLeftHex,
             $topRightHex
         ];
+
+        if ($onlyHexes) {
+            $freeHexes = [];
+            foreach ($adjacentHexes as $hex) {
+                if ($hex === null) {
+                    continue;
+                }
+
+                $isOcuppied = !!$this->getUniqueValueFromDB("SELECT card_id FROM explorer WHERE card_location='board' AND card_location_arg=$hex");
+
+                if (!$isOcuppied) {
+                    $freeHexes[] = $hex;
+                }
+            }
+            return $freeHexes;
+        }
 
         foreach ($adjacentHexes as $hex) {
             if ($hex === null) {
@@ -1041,34 +1059,42 @@ class Game extends \Table
         return $explorableTiles;
     }
 
-    public function expandedAdjacentTiles(int $player_id, array $adjacentTiles): array
+    public function expandedAdjacentTiles(int $player_id, array $adjacentHexes): array
     {
-        $expandedAdjacentTiles = [];
+        $result = [];
 
-        foreach ($adjacentTiles as $tileCard) {
-            $tileHex = (int) $tileCard["location_arg"];
+        foreach ($adjacentHexes as $tileHex) {
+            if ($tileHex === null) {
+                continue;
+            }
 
             $expandedTiles = $this->adjacentTiles($player_id, $tileHex);
 
-            if (!$expandedTiles) {
-                $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $expandedTiles);
-                return $expandedAdjacentTiles;
-            }
-
-            foreach ($this->adjacentTiles($player_id, $tileHex) as $expandedTileCard_id => $expandedTileCard) {
-                $expandedAdjacentTiles[$expandedTileCard_id] = $expandedTileCard;
+            foreach ($expandedTiles as $expandedTileCard_id => $expandedTileCard) {
+                $result[$expandedTileCard_id] = $expandedTileCard;
             }
         }
 
-        return $expandedAdjacentTiles;
+        if (!$result) {
+            $expandedHexes = [];
+            foreach ($adjacentHexes as $tileHex) {
+                $newHexes =  $this->adjacentTiles($player_id, $tileHex, true);
+                $expandedHexes = array_merge($expandedHexes, $newHexes);
+            }
+
+            $expandedHexes = array_unique($expandedHexes);
+            return $this->expandedAdjacentTiles($player_id, $expandedHexes);
+        }
+
+        return $result;
     }
 
     public function expandedRevealableTiles(int $player_id, bool $associative = false): array
     {
         $expandedRevealableTiles = [];
-        $adjacentTiles = $this->adjacentTiles($player_id);
+        $adjacentHexes = $this->adjacentTiles($player_id, null, true);
 
-        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentTiles);
+        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentHexes);
         $revealedTiles = $this->globals->get(REVEALED_TILES);
 
         foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
@@ -1090,9 +1116,10 @@ class Game extends \Table
     public function expandedExplorableTiles(int $player_id, bool $associative = false): array
     {
         $expandedExplorableTiles = [];
-        $adjacentTiles = $this->adjacentTiles($player_id);
 
-        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentTiles);
+        $adjacentHexes = $this->adjacentTiles($player_id, null, true);
+        $expandedAdjacentTiles = $this->expandedAdjacentTiles($player_id, $adjacentHexes);
+
         $revealedTiles = $this->globals->get(REVEALED_TILES);
 
         foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
