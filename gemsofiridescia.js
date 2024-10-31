@@ -1926,7 +1926,7 @@ define([
       const gem_id = notif.args.gem_id;
       let gemCards = notif.args.gemCards;
 
-      this.goi_counters[player_id].gems[gemName].incValue(delta);
+      this.goi_counters[player_id].gems[gemName].incValue(-delta);
 
       if (!gemCards) {
         gemCards = this.goi_stocks[player_id].gems.cargo

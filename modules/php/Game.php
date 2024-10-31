@@ -333,7 +333,7 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
         }
 
-        $this->decCoin(-3, $player_id, true);
+        $this->decCoin(3, $player_id, true);
 
         $explorer = $this->getExplorerByPlayerId($player_id);
         $hex = (int) $explorer["location_arg"];
@@ -1694,11 +1694,15 @@ class Game extends \Table
 
     public function decCoin(int $delta, int $player_id): void
     {
-        if (!$this->hasEnoughCoins(abs($delta), $player_id)) {
+        if ($delta <= 0) {
+            throw new \BgaVisibleSystemException("The delta must be positive: decCoin, $delta");
+        }
+
+        if (!$this->hasEnoughCoins($delta, $player_id)) {
             throw new \BgaVisibleSystemException("You don't have enough coins: decCoin, $delta");
         }
 
-        $this->dbQuery("UPDATE player SET coin=coin+$delta WHERE player_id=$player_id");
+        $this->dbQuery("UPDATE player SET coin=coin-$delta WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
             "incCoin",
@@ -1706,8 +1710,8 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "delta" => $delta,
-                "delta_log" => abs($delta),
+                "delta" => -$delta,
+                "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
                 "i18n" => ["coin"],
                 "preserve" => ["delta_log"],
