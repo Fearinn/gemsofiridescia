@@ -981,7 +981,7 @@ define([
           this.goi_stocks[player_id].scoringMarkers.hundred.addCard(
             completeScoringMarker
           );
-        } else {
+        } else if (score > 0) {
           const scoringMarker = {
             id: player_id,
             color: `#${player_color}`,
@@ -1998,6 +1998,7 @@ define([
 
       const scoringMarker = {
         id: player_id,
+        color: player_color,
         score,
       };
 
