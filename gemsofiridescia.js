@@ -101,6 +101,7 @@ define([
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.itemsDeck = gamedatas.itemsDeck;
       this.goi_globals.itemsMarket = gamedatas.itemsMarket;
+      this.goi_globals.boughtItems = gamedatas.boughtItems;
       this.goi_globals.objectives = gamedatas.objectives;
 
       this.goi_info.defaultSelections = {
@@ -122,6 +123,7 @@ define([
           dice: {},
           relics: {},
           objectives: {},
+          items: {},
           scoringMarkers: {},
         };
       }
@@ -723,6 +725,7 @@ define([
                 </div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
+              <div id="goi_items:${player_id}" class="goi_items"></div>
               <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
@@ -886,6 +889,19 @@ define([
           this.goi_managers.objectives,
           document.getElementById("goi_void")
         );
+
+        /* ITEMS */
+        this.goi_stocks[player_id].items.hand = new AllVisibleDeck(
+          this.goi_managers.items,
+          document.getElementById(`goi_items:${player_id}`),
+          { horizontalShift: "0px", verticalShift: "48px" }
+        );
+
+        const boughtItems = this.goi_globals.boughtItems[player_id];
+        for (const itemCard_id in boughtItems) {
+          const itemCard = boughtItems[itemCard_id];
+          this.goi_stocks[player_id].items.hand.addCard(itemCard);
+        }
 
         /* VICTORY PILE */
         this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
@@ -1073,6 +1089,19 @@ define([
         this.goi_managers.items,
         document.getElementById("goi_itemsMarket")
       );
+
+      this.goi_stocks.items.market.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        if (selection.length > 0) {
+          this.goi_selections.item = lastChange;
+        } else {
+          this.goi_selections.item = null;
+        }
+
+        this.handleConfirmationButton();
+      };
 
       const itemsMarket = this.goi_globals.itemsMarket;
       for (const itemCard_id in itemsMarket) {
@@ -1611,6 +1640,11 @@ define([
         return;
       }
 
+      if (stateName === "client_buyItem") {
+        this.addActionButton(elementId, message, "actBuyItem");
+        return;
+      }
+
       if (stateName === "transferGem") {
         if (this.goi_selections.gem) {
           this.addActionButton(elementId, message, () => {
@@ -1750,6 +1784,12 @@ define([
       });
     },
 
+    actBuyItem: function () {
+      this.performAction("actBuyItem", {
+        itemCard_id: this.goi_selections.item.id,
+      });
+    },
+
     actTransferGem: function () {
       const selectedGem = this.goi_selections.gem;
       this.performAction("actTransferGem", {
@@ -1809,6 +1849,8 @@ define([
         { event: "restoreRelic" },
         { event: "replaceRelic", duration: 1000 },
         { event: "reshuffleItemsDeck", duration: 5000 },
+        { event: "buyItem" },
+        { event: "replaceItem", duration: 1000 },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2129,7 +2171,7 @@ define([
       const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi_stocks.relics.market.addCard(relicCard, {
-        fromElement: document.getElementById("goi_relicsDeck"),
+        fromStcok: this.goi_stocks.relics.deck,
       });
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
@@ -2156,6 +2198,21 @@ define([
             });
           }
         });
+    },
+
+    notif_buyItem: function (notif) {
+      const player_id = notif.args.player_id;
+      const itemCard = notif.args.itemCard;
+
+      this.goi_stocks[player_id].items.hand.addCard(itemCard);
+    },
+
+    notif_replaceItem: function (notif) {
+      const itemCard = notif.args.itemCard;
+
+      this.goi_stocks.items.market.addCard(itemCard, {
+        fromStock: this.goi_stocks.items.deck,
+      });
     },
 
     notif_collectTile: function (notif) {

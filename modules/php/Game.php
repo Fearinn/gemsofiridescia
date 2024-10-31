@@ -441,6 +441,17 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
+    public function actBuyItem(#[IntParam(min: 1, max: 33)] int $itemCard_id)
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $item->buy($player_id);
+
+        $this->gamestate->nextState("repeat");
+    }
+
     public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
     {
         $players = $this->loadPlayersBasicInfos();
@@ -1993,7 +2004,9 @@ class Game extends \Table
 
     public function reshuffleItemsDeck(bool $setup = false)
     {
-        $this->item_cards->moveAllCardsInLocation(null, "deck");
+        $this->item_cards->moveAllCardsInLocation("market", "deck");
+        $this->item_cards->moveAllCardsInLocation("discard", "deck");
+
         $this->item_cards->shuffle("deck");
         $this->item_cards->pickCardsForLocation(5, "deck", "market");
 
@@ -2019,7 +2032,23 @@ class Game extends \Table
         );
     }
 
-    public function buyableItems($player_id, bool $associative = false): array
+    public function getBoughtItems(?int $player_id): array
+    {
+        $boughtItems = [];
+
+        if ($player_id) {
+            return $this->item_cards->getCardsInLocation("hand", $player_id);
+        }
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $boughtItems[$player_id] = $this->item_cards->getCardsInLocation("hand", $player_id);
+        }
+
+        return $boughtItems;
+    }
+
+    public function buyableItems(int $player_id, bool $associative = false): array
     {
         $buyableItems = [];
         $marketItems = $this->item_cards->getCardsInLocation("market");
@@ -2038,6 +2067,31 @@ class Game extends \Table
         }
 
         return $buyableItems;
+    }
+
+    public function replaceItem(): void
+    {
+        $itemCard = $this->item_cards->pickCardForLocation("deck", "market");
+
+        $itemCard_id = (int) $itemCard["id"];
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $this->notifyAllPlayers(
+            "replaceItem",
+            clienttranslate('A new Item is revealed: the ${item_name}'),
+            [
+                "item_name" => $item->tr_name,
+                "itemCard" => $item->card,
+                "i18n" => ["item_name"],
+                "preserve" => ["item_id"],
+                "item_id" => $item->id,
+            ]
+        );
+
+        if (!$this->checkItemsMarket()) {
+            $this->reshuffleItemsDeck();
+        };
     }
 
     public function getObjectives(int $current_player_id, bool $unique = false): array
@@ -2422,6 +2476,7 @@ class Game extends \Table
         $result["itemsInfo"] = $this->items_info;
         $result["itemsDeck"] = $this->getItemsDeck();
         $result["itemsMarket"] = $this->getItemsMarket();
+        $result["boughtItems"] = $this->getBoughtItems(null);
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 

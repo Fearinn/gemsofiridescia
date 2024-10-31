@@ -39,7 +39,31 @@ class ItemManager
         return $this->checkLocation("market") && $this->game->getCoins($player_id) >= $this->cost;
     }
 
-    public function buy(int $player_id): void {}
+    public function buy(int $player_id): void
+    {
+        if (!$this->isBuyable($player_id)) {
+            throw new \BgaVisibleSystemException("You can't buy this item now: actBuyItem, $this->card_id");
+        }
+
+        $this->game->decCoin($this->cost, $player_id);
+        $this->game->item_cards->moveCard($this->card_id, "hand", $player_id);
+
+        $this->game->notifyAllPlayers(
+            "buyItem",
+            clienttranslate('${player_name} buys the ${item_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "itemCard" => $this->card,
+                "item_name" => $this->tr_name,
+                "i18n" => ["item_name"],
+                "preserve" => ["item_id"],
+                "item_id" => $this->id,
+            ]
+        );
+
+        $this->game->replaceItem();
+    }
 
     public function isUsable(int $player_id): bool
     {

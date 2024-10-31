@@ -115,7 +115,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argOptionalActions",
         "action" => "stOptionalActions",
-        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions"],
+        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions", "actBuyItem"],
         "transitions" => ["repeat" => 4, "skip" => 5, "restoreRelic" => 5]
     ],
 
