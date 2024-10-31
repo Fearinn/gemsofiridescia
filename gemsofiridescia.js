@@ -1196,9 +1196,11 @@ define([
 
         if (stateName === "optionalActions") {
           const canMine = args.args.canMine;
-          const canSellGems = args.args.canSellGems;
           const activeStoneDiceCount = args.args.activeStoneDiceCount;
           const activableStoneDiceCount = args.args.activableStoneDiceCount;
+          const canSellGems = args.args.canSellGems;
+          const canBuyItem = args.args.canBuyItem;
+          const buyableItems = args.args.buyableItems;
 
           this.addActionButton(
             "goi_skip_btn",
@@ -1238,6 +1240,19 @@ define([
           if (!canSellGems) {
             document
               .getElementById("goi_sellGems_btn")
+              .classList.add("disabled");
+          }
+
+          this.addActionButton("goi_buyItem_btn", _("Buy an Item"), () => {
+            this.setClientState("client_buyItem", {
+              descriptionmyturn: _("${you} may select an Item to buy"),
+              client_args: { buyableItems: buyableItems },
+            });
+          });
+
+          if (!canBuyItem) {
+            document
+              .getElementById("goi_buyItem_btn")
               .classList.add("disabled");
           }
 
@@ -1291,6 +1306,23 @@ define([
               this.actMine();
             });
           }
+        }
+
+        if (stateName === "client_buyItem") {
+          const buyableItems = args.client_args.buyableItems;
+
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
+
+          this.goi_stocks.items.market.setSelectionMode("single", buyableItems);
         }
 
         if (stateName === "transferGem") {
@@ -1375,7 +1407,7 @@ define([
 
           this.addActionButton(
             "goi_skip_btn",
-            _("Skip and finish turn"),
+            _("Skip"),
             "actSkipRestoreRelic",
             null,
             false,
@@ -1465,6 +1497,10 @@ define([
 
       if (stateName === "client_sellGems") {
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
+      }
+
+      if (stateName === "client_buyItem") {
+        this.goi_stocks.items.market.setSelectionMode("none");
       }
 
       if (stateName === "transferGem") {

@@ -24,8 +24,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
-use BgaUserException;
-use BgaVisibleSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -38,6 +36,7 @@ const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
+const HAS_BOUGHT_ITEM = "hasBoughtItem";
 
 class Game extends \Table
 {
@@ -650,6 +649,9 @@ class Game extends \Table
         $canMine = $this->hasEnoughCoins(3, $player_id);
         $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
+        $buyableItems = $this->buyableItems($player_id);
+        $canBuyItem = !!$buyableItems && !$this->globals->get(HAS_BOUGHT_ITEM, false);
+
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
         $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
@@ -658,7 +660,9 @@ class Game extends \Table
             "activeStoneDiceCount" => $activeStoneDiceCount,
             "activableStoneDiceCount" => $activableStoneDiceCount,
             "canSellGems" => $canSellGems,
-            "_no_notify" => !$canMine && !$canSellGems,
+            "canBuyItem" => $canBuyItem,
+            "buyableItems" => $buyableItems,
+            "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem,
         ];
     }
 
@@ -1365,14 +1369,14 @@ class Game extends \Table
     {
         $sql = "SELECT coin FROM player WHERE player_id=";
         if ($player_id) {
-            return $this->getUniqueValueFromDB("$sql$player_id");
+            return (int) $this->getUniqueValueFromDB("$sql$player_id");
         }
 
         $coins = [];
 
         $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
-            $coins[$player_id] = $this->getUniqueValueFromDB("$sql$player_id");
+            $coins[$player_id] = (int) $this->getUniqueValueFromDB("$sql$player_id");
         }
 
         return $coins;
@@ -1976,6 +1980,27 @@ class Game extends \Table
                 "itemsMarket" => $itemsMarket,
             ]
         );
+    }
+
+    public function buyableItems($player_id, bool $associative = false): array
+    {
+        $buyableItems = [];
+        $marketItems = $this->item_cards->getCardsInLocation("market");
+
+        foreach ($marketItems as $itemCard_id => $itemCard) {
+            $item = new ItemManager($itemCard_id, $this);
+
+            if ($item->isBuyable($player_id)) {
+                if ($associative) {
+                    $buyableItems[$itemCard_id] = $itemCard;
+                    continue;
+                }
+
+                $buyableItems[] = $itemCard;
+            }
+        }
+
+        return $buyableItems;
     }
 
     public function getObjectives(int $current_player_id, bool $unique = false): array
