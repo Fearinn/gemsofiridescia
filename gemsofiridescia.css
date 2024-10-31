@@ -363,6 +363,7 @@
   grid-row: 1;
 }
 
+.goi_item,
 .goi_item .card-side {
   background-image: url("img/items.png");
 }

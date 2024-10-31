@@ -2301,6 +2301,21 @@ define([
       return tooltip;
     },
 
+    getItemTooltip: function (item_id) {
+      const itemInfo = this.goi_info.items[item_id];
+      const itemName = itemInfo.tr_name;
+      const itemContent = itemInfo.content;
+
+      const backgroundPosition = this.calcBackgroundPosition(item_id);
+
+      const tooltip = `<div class="goi_logImage goi_item goi_card" style="position: relative; background-position: ${backgroundPosition}">
+        <span class="goi_cardTitle">${_(itemName)}</span>
+        <span class="goi_itemContent">${_(itemContent)}</span>
+      </div>`;
+
+      return tooltip;
+    },
+
     getObjectiveTooltip: function (objective_id) {
       const objectiveInfo = this.goi_info.objectives[objective_id];
       const objectiveName = objectiveInfo.tr_name;
@@ -2390,6 +2405,20 @@ define([
             )}</span>`;
 
             const tooltip = this.getRelicTooltip(relic_id);
+            this.registerCustomTooltip(tooltip, elementId);
+          }
+
+          if (args.item_id && args.item_name) {
+            const item_id = Number(args.item_id);
+            const uid = `${Date.now()}${item_id}`;
+            const elementId = `goi_itemLog:${uid}`;
+
+            args.item_name = `<span id="${elementId}" style="font-weight: bold;">${_(
+              args.item_name
+            )}</span>`;
+
+            const tooltip = this.getItemTooltip(item_id);
+
             this.registerCustomTooltip(tooltip, elementId);
           }
 
