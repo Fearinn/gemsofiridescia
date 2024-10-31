@@ -551,7 +551,12 @@ define([
 
         const coins = this.goi_globals.coins[player_id];
 
-        const positionLeft = coins >= 10 ? "24%" : "32%";
+        let positionLeft = coins >= 10 ? "24%" : "32%";
+
+        if (coins == 1) {
+          positionLeft = "38%";
+        }
+
         document.getElementById(
           `goi_gemCounters:${player_id}`
         ).innerHTML += `<div class="goi_gemCounter">
@@ -1994,8 +1999,13 @@ define([
 
       this.goi_counters[player_id].coins.incValue(delta);
 
-      const finalValue = this.goi_counters[player_id].coins.getValue();
-      const positionLeft = finalValue >= 10 ? "24%" : "32%";
+      const coins = this.goi_counters[player_id].coins.getValue();
+      let positionLeft = coins >= 10 ? "24%" : "32%";
+
+      if (coins == 1) {
+        positionLeft = "38%";
+      }
+
       this.goi_counters[player_id].coins.span.style.left = positionLeft;
     },
 
@@ -2352,7 +2362,11 @@ define([
 
           if (args.coin) {
             const delta = Math.abs(args.delta_log);
-            const positionLeft = delta >= 10 ? "24%" : "32%";
+            let positionLeft = delta >= 10 ? "24%" : "32%";
+
+            if (delta == 1) {
+              positionLeft = "38%";
+            }
 
             args.coin = `<span class="goi_logMarker">
               <span class="goi_markerValue" style="left: ${positionLeft}">${delta}</span>
