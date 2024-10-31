@@ -145,6 +145,10 @@ class Game extends \Table
         $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
         $revealableTiles = $this->revealableTiles($player_id);
 
+        if ($this->globals->get(HAS_EXPANDED_TILES)) {
+            $revealableTiles = $this->expandedRevealableTiles($player_id);
+        }
+
         if ($revealsLimit === 2 || !$revealableTiles) {
             throw new \BgaVisibleSystemException("You can't reveal other tile now: actUndoSkipRevealTile");
         }
@@ -527,13 +531,15 @@ class Game extends \Table
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
+        $skippable = (!$hasExpandedTiles && $explorableTiles) || ($hasExpandedTiles && $expandedExplorableTiles);
+
         return [
             "auto" => $singleRevealableTile,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
             "revealsLimit" => $revealsLimit,
-            "skippable" => !!$explorableTiles,
+            "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
             "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
                 || $revealsLimit === 2 || $hasReachedCastle,
