@@ -1676,9 +1676,10 @@ class Game extends \Table
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "delta" => $delta,
-                "delta_log" => $delta,
+                "delta_log" => abs($delta),
                 "coin" => clienttranslate("coin(s)"),
-                "i18n" => ["coin"]
+                "i18n" => ["coin"],
+                "preserve" => ["delta_log"],
             ]
         );
     }

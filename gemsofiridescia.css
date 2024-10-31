@@ -395,6 +395,15 @@
   width: var(--boardSize);
 }
 
+.goi_scoringTrack {
+  width: var(--boardSize);
+}
+
+.goi_scoringMarker {
+  height: 50px;
+  width: 50px;
+}
+
 .goi_tilesGrid {
   position: absolute;
   top: 275px;

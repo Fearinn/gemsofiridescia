@@ -17,6 +17,7 @@
     <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
   </div>
   <div id="goi_board" class="goi_board">
+    <div id="goi_scoringTrack" class="goi_scoringTrack"></div>
     <div class="goi_tilesGrid">
       <div id="goi_tilesRow-9" class="goi_tilesRow">
         <div id="goi_tileContainer-53" class="goi_tileContainer"></div>

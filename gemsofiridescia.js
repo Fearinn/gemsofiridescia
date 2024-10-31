@@ -47,6 +47,7 @@ define([
         relics: {},
         objectives: {},
         items: {},
+        scoringMarkers: {},
       };
     },
 
@@ -423,6 +424,66 @@ define([
           );
         },
         setupBackDiv: (card, div) => {},
+      });
+
+      this.goi_managers.scoringMarkers = new CardManager(this, {
+        cardHeight: 50,
+        cardWidth: 50,
+        getId: (card) => `scoringMarker-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_scoringMarker");
+          div.style.position = "relative";
+
+          const color = card.color;
+          div.style.backgroundColor = color;
+        },
+        setupFrontDiv: (card, div) => {},
+        setupBackDiv: (card, div) => {},
+      });
+
+      const scoringTrack = document.getElementById("goi_scoringTrack");
+
+      let slotsIds = [];
+      for (let slotId = 1; slotId <= 100; slotId++) {
+        slotsIds.push(slotId);
+      }
+
+      this.goi_stocks.scoringMarkers.track = new SlotStock(
+        this.goi_managers.scoringMarkers,
+        scoringTrack,
+        {
+          slotsIds,
+          mapCardToSlot: (card) => {
+            return Number(card.value);
+          },
+        }
+      );
+
+      scoringTrack.childNodes.forEach((slot) => {
+        slot.style.position = "absolute";
+        slot.style.transform = "rotate(45deg)";
+        slot.style.height = "50px";
+        slot.style.width = "50px";
+
+        const slotId = Number(slot.dataset.slotId);
+
+        if (slotId <= 34) {
+          slot.style.bottom = `${4.5 + slotId * 2.5}%`;
+          slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
+          return;
+        }
+
+        if (slotId > 34 && slotId <= 74) {
+          slot.style.left = `${6.25 + (slotId - 34) * 2.125}%`;
+          slot.style.top = slotId % 2 === 0 ? "8.5%" : "6%";
+          return;
+        }
+
+        if (slotId >= 75) {
+          slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
+          slot.style.right = slotId % 2 === 0 ? "7%" : "4.75%";
+          return;
+        }
       });
 
       this.goi_stocks.gems.rainbowOptions = new CardStock(
@@ -2168,7 +2229,7 @@ define([
           }
 
           if (args.coin) {
-            const delta = args.delta_log;
+            const delta = Math.abs(args.delta_log);
             const positionLeft = delta >= 10 ? "24%" : "32%";
 
             args.coin = `<span class="goi_logMarker">
