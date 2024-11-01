@@ -27,7 +27,7 @@ class ItemManager
     {
         $confirmLocation = true;
 
-        if ($this->card["location"] !== $location || ($location_arg && $location_arg !== $this->card["location_arg"])) {
+        if ($this->card["location"] !== $location || ($location_arg && $location_arg != $this->card["location_arg"])) {
             $confirmLocation = false;
         }
 
@@ -79,7 +79,7 @@ class ItemManager
             }
 
             if ($this->id === 11) {
-                return $this->globals->get(REVEALS_LIMIT) === 0
+                return $this->game->globals->get(REVEALS_LIMIT) === 0
                     && (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
             }
 
@@ -121,6 +121,7 @@ class ItemManager
             [
                 "player_id" => $player_id,
                 "player_name" => $this->game->getPlayerNameById($player_id),
+                "itemCard" => $this->card,
                 "item_name" => $this->tr_name,
                 "i18n" => ["item_name"],
                 "preserve" => ["item_id"],
@@ -128,9 +129,32 @@ class ItemManager
             ]
         );
 
+        $this->game->item_cards->moveCard($this->card_id, "used", $player_id);
+
         if ($this->id === 4) {
             $this->epicElixir();
         }
+    }
+
+    public function isUndoable($player_id)
+    {
+        if (!$this->checkLocation("used", $player_id)) {
+            return false;
+        }
+        if ($this->id === 4) {
+            return $this->game->globals->get(EPIC_ELIXIR);
+        }
+    }
+
+    public function discard()
+    {
+        $this->game->notifyAllPlayers(
+            "discardItem",
+            "",
+            ["itemCard" => $this->card]
+        );
+
+        $this->game->item_cards->moveCard($this->card_id, "discard");
     }
 
     public function cauldronOfFortune(array $oldGemCard1, array $oldGemCard2, int $newGem_id, $player_id)

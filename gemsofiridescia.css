@@ -341,7 +341,12 @@
   left: 25%;
 }
 
-.goi_itemDiscard {
+.goi_itemsUsed {
+  height: 409px;
+  width: var(--cardSize);
+}
+
+.goi_itemsDiscard {
   height: 409px;
   width: var(--cardSize);
 }

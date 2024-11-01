@@ -107,7 +107,8 @@
     <div id="goi_itemsMarket" class="goi_itemsMarket">
       <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
     </div>
-    <div id="goi_itemDiscard" class="goi_itemDiscard"></div>
+    <div id="goi_usedItems" class="goi_usedItems"></div>
+    <div id="goi_itemsDiscard" class="goi_itemsDiscard"></div>
   </div>
 </div>
 

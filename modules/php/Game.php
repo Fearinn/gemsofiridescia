@@ -563,6 +563,7 @@ class Game extends \Table
             "revealsLimit" => $revealsLimit,
             "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
@@ -611,6 +612,7 @@ class Game extends \Table
 
         return [
             "collectedTiles" => $collectedTiles,
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $auto
         ];
     }
@@ -650,6 +652,7 @@ class Game extends \Table
             "explorableTiles" => $explorableTiles,
             "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER) || $singleExplorableTile
         ];
     }
@@ -697,6 +700,7 @@ class Game extends \Table
             "buyableItems" => $buyableItems,
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
         ];
     }
@@ -716,6 +720,7 @@ class Game extends \Table
 
         return [
             "availableCargos" => $this->availableCargos($player_id),
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $this->getTotalGemsCount($player_id) <= 7,
         ];
     }
@@ -773,6 +778,7 @@ class Game extends \Table
 
         return [
             "restorableRelics" => $restorableRelics,
+            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => !$restorableRelics
         ];
     }
@@ -2081,6 +2087,12 @@ class Game extends \Table
         return $boughtItems;
     }
 
+    public function getUsedItems(): array
+    {
+        $usedItems = $this->item_cards->getCardsInLocation("used");
+        return $usedItems;
+    }
+
     public function buyableItems(int $player_id, bool $associative = false): array
     {
         $buyableItems = [];
@@ -2121,6 +2133,27 @@ class Game extends \Table
         }
 
         return $usableItems;
+    }
+
+    public function undoableItems(int $player_id, bool $associative = false): array
+    {
+        $undoableItems = [];
+        $usedItems = $this->getUsedItems();
+
+        foreach ($usedItems as $itemCard_id => $itemCard) {
+            $item = new ItemManager($itemCard_id, $this);
+
+            if ($item->isUndoable($player_id)) {
+                if ($associative) {
+                    $undoableItems[$itemCard_id] = $itemCard;
+                    continue;
+                }
+
+                $undoableItems[] = $itemCard;
+            }
+        }
+
+        return $undoableItems;
     }
 
     public function replaceItem(): void
@@ -2531,7 +2564,7 @@ class Game extends \Table
         $result["itemsDeck"] = $this->getItemsDeck();
         $result["itemsMarket"] = $this->getItemsMarket();
         $result["boughtItems"] = $this->getBoughtItems(null);
-        $result["undoableItems"] = [];
+        $result["usedItems"] = $this->getUsedItems();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 

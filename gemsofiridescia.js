@@ -102,6 +102,7 @@ define([
       this.goi_globals.itemsDeck = gamedatas.itemsDeck;
       this.goi_globals.itemsMarket = gamedatas.itemsMarket;
       this.goi_globals.boughtItems = gamedatas.boughtItems;
+      this.goi_globals.usedItems = gamedatas.usedItems;
       this.goi_globals.undoableItems = gamedatas.undoableItems;
       this.goi_globals.objectives = gamedatas.objectives;
 
@@ -1127,6 +1128,32 @@ define([
         this.goi_stocks.items.market.addCard(itemCard);
       }
 
+      this.goi_stocks.items.used = new AllVisibleDeck(
+        this.goi_managers.items,
+        document.getElementById(`goi_usedItems`),
+        { horizontalShift: "0px", verticalShift: "48px" }
+      );
+
+      this.goi_stocks.items.used.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        if (selection.length > 0) {
+          this.goi_selections.item = lastChange;
+        } else {
+          this.goi_selections.item = null;
+        }
+
+        this.handleItemSelection();
+      };
+
+      const usedItems = this.goi_globals.usedItems;
+      for (const itemCard_id in usedItems) {
+        const itemCard = usedItems[itemCard_id];
+
+        this.goi_stocks.items.used.addCard(itemCard);
+      }
+
       this.setupNotifications();
 
       console.log("Ending game setup");
@@ -1142,6 +1169,10 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
+        const undoableItems = args.args?.undoableItems || [];
+        console.log(args.args, undoableItems, "undoable");
+        this.goi_globals.undoableItems = undoableItems;
+
         const epicElixir = this.goi_stocks[this.player_id].items.hand
           .getCards()
           .filter((itemCard) => {
@@ -1152,6 +1183,8 @@ define([
           "single",
           epicElixir
         );
+
+        this.goi_stocks.items.used.setSelectionMode("single", undoableItems);
 
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
@@ -1792,8 +1825,12 @@ define([
 
       if (selectedItem) {
         const item_id = Number(selectedItem.type_arg);
+        const itemCard_id = Number(selectedItem.id);
 
-        const isUndoable = this.goi_globals.undoableItems.includes(item_id);
+        const isUndoable = this.goi_globals.undoableItems.some((itemCard) => {
+          return itemCard.id == itemCard_id;
+        });
+
         this.generateItemButton(item_id, elementId, isUndoable);
       }
     },
@@ -1977,6 +2014,7 @@ define([
         { event: "reshuffleItemsDeck", duration: 5000 },
         { event: "buyItem" },
         { event: "replaceItem", duration: 1000 },
+        { event: "useItem" },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2339,6 +2377,11 @@ define([
       this.goi_stocks.items.market.addCard(itemCard, {
         fromStock: this.goi_stocks.items.deck,
       });
+    },
+
+    notif_useItem: function (notif) {
+      const itemCard = notif.args.itemCard;
+      this.goi_stocks.items.used.addCard(itemCard);
     },
 
     notif_collectTile: function (notif) {
