@@ -2531,6 +2531,7 @@ class Game extends \Table
         $result["itemsDeck"] = $this->getItemsDeck();
         $result["itemsMarket"] = $this->getItemsMarket();
         $result["boughtItems"] = $this->getBoughtItems(null);
+        $result["undoableItems"] = [];
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 

@@ -102,6 +102,7 @@ define([
       this.goi_globals.itemsDeck = gamedatas.itemsDeck;
       this.goi_globals.itemsMarket = gamedatas.itemsMarket;
       this.goi_globals.boughtItems = gamedatas.boughtItems;
+      this.goi_globals.undoableItems = gamedatas.undoableItems;
       this.goi_globals.objectives = gamedatas.objectives;
 
       this.goi_info.defaultSelections = {
@@ -110,6 +111,9 @@ define([
         gems: [],
         stoneDice: [],
         opponent: null,
+        relic: null,
+        item: null,
+        objective: null,
       };
 
       this.goi_selections = this.goi_info.defaultSelections;
@@ -509,7 +513,7 @@ define([
           this.goi_selections.gem = null;
         }
 
-        this.handleConfirmationButton();
+        this.handleSelection();
       };
 
       this.goi_stocks.gems.void = new VoidStock(
@@ -601,7 +605,7 @@ define([
           this.goi_selections.tile = lastChange;
         }
 
-        this.handleConfirmationButton();
+        this.handleSelection();
       };
 
       const tilesBoard = this.goi_globals.tilesBoard;
@@ -811,13 +815,13 @@ define([
               this.goi_selections.gems = [];
             }
 
-            this.handleConfirmationButton();
+            this.handleSelection();
             return;
           }
 
           if (stateName === "transferGem") {
             this.goi_selections.gem = lastChange;
-            this.handleConfirmationButton();
+            this.handleSelection();
             return;
           }
         };
@@ -869,7 +873,7 @@ define([
             this.goi_selections.objective = null;
           }
 
-          this.handleConfirmationButton();
+          this.handleSelection();
         };
 
         const objectives = this.goi_globals.objectives[player_id];
@@ -907,10 +911,7 @@ define([
             this.goi_selections.item = null;
           }
 
-          this.handleConfirmationButton(
-            "goi_confirmItem_btn",
-            _("Use selected item")
-          );
+          this.handleItemSelection();
         };
 
         const boughtItems = this.goi_globals.boughtItems[player_id];
@@ -939,7 +940,7 @@ define([
             this.goi_selections.tile = null;
           }
 
-          this.handleConfirmationButton();
+          this.handleSelection();
         };
 
         const collectedTiles = this.goi_globals.collectedTiles[player_id];
@@ -1069,7 +1070,7 @@ define([
           this.goi_selections.relic = null;
         }
 
-        this.handleConfirmationButton();
+        this.handleSelection();
       };
 
       const relicsMarket = this.goi_globals.relicsMarket;
@@ -1116,7 +1117,7 @@ define([
           this.goi_selections.item = null;
         }
 
-        this.handleConfirmationButton();
+        this.handleSelection();
       };
 
       const itemsMarket = this.goi_globals.itemsMarket;
@@ -1266,6 +1267,8 @@ define([
           const buyableItems = args.args.buyableItems;
           const canUseItem = args.args.canUseItem;
           const usableItems = args.args.usableItems;
+
+          this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
 
           this.addActionButton(
             "goi_skip_btn",
@@ -1488,7 +1491,7 @@ define([
                 this.goi_selections.opponent = null;
               }
 
-              this.handleConfirmationButton();
+              this.handleSelection();
             };
           }
         }
@@ -1653,19 +1656,12 @@ define([
       return this.gamedatas.gamestate.name;
     },
 
-    handleConfirmationButton: function (
+    handleSelection: function (
       elementId = "goi_confirmation_btn",
       message = _("Confirm selection")
     ) {
       document.getElementById(elementId)?.remove();
       const stateName = this.getStateName();
-
-      if (elementId === "goi_confirmItem_btn") {
-        if (this.goi_selections.item) {
-          this.addActionButton(elementId, message, "onUseItem");
-        }
-        return;
-      }
 
       if (stateName === "revealTile") {
         const selectedTile = this.goi_selections.tile;
@@ -1759,6 +1755,46 @@ define([
           this.addActionButton(elementId, message, "actDiscardObjective");
           return;
         }
+      }
+    },
+
+    generateItemButton: function (item_id, elementId, isUndoable) {
+      const itemName = this.goi_info.items[item_id].tr_name;
+
+      if (!isUndoable) {
+        const message = this.format_string(_("Use ${item_name}"), {
+          item_name: _(itemName),
+        });
+
+        this.addActionButton(elementId, message, "onUseItem");
+        return;
+      }
+
+      const message = this.format_string(_("Cancel ${item_name}"), {
+        item_name: _(itemName),
+      });
+
+      this.addActionButton(
+        elementId,
+        message,
+        "actUndoItem",
+        null,
+        false,
+        "gray"
+      );
+    },
+
+    handleItemSelection: function () {
+      const selectedItem = this.goi_selections.item;
+
+      const elementId = "goi_confirmItem_btn";
+      document.getElementById(elementId)?.remove();
+
+      if (selectedItem) {
+        const item_id = Number(selectedItem.type_arg);
+
+        const isUndoable = this.goi_globals.undoableItems.includes(item_id);
+        this.generateItemButton(item_id, elementId, isUndoable);
       }
     },
 
