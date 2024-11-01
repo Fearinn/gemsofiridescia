@@ -1940,16 +1940,48 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi_selections.item.type_arg);
 
-      const instantItems = [4];
-
-      if (instantItems.includes(item_id)) {
+      if (item_id === 4) {
         this.actUseItem();
       }
     },
 
     actUseItem: function () {
+      const selectedItem = this.goi_selections.item;
+      const item_id = Number(selectedItem.type_arg);
+
+      if (item_id === 4) {
+        this.performAction(
+          "actUseEpicElixir",
+          {
+            itemCard_id: selectedItem.id,
+          },
+          { checkAction: false }
+        );
+        return;
+      }
+
       this.performAction("actUseItem", {
-        itemCard_id: this.goi_selections.item.id,
+        itemCard_id: item_id,
+      });
+    },
+
+    actUndoItem: function () {
+      const selectedItem = this.goi_selections.item;
+      const item_id = Number(selectedItem.type_arg);
+
+      if (item_id === 4) {
+        this.performAction(
+          "actUndoItem",
+          {
+            itemCard_id: selectedItem.id,
+          },
+          { checkAction: false }
+        );
+        return;
+      }
+
+      this.performAction("actUndoItem", {
+        itemCard_id: selectedItem.id,
       });
     },
 
@@ -2015,6 +2047,7 @@ define([
         { event: "buyItem" },
         { event: "replaceItem", duration: 1000 },
         { event: "useItem" },
+        { event: "cancelItem" },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2382,6 +2415,13 @@ define([
     notif_useItem: function (notif) {
       const itemCard = notif.args.itemCard;
       this.goi_stocks.items.used.addCard(itemCard);
+    },
+
+    notif_cancelItem: function (notif) {
+      const player_id = notif.args.player_id;
+      const itemCard = notif.args.itemCard;
+
+      this.goi_stocks[player_id].items.hand.addCard(itemCard);
     },
 
     notif_collectTile: function (notif) {

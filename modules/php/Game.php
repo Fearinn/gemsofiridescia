@@ -23,7 +23,8 @@ namespace Bga\Games\GemsOfIridescia;
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
-use Bga\GameFramework\Actions\Types\JsonParam;
+use \Bga\GameFramework\Actions\Types\JsonParam;
+use \Bga\GameFramework\Actions\CheckAction;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -452,13 +453,58 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUseItem(#[IntParam(min: 1, max: 33)] int $itemCard_id)
+    public function actUseItem(#[IntParam(min: 1, max: 33)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
         $item = new ItemManager($itemCard_id, $this);
 
+        $item->use($player_id, $args);
+
+        $this->gamestate->nextState("repeat");
+    }
+
+    #[CheckAction(false)]
+    public function actUseEpicElixir(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    {
+        $current_player_id = (int) $this->getCurrentPlayerId();
+        $player_id = (int) $this->getActivePlayerId();
+
+        if ($current_player_id !== $player_id) {
+            throw new \BgaVisibleSystemException("You're not the active player: actUseEpicElixir");
+        }
+
+        $item = new ItemManager($itemCard_id, $this);
         $item->use($player_id, []);
+
+        $state_id = $this->gamestate->state_id();
+        $this->gamestate->jumpToState($state_id);
+    }
+
+    #[CheckAction(false)]
+    public function actUndoEpicElixir(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    {
+        $current_player_id = (int) $this->getActivePlayerId();
+        $player_id = (int) $this->getActivePlayerId();
+
+        if ($current_player_id !== $player_id) {
+            throw new \BgaVisibleSystemException("You're not the active player: actUndoEpicElixir");
+        }
+
+        $item = new ItemManager($itemCard_id, $this);
+        $item->undo($player_id);
+
+        $state_id = $this->gamestate->state_id();
+        $this->gamestate->jumpToState($state_id);
+    }
+
+    public function actUndoItem(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $item->undo($player_id);
 
         $this->gamestate->nextState("repeat");
     }

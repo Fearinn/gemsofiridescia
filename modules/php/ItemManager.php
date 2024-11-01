@@ -69,7 +69,7 @@ class ItemManager
     {
         $state_id = (int) $this->game->gamestate->state_id();
 
-        if ($this->checkLocation("hand", $player_id)) {
+        if (!$this->checkLocation("hand", $player_id)) {
             return false;
         }
 
@@ -136,13 +136,40 @@ class ItemManager
         }
     }
 
-    public function isUndoable($player_id)
+    public function isUndoable($player_id): bool
     {
         if (!$this->checkLocation("used", $player_id)) {
             return false;
         }
         if ($this->id === 4) {
             return $this->game->globals->get(EPIC_ELIXIR);
+        }
+    }
+
+    public function undo($player_id): void
+    {
+        if (!$this->isUndoable($player_id)) {
+            throw new \BgaVisibleSystemException("You can't cancel this Item now: actUndoItem: $this->card_id");
+        }
+
+        $this->game->notifyAllPlayers(
+            "cancelItem",
+            clienttranslate('${player_name} cancels the ${item_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "itemCard" => $this->card,
+                "item_name" => $this->tr_name,
+                "i18n" => ["item_name"],
+                "preserve" => ["item_id"],
+                "item_id" => $this->id,
+            ]
+        );
+
+        $this->game->item_cards->moveCard($this->card_id, "hand", $player_id);
+
+        if ($this->id === 4) {
+            $this->game->globals->set(EPIC_ELIXIR, false);
         }
     }
 
