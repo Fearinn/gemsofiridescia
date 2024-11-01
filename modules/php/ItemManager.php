@@ -67,12 +67,35 @@ class ItemManager
 
     public function isUsable(int $player_id): bool
     {
+        $state_id = (int) $this->game->gamestate->state_id();
+
+        if ($this->checkLocation("hand", $player_id)) {
+            return false;
+        }
+
+        if ($state_id !== 4) {
+            if ($this->id === 4) {
+                return !$this->game->globals->get(EPIC_ELIXIR);
+            }
+
+            if ($this->id === 11) {
+                return $this->globals->get(REVEALS_LIMIT) === 0
+                    && (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+            }
+
+            return false;
+        }
+
         if ($this->id === 1) {
             return $this->game->getTotalGemsCount($player_id) >= 2;
         }
 
         if ($this->id === 3) {
             return $this->game->getCoins($player_id) >= 3;
+        }
+
+        if ($this->id === 4) {
+            return !$this->game->globals->get(EPIC_ELIXIR);
         }
 
         if ($this->id === 8) {
@@ -83,10 +106,49 @@ class ItemManager
             return $this->game->getCoins($player_id) >= 3;
         }
 
-        if ($this->id === 11) {
-            return !!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id);
+        return false;
+    }
+
+    public function use(int $player_id, array $args)
+    {
+        if (!$this->isUsable($player_id)) {
+            throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
         }
 
-        return true;
+        $this->game->notifyAllPlayers(
+            "useItem",
+            clienttranslate('${player_name} uses the ${item_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "item_name" => $this->tr_name,
+                "i18n" => ["item_name"],
+                "preserve" => ["item_id"],
+                "item_id" => $this->id
+            ]
+        );
+
+        if ($this->id === 4) {
+            $this->epicElixir();
+        }
+    }
+
+    public function cauldronOfFortune(array $oldGemCard1, array $oldGemCard2, int $newGem_id, $player_id)
+    {
+        $this->game->checkLocation($oldGemCard1, "hand", $player_id);
+        $this->game->checkLocation($oldGemCard2, "hand", $player_id);
+
+        $oldGem1_id = (int) $oldGemCard1["type_arg"];
+        $oldGem2_id = (int) $oldGemCard2["type_arg"];
+
+        $this->game->decGem(1, $oldGem1_id, [$oldGemCard1], $player_id);
+        $this->game->decGem(1, $oldGem2_id, [$oldGemCard2], $player_id);
+
+        $this->game->incGem(1, $newGem_id, $player_id);
+    }
+
+    public function epicElixir()
+    {
+        $this->game->globals->set(EPIC_ELIXIR, true);
     }
 }

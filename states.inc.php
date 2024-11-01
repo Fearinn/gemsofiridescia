@@ -36,7 +36,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argRevealTile",
         "action" => "stRevealTile",
-        "possibleactions" => ["actRevealTile", "actSkipRevealTile"],
+        "possibleactions" => ["actRevealTile", "actSkipRevealTile", "actUseItem"],
         "transitions" => [
             "repeat" => 2,
             "discardCollectedTile" => 20,
@@ -53,7 +53,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
-        "possibleactions" => ["actDiscardCollectedTile"],
+        "possibleactions" => ["actDiscardCollectedTile", "actUseItem"],
         "transitions" => ["revealTile" => 2]
     ],
 
@@ -62,9 +62,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must discard a tile from the board'),
         "descriptionmyturn" => clienttranslate('${you} must discard a tile from the board'),
         "type" => "activeplayer",
-        // "args" => "argDiscardTile",
-        // "action" => "stDiscardTile",
-        "possibleactions" => ["actDiscardTile"],
+        "possibleactions" => ["actDiscardTile", "actUseItem"],
         "transitions" => ["betweenTurns" => 6],
     ],
 
@@ -75,7 +73,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
-        "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
+        "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile", "actUseItem"],
         "transitions" => ["back" => 2, "rainbowTile" => 30, "discardObjective" => 32, "optionalActions" => 4]
     ],
 
@@ -84,7 +82,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must pick a Gem to collect from the Rainbow'),
         "descriptionmyturn" => clienttranslate('${you} must pick a Gem to collect from the Rainbow'),
         "type" => "activeplayer",
-        "possibleactions" => ["actPickRainbowGem"],
+        "possibleactions" => ["actPickRainbowGem", "actUseItem"],
         "transitions" => ["optionalActions" => 4]
     ],
 
@@ -95,7 +93,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argTransferGem",
         "action" => "stTransferGem",
-        "possibleactions" => ["actTransferGem", "actDiscardGem"],
+        "possibleactions" => ["actTransferGem", "actDiscardGem", "actUseItem"],
         "transitions" => ["repeat" => 31],
     ],
 
@@ -104,7 +102,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must discard a Secret Objective'),
         "descriptionmyturn" => clienttranslate('${you} must discard a Secret Objective'),
         "type" => "activeplayer",
-        "possibleactions" => ["actDiscardObjective"],
+        "possibleactions" => ["actDiscardObjective", "actUseItem"],
         "transitions" => ["optionalActions" => 4]
     ],
 
@@ -115,7 +113,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argOptionalActions",
         "action" => "stOptionalActions",
-        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions", "actBuyItem"],
+        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions", "actBuyItem", "actUseItem"],
         "transitions" => ["repeat" => 4, "skip" => 5, "restoreRelic" => 5]
     ],
 
@@ -126,7 +124,7 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argRestoreRelic",
         "action" => "stRestoreRelic",
-        "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
+        "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions", "actUseItem"],
         "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6]
     ],
 

@@ -897,6 +897,22 @@ define([
           { horizontalShift: "0px", verticalShift: "48px" }
         );
 
+        this.goi_stocks[player_id].items.hand.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          if (selection.length > 0) {
+            this.goi_selections.item = lastChange;
+          } else {
+            this.goi_selections.item = null;
+          }
+
+          this.handleConfirmationButton(
+            "goi_confirmItem_btn",
+            _("Use selected item")
+          );
+        };
+
         const boughtItems = this.goi_globals.boughtItems[player_id];
         for (const itemCard_id in boughtItems) {
           const itemCard = boughtItems[itemCard_id];
@@ -1125,6 +1141,17 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
+        const epicElixir = this.goi_stocks[this.player_id].items.hand
+          .getCards()
+          .filter((itemCard) => {
+            return itemCard.type_arg == 4;
+          });
+
+        this.goi_stocks[this.player_id].items.hand.setSelectionMode(
+          "single",
+          epicElixir
+        );
+
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
           const expandedRevealableTiles = args.args.expandedRevealableTiles;
@@ -1237,6 +1264,8 @@ define([
           const canSellGems = args.args.canSellGems;
           const canBuyItem = args.args.canBuyItem;
           const buyableItems = args.args.buyableItems;
+          const canUseItem = args.args.canUseItem;
+          const usableItems = args.args.usableItems;
 
           this.addActionButton(
             "goi_skip_btn",
@@ -1282,13 +1311,28 @@ define([
           this.addActionButton("goi_buyItem_btn", _("Buy an Item"), () => {
             this.setClientState("client_buyItem", {
               descriptionmyturn: _("${you} may select an Item to buy"),
-              client_args: { buyableItems: buyableItems },
+              client_args: { buyableItems },
             });
           });
 
           if (!canBuyItem) {
             document
               .getElementById("goi_buyItem_btn")
+              .classList.add("disabled");
+          }
+
+          this.addActionButton("goi_useItem_btn", _("Use an Item"), () => {
+            this.setClientState("client_useItem", {
+              descriptionmyturn: _("${you} may select an Item to use"),
+              client_args: { usableItems },
+            });
+          });
+
+          console.log(canUseItem, usableItems, "usableItems");
+
+          if (!canUseItem) {
+            document
+              .getElementById("goi_useItem_btn")
               .classList.add("disabled");
           }
 
@@ -1359,6 +1403,26 @@ define([
           );
 
           this.goi_stocks.items.market.setSelectionMode("single", buyableItems);
+        }
+
+        if (stateName === "client_useItem") {
+          const usableItems = args.client_args.usableItems;
+
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
+
+          this.goi_stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
         }
 
         if (stateName === "transferGem") {
@@ -1507,6 +1571,8 @@ define([
         return;
       }
 
+      this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
+
       if (stateName === "revealTile") {
         this.goi_stocks.tiles.board.setSelectionMode("none");
       }
@@ -1594,6 +1660,13 @@ define([
       document.getElementById(elementId)?.remove();
       const stateName = this.getStateName();
 
+      if (elementId === "goi_confirmItem_btn") {
+        if (this.goi_selections.item) {
+          this.addActionButton(elementId, message, "onUseItem");
+        }
+        return;
+      }
+
       if (stateName === "revealTile") {
         const selectedTile = this.goi_selections.tile;
         if (selectedTile) {
@@ -1666,6 +1739,7 @@ define([
       if (stateName === "client_transferGem") {
         if (this.goi_selections.gem && this.goi_selections.opponent) {
           this.addActionButton(elementId, message, "actTransferGem");
+          return;
         }
       }
 
@@ -1786,6 +1860,22 @@ define([
 
     actBuyItem: function () {
       this.performAction("actBuyItem", {
+        itemCard_id: this.goi_selections.item.id,
+      });
+    },
+
+    onUseItem: function () {
+      const item_id = Number(this.goi_selections.item.type_arg);
+
+      const instantItems = [4];
+
+      if (instantItems.includes(item_id)) {
+        this.actUseItem();
+      }
+    },
+
+    actUseItem: function () {
+      this.performAction("actUseItem", {
         itemCard_id: this.goi_selections.item.id,
       });
     },

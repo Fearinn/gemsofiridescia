@@ -24,7 +24,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntParam;
 use Bga\GameFramework\Actions\Types\JsonParam;
-use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -38,6 +37,7 @@ const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
 const HAS_BOUGHT_ITEM = "hasBoughtItem";
+const EPIC_ELIXIR = "epicElixir";
 
 class Game extends \Table
 {
@@ -452,6 +452,17 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
+    public function actUseItem(#[IntParam(min: 1, max: 33)] int $itemCard_id)
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $item->use($player_id, []);
+
+        $this->gamestate->nextState("repeat");
+    }
+
     public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
     {
         $players = $this->loadPlayersBasicInfos();
@@ -671,6 +682,9 @@ class Game extends \Table
         $buyableItems = $this->buyableItems($player_id);
         $canBuyItem = !!$buyableItems && !$this->globals->get(HAS_BOUGHT_ITEM, false);
 
+        $usableItems = $this->usableItems($player_id);
+        $canUseItem = !!$usableItems;
+
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
         $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
@@ -681,7 +695,9 @@ class Game extends \Table
             "canSellGems" => $canSellGems,
             "canBuyItem" => $canBuyItem,
             "buyableItems" => $buyableItems,
-            "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem,
+            "canUseItem" => $canUseItem,
+            "usableItems" => $usableItems,
+            "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
         ];
     }
 
@@ -809,18 +825,35 @@ class Game extends \Table
             return;
         }
 
-        $this->notifyAllPlayers(
-            "passTurn",
-            clienttranslate('${player_name} passes'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
-            ]
-        );
-
         $this->giveExtraTime($player_id);
-        $this->activeNextPlayer();
 
+        $epicElixir = $this->globals->get(EPIC_ELIXIR);
+        if ($epicElixir) {
+            $this->notifyAllPlayers(
+                "epicElixir",
+                clienttranslate('${player_name} starts a new turn (${item_name})'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "item_name" => clienttranslate("Epic Elixir"),
+                    "i18n" => ["item_name"],
+                    "preserve" => "item_id",
+                    "item_id" => 4,
+                ]
+            );
+        } else {
+            $this->notifyAllPlayers(
+                "passTurn",
+                clienttranslate('${player_name} passes'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                ]
+            );
+            $this->activeNextPlayer();
+        }
+
+        $this->globals->set(EPIC_ELIXIR, false);
         $this->gamestate->nextState("nextTurn");
     }
 
@@ -2067,6 +2100,27 @@ class Game extends \Table
         }
 
         return $buyableItems;
+    }
+
+    public function usableItems(int $player_id, bool $associative = false): array
+    {
+        $usableItems = [];
+        $boughtItems = $this->item_cards->getCardsInLocation("hand", $player_id);
+
+        foreach ($boughtItems as $itemCard_id => $itemCard) {
+            $item = new ItemManager($itemCard_id, $this);
+
+            if ($item->isUsable($player_id)) {
+                if ($associative) {
+                    $usableItems[$itemCard_id] = $itemCard;
+                    continue;
+                }
+
+                $usableItems[] = $itemCard;
+            }
+        }
+
+        return $usableItems;
     }
 
     public function replaceItem(): void
