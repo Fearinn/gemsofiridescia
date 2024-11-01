@@ -1902,7 +1902,7 @@ class Game extends \Table
         $statName = $leadGem === 0 ? "iridia:Relics" : "$leadGem:GemRelics";
         $this->incStat(1, $statName, $player_id);
 
-        if ($relicType !== 4) {
+        if ($relicType !== 0) {
             $this->incStat(1, "$relicType:TypeRelics", $player_id);
         }
 
