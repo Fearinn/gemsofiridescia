@@ -39,6 +39,7 @@ const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
 const HAS_BOUGHT_ITEM = "hasBoughtItem";
 const EPIC_ELIXIR = "epicElixir";
+const SWAPPING_STONES = "swappingStones";
 
 class Game extends \Table
 {
@@ -511,10 +512,8 @@ class Game extends \Table
 
     public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
     {
-        $players = $this->loadPlayersBasicInfos();
-
-        if ($opponent_id && !array_key_exists($opponent_id, $players)) {
-            throw new \BgaVisibleSystemException("This player is not in the table: actTransferGem, $opponent_id");
+        if ($opponent_id) {
+            $this->checkPlayer($opponent_id);
         }
 
         $player_id = (int) $this->getActivePlayerId();
@@ -658,7 +657,6 @@ class Game extends \Table
 
         return [
             "collectedTiles" => $collectedTiles,
-            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $auto
         ];
     }
@@ -698,7 +696,6 @@ class Game extends \Table
             "explorableTiles" => $explorableTiles,
             "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
-            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER) || $singleExplorableTile
         ];
     }
@@ -766,7 +763,6 @@ class Game extends \Table
 
         return [
             "availableCargos" => $this->availableCargos($player_id),
-            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $this->getTotalGemsCount($player_id) <= 7,
         ];
     }
@@ -824,7 +820,6 @@ class Game extends \Table
 
         return [
             "restorableRelics" => $restorableRelics,
-            "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => !$restorableRelics
         ];
     }
@@ -871,9 +866,9 @@ class Game extends \Table
         $this->globals->set(ANCHOR_STATE, null);
         $this->globals->set(CURRENT_TILE, null);
 
-        $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
+        $castlePlayersCount = $this->castlePlayersCount();
 
-        if ($castlePlayers && count($castlePlayers) === $this->getPlayersNumber()) {
+        if ($castlePlayersCount === $this->getPlayersNumber()) {
             $this->gamestate->nextState("finalScoring");
             return;
         }
@@ -977,6 +972,15 @@ class Game extends \Table
         );
 
         return $face;
+    }
+
+    public function checkPlayer($player_id)
+    {
+        $players = $this->loadPlayersBasicInfos();
+
+        if ($player_id && !array_key_exists($player_id, $players)) {
+            throw new \BgaVisibleSystemException("This player is not in the table: actTransferGem, $player_id");
+        }
     }
 
     public function checkCardLocation(array $card, string | int $location, int $location_arg = null)
@@ -1436,8 +1440,7 @@ class Game extends \Table
             ]
         );
 
-        $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
-        $castlePlayersCount = count($castlePlayers);
+        $castlePlayersCount = $this->castlePlayersCount();
 
         if ($castlePlayersCount === 1) {
             $score_aux = 100;
@@ -1478,6 +1481,12 @@ class Game extends \Table
 
         $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=$score_aux WHERE player_id=$player_id");
         $this->incRoyaltyPoints($tokenPoints, $player_id);
+    }
+
+    public function castlePlayersCount()
+    {
+        $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
+        return count($castlePlayers);
     }
 
     public function getCollectedTiles(?int $player_id): array

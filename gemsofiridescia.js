@@ -640,6 +640,19 @@ define([
         {}
       );
 
+      this.goi_stocks.explorers.board.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        if (selection.length > 0) {
+          this.goi_selections.opponent = Number(lastChange.location_arg);
+        } else {
+          this.goi_selections.opponent = null;
+        }
+
+        this.handleItemSelection();
+      };
+
       for (const explorerCard_id in this.goi_globals.explorers) {
         const explorerCard = this.goi_globals.explorers[explorerCard_id];
         const tileHex = explorerCard.location_arg;
@@ -1150,7 +1163,7 @@ define([
           this.goi_selections.item = null;
         }
 
-        this.handleItemSelection();
+        this.handleSelection();
       };
 
       const usedItems = this.goi_globals.usedItems;
@@ -1186,10 +1199,16 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
-        const undoableItems = args.args?.undoableItems || [];
-        this.goi_globals.undoableItems = undoableItems;
+        const usedEpicElixir = this.goi_stocks.items.used
+          .getCards()
+          .filter(() => {
+            return itemCard.type_arg == 4;
+          });
 
-        const epicElixir = this.goi_stocks[this.player_id].items.hand
+        this.goi_globals.undoableItems = usedEpicElixir;
+        this.goi_stocks.items.used.setSelectionMode("single", usedEpicElixir);
+
+        const usableEpicElixir = this.goi_stocks[this.player_id].items.hand
           .getCards()
           .filter((itemCard) => {
             return itemCard.type_arg == 4;
@@ -1197,16 +1216,15 @@ define([
 
         this.goi_stocks[this.player_id].items.hand.setSelectionMode(
           "single",
-          epicElixir
+          usableEpicElixir
         );
-
-        this.goi_stocks.items.used.setSelectionMode("single", undoableItems);
 
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
           const expandedRevealableTiles = args.args.expandedRevealableTiles;
           const revealsLimit = args.args.revealsLimit;
           const skippable = args.args.skippable;
+          const usableItems = args.args.usableItems;
 
           if (!skippable) {
             this.gamedatas.gamestate.description = _(
@@ -1241,6 +1259,11 @@ define([
             revealableTiles.length > 0
               ? revealableTiles
               : expandedRevealableTiles
+          );
+
+          this.goi_stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
           );
 
           return;
@@ -1380,8 +1403,6 @@ define([
             });
           });
 
-          console.log(canUseItem, usableItems, "usableItems");
-
           if (!canUseItem) {
             document
               .getElementById("goi_useItem_btn")
@@ -1389,6 +1410,30 @@ define([
           }
 
           return;
+        }
+
+        if (stateName === "client_swappingStones") {
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
+
+          const selectableExplorers = this.goi_stocks.explorers.board
+            .getCards()
+            .filter((explorerCard) => {
+              return explorerCard.location_arg != this.player_id;
+            });
+
+          this.goi_stocks.explorers.board.setSelectionMode(
+            "single",
+            selectableExplorers
+          );
         }
 
         if (stateName === "client_sellGems") {
@@ -1716,7 +1761,12 @@ define([
         const selectedTile = this.goi_selections.tile;
         if (selectedTile) {
           this.addActionButton(elementId, message, "actRevealTile");
-          return;
+        }
+      }
+
+      if (stateName === "client_swappingStones") {
+        if (this.goi_selections.opponent) {
+          this.addActionButton(elementId, message, "actUseItem");
         }
       }
 
@@ -1956,6 +2006,14 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi_selections.item.type_arg);
 
+      if (item_id === 2) {
+        this.setClientState("client_swappingStones", {
+          descriptionmyturn: _(
+            "Select an oponent explorer to swap location with"
+          ),
+        });
+      }
+
       if (item_id === 4) {
         this.actUseItem();
       }
@@ -1976,8 +2034,11 @@ define([
         return;
       }
 
+      let args = {};
+
       this.performAction("actUseItem", {
         itemCard_id: item_id,
+        args: JSON.stringify(args),
       });
     },
 

@@ -27,7 +27,9 @@ class ItemManager
     {
         $confirmLocation = true;
 
-        if ($this->card["location"] !== $location || ($location_arg && $location_arg != $this->card["location_arg"])) {
+        $card_location_arg = (int) $this->card["location_arg"];
+
+        if ($this->card["location"] !== $location || ($location_arg && $location_arg !== $card_location_arg)) {
             $confirmLocation = false;
         }
 
@@ -80,9 +82,15 @@ class ItemManager
                 return !$this->game->globals->get(EPIC_ELIXIR);
             }
 
-            if ($this->id === 11) {
-                return $this->game->globals->get(REVEALS_LIMIT) === 0
-                    && (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+            if ($state_id === 2) {
+                if ($this->id === 10) {
+                    return $this->globals->get(SWAPPING_STONES, false) && $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
+                }
+
+                if ($this->id === 11) {
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0
+                        && (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+                }
             }
 
             return false;
@@ -136,6 +144,69 @@ class ItemManager
         if ($this->id === 4) {
             $this->epicElixir();
         }
+
+        if ($this->id === 10) {
+            $opponent_id = (int) $args["opponent_id"];
+            $this->game->checkPlayer($opponent_id);
+
+            $this->swappingStones($player_id, $opponent_id);
+        }
+    }
+
+    public function cauldronOfFortune(array $oldGemCard1, array $oldGemCard2, int $newGem_id, $player_id)
+    {
+        $this->game->checkLocation($oldGemCard1, "hand", $player_id);
+        $this->game->checkLocation($oldGemCard2, "hand", $player_id);
+
+        $oldGem1_id = (int) $oldGemCard1["type_arg"];
+        $oldGem2_id = (int) $oldGemCard2["type_arg"];
+
+        $this->game->decGem(1, $oldGem1_id, [$oldGemCard1], $player_id);
+        $this->game->decGem(1, $oldGem2_id, [$oldGemCard2], $player_id);
+
+        $this->game->incGem(1, $newGem_id, $player_id);
+    }
+
+    public function epicElixir()
+    {
+        $this->game->globals->set(EPIC_ELIXIR, true);
+    }
+
+    public function swappingStones(int $player_id, int $opponent_id, bool $undo = false)
+    {
+        if ($player_id === $opponent_id) {
+            throw new \BgaVisibleSystemException("You can't select yourself for Swapping Stones");
+        }
+
+        $currentExplorerCard = $this->game->getExplorerByPlayerId($player_id);
+        $currentExplorerCard_id = (int) $currentExplorerCard["id"];
+
+        $opponentExplorerCard = $this->game->getExplorerByPlayerId($opponent_id);
+        $opponentExplorerCard_id = (int) $opponentExplorerCard["id"];
+
+        $currentHex = (int) $currentExplorerCard["location_arg"];
+        $opponentHex = (int) $currentExplorerCard["location_arg"];
+
+        $this->game->explorer_cards->moveCard($currentExplorerCard_id, "board", $opponentHex);
+        $this->game->explorer_cards->moveCard($opponentExplorerCard_id, "board", $currentHex);
+
+        $currentExplorerCard = $this->game->getExplorerByPlayerId($player_id);
+        $opponentExplorerCard = $this->game->getExplorerByPlayerId($opponent_id);
+
+        $this->game->notifyAllPlayers(
+            "swappingStones",
+            clienttranslate('${player_name} swaps location with ${player_name2}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_id" => $opponent_id,
+                "player_name2" => $this->game->getPlayerNameById($opponent_id),
+                "currentExplorerCard" => $currentExplorerCard,
+                "opponentExplorerCard" => $opponentExplorerCard,
+            ]
+        );
+
+        $this->game->globals->set(SWAPPING_STONES, true);
     }
 
     public function isUndoable($player_id): bool
@@ -143,8 +214,23 @@ class ItemManager
         if (!$this->checkLocation("used", $player_id)) {
             return false;
         }
+
         if ($this->id === 4) {
             return $this->game->globals->get(EPIC_ELIXIR);
+        }
+
+        $state_id = $this->game->gamestate->state_id();
+
+        if ($state_id === 2) {
+            if ($this->id === 10) {
+                return $this->game->globals->get(SWAPPING_STONES, false) && $this->game->globals->get(REVEALS_LIMIT) === 0;
+            }
+
+            // if ($this->id === 11) {
+            //     return $this->game->globals->get(REVEALS_LIMIT) === 0;
+            // }
+
+            return false;
         }
     }
 
@@ -181,25 +267,10 @@ class ItemManager
             $this->game->globals->set(EPIC_ELIXIR, false);
         }
 
+        if ($this->id === 10) {
+            $this->game->globals->set(SWAPPING_STONES, false);
+        }
+
         $this->game->item_cards->moveCard($this->card_id, "discard");
-    }
-
-    public function cauldronOfFortune(array $oldGemCard1, array $oldGemCard2, int $newGem_id, $player_id)
-    {
-        $this->game->checkLocation($oldGemCard1, "hand", $player_id);
-        $this->game->checkLocation($oldGemCard2, "hand", $player_id);
-
-        $oldGem1_id = (int) $oldGemCard1["type_arg"];
-        $oldGem2_id = (int) $oldGemCard2["type_arg"];
-
-        $this->game->decGem(1, $oldGem1_id, [$oldGemCard1], $player_id);
-        $this->game->decGem(1, $oldGem2_id, [$oldGemCard2], $player_id);
-
-        $this->game->incGem(1, $newGem_id, $player_id);
-    }
-
-    public function epicElixir()
-    {
-        $this->game->globals->set(EPIC_ELIXIR, true);
     }
 }
