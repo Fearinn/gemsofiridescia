@@ -2248,6 +2248,10 @@ class Game extends \Table
     {
         $usedItems = $this->getUsedItems();
 
+        if (!$usedItems) {
+            return;
+        }
+
         foreach ($usedItems as $itemCard_id => $itemCard) {
             $item = new ItemManager($itemCard_id, $this);
             $item->discard();
@@ -2805,9 +2809,7 @@ class Game extends \Table
             $itemCards[] = ["type" => $item_info["cost"], "type_arg" => $item_id, "nbr" => 3];
         }
         $this->item_cards->createCards($itemCards, "deck");
-
         $this->item_cards->shuffle("deck");
-
         $this->item_cards->pickCardsForLocation(5, "deck", "market");
 
         if (
@@ -2815,6 +2817,8 @@ class Game extends \Table
         ) {
             $this->reshuffleItemsDeck(true);
         };
+
+        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=2392034 WHERE card_type=10 LIMIT 1");
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);

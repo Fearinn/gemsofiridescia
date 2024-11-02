@@ -38,7 +38,7 @@ class ItemManager
 
     public function isBuyable(int $player_id): bool
     {
-        return $this->game->globals->get(HAS_BOUGHT_ITEM) && $this->checkLocation("market") && $this->game->getCoins($player_id) >= $this->cost;
+        return !$this->game->globals->get(HAS_BOUGHT_ITEM) && $this->checkLocation("market") && $this->game->getCoins($player_id) >= $this->cost;
     }
 
     public function buy(int $player_id): void
