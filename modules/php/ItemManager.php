@@ -115,21 +115,21 @@ class ItemManager
             return $this->game->getTotalGemsCount($player_id) >= 2;
         }
 
-        if ($this->id === 3) {
-            return $this->game->getCoins($player_id) >= 3;
-        }
+        // if ($this->id === 3) {
+        //     return $this->game->getCoins($player_id) >= 3;
+        // }
 
         if ($this->id === 4) {
             return !$this->game->globals->get(EPIC_ELIXIR);
         }
 
-        if ($this->id === 8) {
-            return $this->game->getTotalGemsCount($player_id) >= 1;
-        }
+        // if ($this->id === 8) {
+        //     return $this->game->getTotalGemsCount($player_id) >= 1;
+        // }
 
-        if ($this->id === 9) {
-            return $this->game->getCoins($player_id) >= 3;
-        }
+        // if ($this->id === 9) {
+        //     return $this->game->getCoins($player_id) >= 3;
+        // }
 
         return false;
     }

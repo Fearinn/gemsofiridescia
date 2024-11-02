@@ -1162,7 +1162,7 @@ define([
           this.goi_selections.item = null;
         }
 
-        this.handleSelection();
+        this.handleItemSelection();
       };
 
       const usedItems = this.goi_globals.usedItems;
