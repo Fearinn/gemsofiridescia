@@ -363,6 +363,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-height: calc(409px + 20px);
 }
 
 .goi_zoneTitle {
@@ -379,12 +380,10 @@
 }
 
 .goi_itemsUsed {
-  height: 409px;
   width: var(--cardSize);
 }
 
 .goi_itemsDiscard {
-  height: 409px;
   width: var(--cardSize);
 }
 

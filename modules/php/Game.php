@@ -729,7 +729,7 @@ class Game extends \Table
         $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
 
         $buyableItems = $this->buyableItems($player_id);
-        $canBuyItem = !!$buyableItems && !$this->globals->get(HAS_BOUGHT_ITEM, false);
+        $canBuyItem = !!$buyableItems;
 
         $usableItems = $this->usableItems($player_id);
         $canUseItem = !!$usableItems;
@@ -865,6 +865,7 @@ class Game extends \Table
         $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
         $this->globals->set(HAS_EXPANDED_TILES, false);
+        $this->globals->set(HAS_BOUGHT_ITEM, false);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
