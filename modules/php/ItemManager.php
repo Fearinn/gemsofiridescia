@@ -175,11 +175,9 @@ class ItemManager
 
     public function discard()
     {
-        $this->game->notifyAllPlayers(
-            "discardItem",
-            "",
-            ["itemCard" => $this->card]
-        );
+        if ($this->id === 4) {
+            $this->game->globals->set(EPIC_ELIXIR, false);
+        }
 
         $this->game->item_cards->moveCard($this->card_id, "discard");
     }

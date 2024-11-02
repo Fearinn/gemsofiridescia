@@ -107,8 +107,16 @@
     <div id="goi_itemsMarket" class="goi_itemsMarket">
       <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
     </div>
-    <div id="goi_usedItems" class="goi_usedItems"></div>
-    <div id="goi_itemsDiscard" class="goi_itemsDiscard"></div>
+    <div id="goi_itemsZone" class="goi_itemsZone whiteblock">
+      <div class="goi_itemsContainer">
+        <h3 id="goi_usedItemsTitle" class="goi_zoneTitle"></h3>
+        <div id="goi_usedItems" class="goi_usedItems"></div>
+      </div>
+      <div class="goi_itemsContainer">
+        <h3 id="goi_itemsDiscardTitle" class="goi_zoneTitle"></h3>
+        <div id="goi_itemsDiscard" class="goi_itemsDiscard"></div>
+      </div>
+    </div>
   </div>
 </div>
 

@@ -331,24 +331,15 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
-  width: calc(var(--cardSize) * 2 + 16px);
+  width: calc(var(--cardSize) * 3);
 }
 
 .goi_void {
   position: absolute !important;
   bottom: 0;
   left: 25%;
-}
-
-.goi_itemsUsed {
-  height: 409px;
-  width: var(--cardSize);
-}
-
-.goi_itemsDiscard {
-  height: 409px;
-  width: var(--cardSize);
 }
 
 .goi_itemsDeck {
@@ -366,6 +357,35 @@
 .goi_itemPlaceholder {
   grid-column: 1;
   grid-row: 1;
+}
+
+.goi_itemsZone {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.goi_zoneTitle {
+  font-family: "sketchnote-square", sans-serif;
+  font-size: 2.5em;
+}
+
+.goi_itemsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: var(--cardSize);
+}
+
+.goi_itemsUsed {
+  height: 409px;
+  width: var(--cardSize);
+}
+
+.goi_itemsDiscard {
+  height: 409px;
+  width: var(--cardSize);
 }
 
 .goi_item,
@@ -550,11 +570,6 @@
 .goi_selectedPlayerZoneContainer {
   border-style: solid;
   transform: scale(1.01);
-}
-
-.goi_playerZoneTitle {
-  font-family: "sketchnote-square", sans-serif;
-  font-size: 2.5em;
 }
 
 .goi_playerZone {

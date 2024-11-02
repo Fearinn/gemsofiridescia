@@ -711,7 +711,7 @@ define([
         document.getElementById("goi_playerZones").innerHTML += `
         <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
           <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
-          <h3 id="goi_playerZoneTitle:${player_id}" class="goi_playerZoneTitle" style="color: #${playerColor};">${playerName}</h3>
+          <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
               <div id="goi_scene:${player_id}" class="goi_scene">
@@ -896,6 +896,12 @@ define([
         );
 
         /* ITEMS */
+        document.getElementById("goi_usedItemsTitle").textContent =
+          _("Used this turn");
+
+        document.getElementById("goi_itemsDiscardTitle").textContent =
+          _("Discard");
+
         this.goi_stocks[player_id].items.hand = new AllVisibleDeck(
           this.goi_managers.items,
           document.getElementById(`goi_items:${player_id}`),
@@ -1150,8 +1156,19 @@ define([
       const usedItems = this.goi_globals.usedItems;
       for (const itemCard_id in usedItems) {
         const itemCard = usedItems[itemCard_id];
-
         this.goi_stocks.items.used.addCard(itemCard);
+      }
+
+      this.goi_stocks.items.discard = new AllVisibleDeck(
+        this.goi_managers.items,
+        document.getElementById(`goi_itemsDiscard`),
+        { horizontalShift: "0px", verticalShift: "48px" }
+      );
+
+      const itemsDiscard = this.goi_globals.itemsDiscard;
+      for (const itemCard_id in itemsDiscard) {
+        const itemCard = itemsDiscard[itemCard_id];
+        this.goi_stocks.items.discard.addCard(itemCard);
       }
 
       this.setupNotifications();
@@ -1170,7 +1187,6 @@ define([
 
       if (this.isCurrentPlayerActive()) {
         const undoableItems = args.args?.undoableItems || [];
-        console.log(args.args, undoableItems, "undoable");
         this.goi_globals.undoableItems = undoableItems;
 
         const epicElixir = this.goi_stocks[this.player_id].items.hand
@@ -2048,6 +2064,7 @@ define([
         { event: "replaceItem", duration: 1000 },
         { event: "useItem" },
         { event: "cancelItem" },
+        { event: "discardItems" },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2422,6 +2439,15 @@ define([
       const itemCard = notif.args.itemCard;
 
       this.goi_stocks[player_id].items.hand.addCard(itemCard);
+    },
+
+    notif_discardItems: function (notif) {
+      const itemCards = notif.args.itemCards;
+
+      for (const itemCard_id in itemCards) {
+        const itemCard = itemCards[itemCard_id];
+        this.goi_stocks.items.discard.addCard(itemCard);
+      }
     },
 
     notif_collectTile: function (notif) {

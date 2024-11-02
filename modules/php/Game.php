@@ -880,6 +880,8 @@ class Game extends \Table
         $this->giveExtraTime($player_id);
 
         $epicElixir = $this->globals->get(EPIC_ELIXIR);
+        $this->discardItems($player_id);
+
         if ($epicElixir) {
             $this->notifyAllPlayers(
                 "epicElixir",
@@ -905,7 +907,6 @@ class Game extends \Table
             $this->activeNextPlayer();
         }
 
-        $this->globals->set(EPIC_ELIXIR, false);
         $this->gamestate->nextState("nextTurn");
     }
 
@@ -2139,6 +2140,12 @@ class Game extends \Table
         return $usedItems;
     }
 
+    public function getItemsDiscard(): array
+    {
+        $itemsDiscard = $this->item_cards->getCardsInLocation("discard");
+        return $itemsDiscard;
+    }
+
     public function buyableItems(int $player_id, bool $associative = false): array
     {
         $buyableItems = [];
@@ -2225,6 +2232,26 @@ class Game extends \Table
         if (!$this->checkItemsMarket()) {
             $this->reshuffleItemsDeck();
         };
+    }
+
+    function discardItems(int $player_id)
+    {
+        $usedItems = $this->getUsedItems();
+
+        foreach ($usedItems as $itemCard_id => $itemCard) {
+            $item = new ItemManager($itemCard_id, $this);
+            $item->discard();
+        }
+
+        $this->notifyAllPlayers(
+            "discardItems",
+            clienttranslate('All Items used by ${player_name} this turn are discarded'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "itemCards" => $usedItems
+            ]
+        );
     }
 
     public function getObjectives(int $current_player_id, bool $unique = false): array
@@ -2611,6 +2638,7 @@ class Game extends \Table
         $result["itemsMarket"] = $this->getItemsMarket();
         $result["boughtItems"] = $this->getBoughtItems(null);
         $result["usedItems"] = $this->getUsedItems();
+        $result["itemsDiscard"] = $this->getItemsDiscard();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
 
