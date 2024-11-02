@@ -39,8 +39,8 @@ class ItemManager
     public function isBuyable(int $player_id): bool
     {
         $hasEnoughCoins = $this->game->getCoins($player_id) >= $this->cost;
-        $hasSameItem = !!$this->game->getObjectFromDb("SELECT card_id from item 
-        WHERE card_type_arg=$this->id AND card_location='hand' AND card_location_arg=$player_id LIMIT 1");
+        $hasSameItem = !!$this->game->getCollectionFromDB("SELECT card_id from item 
+        WHERE card_type_arg=$this->id AND card_location='hand' AND card_location_arg=$player_id");
 
         return !$this->game->globals->get(HAS_BOUGHT_ITEM) && $this->checkLocation("market") && $hasEnoughCoins && !$hasSameItem;
     }

@@ -1701,6 +1701,14 @@ define([
         this.goi_stocks.items.market.setSelectionMode("none");
       }
 
+      if (stateName === "client_useItem") {
+        this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
+      }
+
+      if (stateName === "client_swappingStones") {
+        this.goi_stocks.explorers.board.setSelectionMode("none");
+      }
+
       if (stateName === "transferGem") {
         this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
