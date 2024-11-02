@@ -252,6 +252,7 @@ define([
 
       this.goi_managers.explorers = new CardManager(this, {
         getId: (card) => `explorer-${card.id}`,
+        selectedCardClass: "goi_selectedCard",
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
           div.style.position = "relative";
@@ -595,12 +596,10 @@ define([
       );
 
       this.goi_stocks.tiles.board.onSelectionChange = (
-        selected,
+        selection,
         lastChange
       ) => {
-        const stateName = this.getStateName();
-
-        if (selected.length === 0) {
+        if (selection.length === 0) {
           this.goi_selections.tile = null;
         } else {
           this.goi_selections.tile = lastChange;
@@ -645,12 +644,12 @@ define([
         lastChange
       ) => {
         if (selection.length > 0) {
-          this.goi_selections.opponent = Number(lastChange.location_arg);
+          this.goi_selections.opponent = Number(lastChange.type_arg);
         } else {
           this.goi_selections.opponent = null;
         }
 
-        this.handleItemSelection();
+        this.handleSelection();
       };
 
       for (const explorerCard_id in this.goi_globals.explorers) {
@@ -1201,7 +1200,7 @@ define([
       if (this.isCurrentPlayerActive()) {
         const usedEpicElixir = this.goi_stocks.items.used
           .getCards()
-          .filter(() => {
+          .filter((itemCard) => {
             return itemCard.type_arg == 4;
           });
 
@@ -1427,7 +1426,7 @@ define([
           const selectableExplorers = this.goi_stocks.explorers.board
             .getCards()
             .filter((explorerCard) => {
-              return explorerCard.location_arg != this.player_id;
+              return explorerCard.type_arg != this.player_id;
             });
 
           this.goi_stocks.explorers.board.setSelectionMode(
@@ -2006,16 +2005,16 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi_selections.item.type_arg);
 
-      if (item_id === 2) {
-        this.setClientState("client_swappingStones", {
-          descriptionmyturn: _(
-            "Select an oponent explorer to swap location with"
-          ),
-        });
-      }
-
       if (item_id === 4) {
         this.actUseItem();
+      }
+
+      if (item_id === 10) {
+        this.setClientState("client_swappingStones", {
+          descriptionmyturn: _(
+            "Select an opponent explorer to swap location with"
+          ),
+        });
       }
     },
 
@@ -2036,8 +2035,14 @@ define([
 
       let args = {};
 
+      if (item_id === 10) {
+        args = {
+          opponent_id: this.goi_selections.opponent,
+        };
+      }
+
       this.performAction("actUseItem", {
-        itemCard_id: item_id,
+        itemCard_id: selectedItem.id,
         args: JSON.stringify(args),
       });
     },
@@ -2126,6 +2131,7 @@ define([
         { event: "useItem" },
         { event: "cancelItem" },
         { event: "discardItems" },
+        { event: "swappingStones", duration: 1000 },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2152,7 +2158,6 @@ define([
 
         if (ignoreCurrentPlayer) {
           this.notifqueue.setIgnoreNotificationCheck(event, (notif) => {
-            console.log(notif.args, this.player_id);
             return notif.args.player_id == this.player_id;
           });
         }
@@ -2509,6 +2514,36 @@ define([
         const itemCard = itemCards[itemCard_id];
         this.goi_stocks.items.discard.addCard(itemCard);
       }
+    },
+
+    notif_swappingStones: function (notif) {
+      const currentExplorerCard = notif.args.currentExplorerCard;
+      const opponentExplorerCard = notif.args.opponentExplorerCard;
+      const currentHex = notif.args.currentHex;
+      const opponentHex = notif.args.opponentHex;
+
+      this.goi_stocks.explorers.board.removeCard(currentExplorerCard);
+      this.goi_stocks.explorers.board.removeCard(opponentExplorerCard);
+
+      this.goi_stocks.explorers.board.addCard(
+        currentExplorerCard,
+        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${opponentHex}`
+          ),
+        }
+      );
+
+      this.goi_stocks.explorers.board.addCard(
+        opponentExplorerCard,
+        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${currentHex}`
+          ),
+        }
+      );
     },
 
     notif_collectTile: function (notif) {

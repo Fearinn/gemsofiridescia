@@ -671,6 +671,15 @@ var CardStock = /** @class */ (function () {
         else {
             parent.insertBefore(cardElement, parent.children[settings.index]);
         }
+
+        if (settings?.forceToElement && cardElement.id.includes("explorer")) {
+        cardElement.addEventListener("click", () => {
+            const card = this.getCards().find((c) => {
+              return this.manager.getId(c) == cardElement.id;
+            });
+            this.cardClick(card);
+          });
+        }
     };
     CardStock.prototype.moveFromOtherStock = function (card, cardElement, animation, settings) {
         var promise;

@@ -84,12 +84,15 @@ class ItemManager
 
             if ($state_id === 2) {
                 if ($this->id === 10) {
-                    return $this->globals->get(SWAPPING_STONES, false) && $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
+                    $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
+                    $explorerCard = $this->game->getExplorerByPlayerId($player_id);
+
+                    return !$this->game->globals->get(SWAPPING_STONES, false) && $hasSwapableOpponent && $explorerCard["location"] === "board";
                 }
 
                 if ($this->id === 11) {
-                    return $this->game->globals->get(REVEALS_LIMIT) === 0
-                        && (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+                    $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
                 }
             }
 
@@ -185,7 +188,7 @@ class ItemManager
         $opponentExplorerCard_id = (int) $opponentExplorerCard["id"];
 
         $currentHex = (int) $currentExplorerCard["location_arg"];
-        $opponentHex = (int) $currentExplorerCard["location_arg"];
+        $opponentHex = (int) $opponentExplorerCard["location_arg"];
 
         $this->game->explorer_cards->moveCard($currentExplorerCard_id, "board", $opponentHex);
         $this->game->explorer_cards->moveCard($opponentExplorerCard_id, "board", $currentHex);
@@ -203,6 +206,8 @@ class ItemManager
                 "player_name2" => $this->game->getPlayerNameById($opponent_id),
                 "currentExplorerCard" => $currentExplorerCard,
                 "opponentExplorerCard" => $opponentExplorerCard,
+                "currentHex" => $currentHex,
+                "opponentHex" => $opponentHex,
             ]
         );
 
@@ -232,6 +237,8 @@ class ItemManager
 
             return false;
         }
+
+        return false;
     }
 
     public function undo($player_id): void

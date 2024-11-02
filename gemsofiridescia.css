@@ -825,6 +825,7 @@ body > .card {
 
 .card-stock .card.bga-cards_selectable-card:not(.bga-cards_disabled-card) {
   cursor: pointer;
+  pointer-events: all;
 }
 .card-stock .card.bga-cards_disabled-card {
   cursor: not-allowed;

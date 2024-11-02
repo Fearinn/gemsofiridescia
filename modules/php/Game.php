@@ -608,6 +608,7 @@ class Game extends \Table
             "revealsLimit" => $revealsLimit,
             "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
+            "usableItems" => $this->usableItems($player_id),
             "undoableItems" => $this->undoableItems($player_id),
             "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
                 || $revealsLimit === 2 || $hasReachedCastle,
@@ -979,7 +980,7 @@ class Game extends \Table
         $players = $this->loadPlayersBasicInfos();
 
         if ($player_id && !array_key_exists($player_id, $players)) {
-            throw new \BgaVisibleSystemException("This player is not in the table: actTransferGem, $player_id");
+            throw new \BgaVisibleSystemException("This player is not in the table, $player_id");
         }
     }
 
@@ -2818,7 +2819,7 @@ class Game extends \Table
             $this->reshuffleItemsDeck(true);
         };
 
-        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=2392034 WHERE card_type=10 LIMIT 1");
+        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=2392034 WHERE card_type_arg=10 LIMIT 1");
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
