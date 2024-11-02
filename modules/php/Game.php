@@ -39,6 +39,7 @@ const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
 const HAS_BOUGHT_ITEM = "hasBoughtItem";
 const EPIC_ELIXIR = "epicElixir";
+const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
 
 class Game extends \Table
@@ -879,10 +880,12 @@ class Game extends \Table
 
         $this->giveExtraTime($player_id);
 
-        $epicElixir = $this->globals->get(EPIC_ELIXIR);
+        $epicElixir = $this->globals->get(EPIC_ELIXIR, false);
         $this->discardItems($player_id);
 
         if ($epicElixir) {
+            $this->globals->set(EPIC_ELIXIR_TURN, true);
+
             $this->notifyAllPlayers(
                 "epicElixir",
                 clienttranslate('${player_name} starts a new turn (${item_name})'),
@@ -896,6 +899,8 @@ class Game extends \Table
                 ]
             );
         } else {
+            $this->globals->set(EPIC_ELIXIR_TURN, false);
+
             $this->notifyAllPlayers(
                 "passTurn",
                 clienttranslate('${player_name} passes'),
@@ -2821,8 +2826,6 @@ class Game extends \Table
         ) {
             $this->reshuffleItemsDeck(true);
         };
-
-        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=2392034 WHERE card_type_arg=10 LIMIT 1");
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);

@@ -38,6 +38,14 @@ class ItemManager
 
     public function isBuyable(int $player_id): bool
     {
+        if ($this->id === 4) {
+            $underElixirEffect = $this->game->globals->get(EPIC_ELIXIR, false) || $this->game->globals->get(EPIC_ELIXIR_TURN, false);
+
+            if ($underElixirEffect) {
+                return false;
+            }
+        }
+
         $hasEnoughCoins = $this->game->getCoins($player_id) >= $this->cost;
         $hasSameItem = !!$this->game->getCollectionFromDB("SELECT card_id from item 
         WHERE card_type_arg=$this->id AND card_location='hand' AND card_location_arg=$player_id");
