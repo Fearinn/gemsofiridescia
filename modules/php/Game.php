@@ -600,16 +600,19 @@ class Game extends \Table
 
         $skippable = (!$hasExpandedTiles && $explorableTiles) || ($hasExpandedTiles && $expandedExplorableTiles);
 
+        $usableItems = $this->usableItems($player_id);
+        $undoableItems = $this->undoableItems($player_id);
+
         return [
-            "auto" => $singleRevealableTile,
+            "auto" => $singleRevealableTile && !$usableItems && !$undoableItems,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
             "revealsLimit" => $revealsLimit,
             "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
-            "usableItems" => $this->usableItems($player_id),
-            "undoableItems" => $this->undoableItems($player_id),
+            "usableItems" => $usableItems,
+            "undoableItems" => $undoableItems,
             "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
