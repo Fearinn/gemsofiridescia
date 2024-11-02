@@ -228,20 +228,6 @@ class ItemManager
             return $this->game->globals->get(EPIC_ELIXIR);
         }
 
-        $state_id = $this->game->gamestate->state_id();
-
-        if ($state_id === 2) {
-            if ($this->id === 10) {
-                return $this->game->globals->get(SWAPPING_STONES, false) && $this->game->globals->get(REVEALS_LIMIT) === 0;
-            }
-
-            // if ($this->id === 11) {
-            //     return $this->game->globals->get(REVEALS_LIMIT) === 0;
-            // }
-
-            return false;
-        }
-
         return false;
     }
 
