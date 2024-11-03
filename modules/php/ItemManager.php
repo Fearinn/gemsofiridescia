@@ -194,7 +194,7 @@ class ItemManager
             $this->game->checkCardLocation($gemCard, "hand");
 
             $gem_id = (int) $gemCard["type_arg"];
-            $this->game->decGem(1, $gem_id, [$gemCard], $player_id, false, true);
+            $this->game->decGem(1, $gem_id, [$gemCard_id => $gemCard], $player_id, false, true);
         }
 
         $this->game->incGem(1, $newGem_id, $player_id);

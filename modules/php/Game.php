@@ -1060,7 +1060,7 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function adjacentTiles(int $player_id, ?int $tileHex = null, bool $onlyHexes = false): array
+    public function adjacentTiles(int $player_id, int $tileHex = null, bool $onlyHexes = false): array
     {
         $adjacentTiles = [];
 
