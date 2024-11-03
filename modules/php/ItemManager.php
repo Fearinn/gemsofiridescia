@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Bga\Games\GemsOfIridescia;
 
+use Bga\GameFramework\Actions\Types\IntArrayParam;
+use \Bga\GameFramework\Actions\Types\IntParam;
+use \Bga\GameFramework\Actions\Types\JsonParam;
+
 class ItemManager
 {
     public function __construct(int $itemCard_id, \Table $game)
@@ -123,9 +127,9 @@ class ItemManager
             return !$this->game->globals->get(EPIC_ELIXIR);
         }
 
-        // if ($this->id === 8) {
-        //     return $this->game->getTotalGemsCount($player_id) >= 1;
-        // }
+        if ($this->id === 8) {
+            return $this->game->getTotalGemsCount($player_id) > 0;
+        }
 
         // if ($this->id === 9) {
         //     return $this->game->getCoins($player_id) >= 3;
@@ -134,7 +138,7 @@ class ItemManager
         return false;
     }
 
-    public function use(int $player_id, array $args)
+    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args)
     {
         if (!$this->isUsable($player_id)) {
             throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
@@ -179,12 +183,8 @@ class ItemManager
         }
     }
 
-    public function cauldronOfFortune(array $oldGemCards_ids, int $newGem_id, int $player_id)
+    public function cauldronOfFortune(#[IntArrayParam(min: 1, max: 36)] array $oldGemCards_ids, #[IntParam(min: 1, max: 4)] int $newGem_id, int $player_id)
     {
-        if (!in_array($newGem_id, range(1, 4))) {
-            throw new \BgaVisibleSystemException("This Gem doesn't exist: Cauldron of Fortune, $newGem_id'");
-        }
-
         if (count($oldGemCards_ids) !== 2) {
             throw new \BgaVisibleSystemException("You must select exactly 2 Gems: Cauldron of Fortune");
         }
