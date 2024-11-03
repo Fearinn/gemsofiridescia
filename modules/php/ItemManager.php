@@ -309,12 +309,16 @@ class ItemManager
 
     public function discard()
     {
+        if ($this->id === 3) {
+            $this->game->globals->set(MARVELOUS_CART, false);
+        }
+
         if ($this->id === 4) {
-            $this->game->globals->set(EPIC_ELIXIR);
+            $this->game->globals->set(EPIC_ELIXIR, false);
         }
 
         if ($this->id === 10) {
-            $this->game->globals->set(SWAPPING_STONES);
+            $this->game->globals->set(SWAPPING_STONES, false);
         }
 
         $this->game->item_cards->moveCard($this->card_id, "discard");
