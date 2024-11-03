@@ -39,7 +39,7 @@ class ItemManager
     public function isBuyable(int $player_id): bool
     {
         if ($this->id === 4) {
-            $underElixirEffect = $this->game->globals->get(EPIC_ELIXIR, false) || $this->game->globals->get(EPIC_ELIXIR_TURN, false);
+            $underElixirEffect = $this->game->globals->get(EPIC_ELIXIR) || $this->game->globals->get(EPIC_ELIXIR_TURN);
 
             if ($underElixirEffect) {
                 return false;
@@ -99,7 +99,7 @@ class ItemManager
                     $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
-                    return !$this->game->globals->get(SWAPPING_STONES, false) && $hasSwapableOpponent && $explorerCard["location"] === "board";
+                    return !$this->game->globals->get(SWAPPING_STONES) && $hasSwapableOpponent && $explorerCard["location"] === "board";
                 }
 
                 if ($this->id === 11) {
@@ -115,9 +115,9 @@ class ItemManager
             return $this->game->getTotalGemsCount($player_id) >= 2;
         }
 
-        // if ($this->id === 3) {
-        //     return $this->game->getCoins($player_id) >= 3;
-        // }
+        if ($this->id === 3) {
+            return !$this->game->globals->get(MARVELOUS_CART) && $this->game->getCoins($player_id) >= 3;
+        }
 
         if ($this->id === 4) {
             return !$this->game->globals->get(EPIC_ELIXIR);
@@ -156,6 +156,10 @@ class ItemManager
 
         $this->game->item_cards->moveCard($this->card_id, "used", $player_id);
 
+        if ($this->id === 3) {
+            $this->marvelousCart();
+        }
+
         if ($this->id === 4) {
             $this->epicElixir();
         }
@@ -182,12 +186,17 @@ class ItemManager
         $this->game->incGem(1, $newGem_id, $player_id);
     }
 
+    public function marvelousCart()
+    {
+        $this->game->globals->set(MARVELOUS_CART, true);
+    }
+
     public function epicElixir()
     {
         $this->game->globals->set(EPIC_ELIXIR, true);
     }
 
-    public function swappingStones(int $player_id, int $opponent_id, bool $undo = false)
+    public function swappingStones(int $player_id, int $opponent_id)
     {
         if ($player_id === $opponent_id) {
             throw new \BgaVisibleSystemException("You can't select yourself for Swapping Stones");
@@ -232,6 +241,20 @@ class ItemManager
             return false;
         }
 
+        $state_id = (int) $this->game->gamestate->state_id();
+
+        if ($state_id !== 4) {
+            if ($this->id === 4) {
+                return $this->game->globals->get(EPIC_ELIXIR);
+            }
+
+            return false;
+        }
+
+        if ($this->id === 3) {
+            return !$this->game->globals->get(HAS_MINED) && $this->game->globals->get(MARVELOUS_CART);
+        }
+
         if ($this->id === 4) {
             return $this->game->globals->get(EPIC_ELIXIR);
         }
@@ -261,6 +284,10 @@ class ItemManager
 
         $this->game->item_cards->moveCard($this->card_id, "hand", $player_id);
 
+        if ($this->id === 3) {
+            $this->game->globals->set(MARVELOUS_CART, false);
+        }
+
         if ($this->id === 4) {
             $this->game->globals->set(EPIC_ELIXIR, false);
         }
@@ -269,11 +296,11 @@ class ItemManager
     public function discard()
     {
         if ($this->id === 4) {
-            $this->game->globals->set(EPIC_ELIXIR, false);
+            $this->game->globals->set(EPIC_ELIXIR);
         }
 
         if ($this->id === 10) {
-            $this->game->globals->set(SWAPPING_STONES, false);
+            $this->game->globals->set(SWAPPING_STONES);
         }
 
         $this->game->item_cards->moveCard($this->card_id, "discard");

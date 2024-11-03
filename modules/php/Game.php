@@ -30,6 +30,7 @@ const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
 const HAS_MOVED_EXPLORER = "hasMovedExplorer";
 const HAS_SOLD_GEMS = "hasSoldGems";
+const HAS_MINED = "hasMined";
 const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
@@ -38,6 +39,8 @@ const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
 const HAS_BOUGHT_ITEM = "hasBoughtItem";
+
+const MARVELOUS_CART = "marvelousCart";
 const EPIC_ELIXIR = "epicElixir";
 const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
@@ -324,10 +327,11 @@ class Game extends \Table
 
     public function actMine(#[JsonParam(alphanum: false)] array $stoneDice): void
     {
+        $this->globals->set(HAS_MINED, true);
+
         $player_id = (int) $this->getActivePlayerId();
 
         $stoneDiceCount = count($stoneDice);
-
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
 
         if ($stoneDiceCount > $activeStoneDiceCount) {
@@ -362,14 +366,14 @@ class Game extends \Table
         $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
         $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
 
-        $minedGems = 0;
+        $minedGemsCount = 0;
 
         if ($roll1 >= $gemMarketValue) {
-            $minedGems++;
+            $minedGemsCount++;
         }
 
         if ($roll2 >= $gemMarketValue) {
-            $minedGems++;
+            $minedGemsCount++;
         }
 
         foreach ($stoneDice as $die) {
@@ -377,7 +381,7 @@ class Game extends \Table
             $roll = $this->rollDie($die_id, $player_id, "stone");
 
             if ($roll >= $gemMarketValue) {
-                $minedGems++;
+                $minedGemsCount++;
             }
         }
 
@@ -400,7 +404,8 @@ class Game extends \Table
             );
         }
 
-        if ($minedGems === 0) {
+
+        if ($minedGemsCount === 0) {
             $this->notifyAllPlayers(
                 "failToMine",
                 clienttranslate('${player_name} fails to mine his tile'),
@@ -410,7 +415,11 @@ class Game extends \Table
                 ]
             );
         } else {
-            if (!$this->incGem($minedGems, $gem_id, $player_id, $tileCard, true)) {
+            if ($this->globals->get(MARVELOUS_CART)) {
+                $minedGemsCount *= 2;
+            }
+
+            if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
                 return;
             };
         }
@@ -864,6 +873,7 @@ class Game extends \Table
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
+        $this->globals->set(HAS_MINED, false);
         $this->globals->set(HAS_EXPANDED_TILES, false);
         $this->globals->set(HAS_BOUGHT_ITEM, false);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);

@@ -1338,6 +1338,10 @@ define([
           const buyableItems = args.args.buyableItems;
           const canUseItem = args.args.canUseItem;
           const usableItems = args.args.usableItems;
+          const undoableItems = args.args.undoableItems;
+
+          this.goi_globals.undoableItems = undoableItems;
+          this.goi_stocks.items.used.setSelectionMode("single", undoableItems);
 
           this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
 
@@ -2013,7 +2017,9 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi_selections.item.type_arg);
 
-      if (item_id === 4) {
+      const instantaneousItems = [3, 4];
+
+      if (instantaneousItems.includes(item_id)) {
         this.actUseItem();
       }
 
