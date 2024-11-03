@@ -128,8 +128,7 @@ class ItemManager
         }
 
         if ($this->id === 8) {
-            $totalGemsCount = $this->game->getTotalGemsCount($player_id);
-            return $totalGemsCount > 0 && $totalGemsCount <= 7;
+            return $this->game->getTotalGemsCount($player_id) > 0;
         }
 
         // if ($this->id === 9) {
@@ -139,7 +138,7 @@ class ItemManager
         return false;
     }
 
-    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): void
+    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): bool
     {
         if (!$this->isUsable($player_id)) {
             throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
@@ -178,7 +177,7 @@ class ItemManager
 
         if ($this->id === 8) {
             $gemCard_id = (int) $args["gemCard_id"];
-            $this->axeOfAwesomeness($gemCard_id, $player_id);
+            return $this->axeOfAwesomeness($gemCard_id, $player_id);
         }
 
         if ($this->id === 10) {
@@ -187,6 +186,8 @@ class ItemManager
 
             $this->swappingStones($player_id, $opponent_id);
         }
+
+        return true;
     }
 
     public function cauldronOfFortune(#[IntArrayParam(min: 1, max: 144)] array $oldGemCards_ids, #[IntParam(min: 1, max: 4)] int $newGem_id, int $player_id): void
@@ -216,7 +217,7 @@ class ItemManager
         $this->game->globals->set(EPIC_ELIXIR, true);
     }
 
-    public function axeOfAwesomeness(#[IntParam(min: 1, max: 144)] int $gemCard_id, int $player_id): void
+    public function axeOfAwesomeness(#[IntParam(min: 1, max: 144)] int $gemCard_id, int $player_id): bool
     {
         $gemCard =  $this->game->gem_cards->getCard($gemCard_id);
         $this->game->checkCardLocation($gemCard, "hand", $player_id);
@@ -235,7 +236,7 @@ class ItemManager
             ]
         );
 
-        $this->game->incGem(1, $gem_id, $player_id, null, false, true);
+        return $this->game->incGem(1, $gem_id, $player_id, null, false, true);
     }
 
     public function swappingStones(int $player_id, int $opponent_id): void

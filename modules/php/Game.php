@@ -470,7 +470,9 @@ class Game extends \Table
 
         $item = new ItemManager($itemCard_id, $this);
 
-        $item->use($player_id, $args);
+        if (!$item->use($player_id, $args)) {
+            return;
+        };
 
         $this->gamestate->nextState("repeat");
     }
