@@ -278,6 +278,9 @@ class Game extends \Table
         if (
             !$this->incGem(1, $gem_id, $player_id, $tileCard)
         ) {
+            $anchorState_id = $this->gamestate->state_id();
+            $this->globals->set(ANCHOR_STATE, $anchorState_id);
+            $this->gamestate->jumpToState(31);
             return;
         }
 
@@ -351,59 +354,9 @@ class Game extends \Table
 
         $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
         $tile_id = (int) $tileCard["type_arg"];
-
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id !== 0 && $gem_id !== 10) {
-            $gemName = $this->gems_info[$gem_id]["name"];
-            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
-        } else {
-            $gem_id = $this->globals->get(RAINBOW_GEM);
-            $gemName = $this->gems_info[$gem_id]["name"];
-            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
-        }
-
-        $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
-        $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
-
-        $minedGemsCount = 0;
-
-        if ($roll1 >= $gemMarketValue) {
-            $minedGemsCount++;
-        }
-
-        if ($roll2 >= $gemMarketValue) {
-            $minedGemsCount++;
-        }
-
-        foreach ($stoneDice as $die) {
-            $die_id = (int) $die["id"];
-            $roll = $this->rollDie($die_id, $player_id, "stone");
-
-            if ($roll >= $gemMarketValue) {
-                $minedGemsCount++;
-            }
-        }
-
-        $this->notifyAllPlayers(
-            "syncDieRolls",
-            "",
-            []
-        );
-
-        foreach ($stoneDice as $die) {
-            $die_id = (int) $die["id"];
-
-            $this->notifyAllPlayers(
-                "activateStoneDie",
-                "",
-                [
-                    "player_id" => $player_id,
-                    "die_id" => $die_id
-                ]
-            );
-        }
-
+        $minedGemsCount = $this->mine($gem_id, $stoneDice, $player_id);
 
         if ($minedGemsCount === 0) {
             $this->notifyAllPlayers(
@@ -419,9 +372,28 @@ class Game extends \Table
                 $minedGemsCount *= 2;
             }
 
+            $fullCargo = false;
             if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
-                return;
+                $fullCargo = true;
             };
+
+            $tileCard = $this->globals->get(PROSPEROUS_PICKAXE);
+
+            if ($tileCard) {
+                $tile_id = (int) $tileCard["type_arg"];
+                $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+            }
+
+            if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
+                $fullCargo = true;
+            }
+
+            if ($fullCargo) {
+                $anchorState_id = $this->gamestate->state_id();
+                $this->globals->set(ANCHOR_STATE, $anchorState_id);
+                $this->gamestate->jumpToState(31);
+                return;
+            }
         }
 
         $this->gamestate->nextState("repeat");
@@ -471,6 +443,9 @@ class Game extends \Table
         $item = new ItemManager($itemCard_id, $this);
 
         if (!$item->use($player_id, $args)) {
+            $anchorState_id = $this->gamestate->state_id();
+            $this->globals->set(ANCHOR_STATE, $anchorState_id);
+            $this->gamestate->jumpToState(31);
             return;
         };
 
@@ -1314,6 +1289,9 @@ class Game extends \Table
         }
 
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {
+            $anchorState_id = $this->gamestate->state_id();
+            $this->globals->set(ANCHOR_STATE, $anchorState_id);
+            $this->gamestate->jumpToState(31);
             return;
         };
 
@@ -1599,6 +1577,61 @@ class Game extends \Table
         return $totalGemsCount;
     }
 
+    public function mine(int $gem_id, array $stoneDice, int $player_id): int
+    {
+        if ($gem_id !== 0 && $gem_id !== 10) {
+            $gemName = $this->gems_info[$gem_id]["name"];
+            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
+        } else {
+            $gem_id = $this->globals->get(RAINBOW_GEM);
+            $gemName = $this->gems_info[$gem_id]["name"];
+            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
+        }
+
+        $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
+        $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
+
+        $minedGemsCount = 0;
+
+        if ($roll1 >= $gemMarketValue) {
+            $minedGemsCount++;
+        }
+
+        if ($roll2 >= $gemMarketValue) {
+            $minedGemsCount++;
+        }
+
+        foreach ($stoneDice as $die) {
+            $die_id = (int) $die["id"];
+            $roll = $this->rollDie($die_id, $player_id, "stone");
+
+            if ($roll >= $gemMarketValue) {
+                $minedGemsCount++;
+            }
+        }
+
+        $this->notifyAllPlayers(
+            "syncDieRolls",
+            "",
+            []
+        );
+
+        foreach ($stoneDice as $die) {
+            $die_id = (int) $die["id"];
+
+            $this->notifyAllPlayers(
+                "activateStoneDie",
+                "",
+                [
+                    "player_id" => $player_id,
+                    "die_id" => $die_id
+                ]
+            );
+        }
+
+        return $minedGemsCount;
+    }
+
     public function availableCargos(int $excludedPlayer_id = null): array
     {
         $players = $this->loadPlayersBasicInfos();
@@ -1690,9 +1723,6 @@ class Game extends \Table
         );
 
         if ($this->getTotalGemsCount($player_id) > 7) {
-            $anchorState_id = $this->gamestate->state_id();
-            $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
             return false;
         }
 
@@ -1720,7 +1750,7 @@ class Game extends \Table
         $message = "";
 
         if ($sell) {
-           $message = clienttranslate('${player_name} sells ${delta} ${gem_label}');
+            $message = clienttranslate('${player_name} sells ${delta} ${gem_label}');
         } else if ($trade) {
             $message = clienttranslate('${player_name} trades ${delta} ${gem_label}');
         }
