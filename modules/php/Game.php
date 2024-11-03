@@ -1657,7 +1657,7 @@ class Game extends \Table
         $this->decGem(1, $gem_id, [$gemCard], $player_id);
     }
 
-    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false): bool
+    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false, $silent = false): bool
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
@@ -1665,6 +1665,10 @@ class Game extends \Table
 
         $message = $mine ? clienttranslate('${player_name} mines ${delta} ${gem_label}') :
             clienttranslate('${player_name} collects ${delta} ${gem_label}');
+
+        if ($silent) {
+            $message = "";
+        }
 
         $this->notifyAllPlayers(
             "incGem",

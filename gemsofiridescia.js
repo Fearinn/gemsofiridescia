@@ -851,6 +851,15 @@ define([
             this.goi_selections.gems = selection;
             this.handleSelection();
           }
+
+          if (stateName === "client_axeOfAwesomeness") {
+            if (selection.length > 0) {
+              this.goi_selections.gem = lastChange;
+            } else {
+              this.goi_selections.gems = null;
+            }
+            this.handleSelection();
+          }
         };
 
         this.goi_stocks[player_id].explorers.scene = new CardStock(
@@ -858,6 +867,7 @@ define([
           document.getElementById(`goi_sceneExplorer:${player_id}`),
           {}
         );
+
         for (const card_id in this.goi_globals.explorers) {
           const explorerCard = this.goi_globals.explorers[card_id];
 
@@ -1490,18 +1500,12 @@ define([
         }
 
         if (stateName === "client_cauldronOfFortune2") {
-          for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
-            this.goi_stocks.gems.rainbowOptions.addCard({
-              id: `rainbow-${gemName}`,
-              type: gemName,
-              type_arg: this.goi_info.gemIds[gemName],
-            });
-          }
+          this.generateRainbowOptions();
+        }
 
-          const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
-          this.goi_stocks.gems.rainbowOptions.setSelectionMode(
-            "single",
-            gemCards
+        if (stateName === "client_axeOfAwesomeness") {
+          this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
+            "multiple"
           );
         }
 
@@ -1702,6 +1706,10 @@ define([
         this.goi_stocks.gems.rainbowOptions.removeAll();
       }
 
+      if (stateName === "client_axeOfAwesomeness") {
+        this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
+      }
+
       if (stateName === "transferGem") {
         this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
@@ -1818,7 +1826,9 @@ define([
         if (this.goi_selections.gems.length === 2) {
           this.addActionButton(elementId, message, () => {
             this.setClientState("client_cauldronOfFortune2", {
-              descriptionmyturn: _("${you} may pick a Gem to collect"),
+              descriptionmyturn: _(
+                "${you} may pick the type of the Gem collected in the trade"
+              ),
             });
           });
         }
@@ -1826,6 +1836,13 @@ define([
       }
 
       if (stateName === "client_cauldronOfFortune2") {
+        if (this.goi_selections.gem) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
+        return;
+      }
+
+      if (stateName === "client_axeOfAwesomeness") {
         if (this.goi_selections.gem) {
           this.addActionButton(elementId, message, "actUseItem");
         }
@@ -1891,6 +1908,8 @@ define([
 
     generateItemButton: function (item_id, elementId, isUndoable) {
       const itemName = this.goi_info.items[item_id].tr_name;
+
+      console.log(item_id, itemName, "item");
 
       if (!isUndoable) {
         const message = this.format_string(_("Use ${item_name}"), {
@@ -2047,7 +2066,15 @@ define([
       if (item_id === 1) {
         this.setClientState("client_cauldronOfFortune", {
           descriptionmyturn: _(
-            "${you} may select any two Gems to trade for another one"
+            "${you} may select any 2 Gems in your cargo to trade for other Gem"
+          ),
+        });
+      }
+
+      if (item_id === 8) {
+        this.setClientState("client_axeOfAwesomeness", {
+          descriptionmyturn: _(
+            "${you} may select any Gem in your cargo to split into 2 Gems"
           ),
         });
       }
@@ -2085,7 +2112,13 @@ define([
 
         args = {
           oldGemCards_ids: oldGemCards_ids,
-          newGem_id: Number(this.goi_selections.gem.type_arg),
+          newGem_id: this.goi_selections.gem.type_arg,
+        };
+      }
+
+      if (item_id === 8) {
+        args = {
+          gemCard_id: this.goi_selections.gem.id,
         };
       }
 

@@ -128,7 +128,8 @@ class ItemManager
         }
 
         if ($this->id === 8) {
-            return $this->game->getTotalGemsCount($player_id) > 0;
+            $totalGemsCount = $this->game->getTotalGemsCount($player_id);
+            return $totalGemsCount > 0 && $totalGemsCount <= 7;
         }
 
         // if ($this->id === 9) {
@@ -138,7 +139,7 @@ class ItemManager
         return false;
     }
 
-    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args)
+    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): void
     {
         if (!$this->isUsable($player_id)) {
             throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
@@ -175,6 +176,11 @@ class ItemManager
             $this->epicElixir();
         }
 
+        if ($this->id === 8) {
+            $gemCard_id = (int) $args["gemCard_id"];
+            $this->axeOfAwesomeness($gemCard_id, $player_id);
+        }
+
         if ($this->id === 10) {
             $opponent_id = (int) $args["opponent_id"];
             $this->game->checkPlayer($opponent_id);
@@ -183,7 +189,7 @@ class ItemManager
         }
     }
 
-    public function cauldronOfFortune(#[IntArrayParam(min: 1, max: 36)] array $oldGemCards_ids, #[IntParam(min: 1, max: 4)] int $newGem_id, int $player_id)
+    public function cauldronOfFortune(#[IntArrayParam(min: 1, max: 144)] array $oldGemCards_ids, #[IntParam(min: 1, max: 4)] int $newGem_id, int $player_id): void
     {
         if (count($oldGemCards_ids) !== 2) {
             throw new \BgaVisibleSystemException("You must select exactly 2 Gems: Cauldron of Fortune");
@@ -191,7 +197,7 @@ class ItemManager
 
         foreach ($oldGemCards_ids as $gemCard_id) {
             $gemCard =  $this->game->gem_cards->getCard($gemCard_id);
-            $this->game->checkCardLocation($gemCard, "hand");
+            $this->game->checkCardLocation($gemCard, "hand", $player_id);
 
             $gem_id = (int) $gemCard["type_arg"];
             $this->game->decGem(1, $gem_id, [$gemCard_id => $gemCard], $player_id, false, true);
@@ -200,17 +206,39 @@ class ItemManager
         $this->game->incGem(1, $newGem_id, $player_id);
     }
 
-    public function marvelousCart()
+    public function marvelousCart(): void
     {
         $this->game->globals->set(MARVELOUS_CART, true);
     }
 
-    public function epicElixir()
+    public function epicElixir(): void
     {
         $this->game->globals->set(EPIC_ELIXIR, true);
     }
 
-    public function swappingStones(int $player_id, int $opponent_id)
+    public function axeOfAwesomeness(#[IntParam(min: 1, max: 144)] int $gemCard_id, int $player_id): void
+    {
+        $gemCard =  $this->game->gem_cards->getCard($gemCard_id);
+        $this->game->checkCardLocation($gemCard, "hand", $player_id);
+
+        $gem_id = (int) $gemCard["type_arg"];
+
+        $this->game->notifyAllPlayers(
+            "axeOfAwesomeness",
+            clienttranslate('${player_name} splits 1 ${gem_label} into 2'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "gem_label" => $this->game->gems_info[$gem_id]["tr_name"],
+                "preserve" => ["gem_id"],
+                "gem_id" => $gem_id,
+            ]
+        );
+
+        $this->game->incGem(1, $gem_id, $player_id, null, false, true);
+    }
+
+    public function swappingStones(int $player_id, int $opponent_id): void
     {
         if ($player_id === $opponent_id) {
             throw new \BgaVisibleSystemException("You can't select yourself for Swapping Stones");
@@ -307,7 +335,7 @@ class ItemManager
         }
     }
 
-    public function discard()
+    public function discard(): void
     {
         if ($this->id === 3) {
             $this->game->globals->set(MARVELOUS_CART, false);
