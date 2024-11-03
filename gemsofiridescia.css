@@ -326,7 +326,7 @@
   background-image: url("img/dice.png");
 }
 
-.goi_merchant {
+.goi_items {
   grid-area: b;
   position: relative;
   display: flex;
@@ -340,6 +340,11 @@
   position: absolute !important;
   bottom: 0;
   left: 25%;
+}
+
+.goi_merchant {
+  position: relative;
+  width: 100%;
 }
 
 .goi_itemsDeck {

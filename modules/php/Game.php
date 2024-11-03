@@ -1693,7 +1693,7 @@ class Game extends \Table
         return true;
     }
 
-    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, bool $sell = false): void
+    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, bool $sell = false, bool $trade = false): void
     {
         if ($delta <= 0) {
             throw new \BgaVisibleSystemException("The delta must be positive: decGem, $delta");
@@ -1711,9 +1711,17 @@ class Game extends \Table
             $this->gem_cards->insertCardOnExtremePosition($gemCard_id, $gemName, false);
         }
 
+        $message = "";
+
+        if ($sell) {
+           $message = clienttranslate('${player_name} sells ${delta} ${gem_label}');
+        } else if ($trade) {
+            $message = clienttranslate('${player_name} trades ${delta} ${gem_label}');
+        }
+
         $this->notifyAllPlayers(
             "decGem",
-            $sell ? clienttranslate('${player_name} sells ${delta} ${gem_label}') : "",
+            $message,
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),

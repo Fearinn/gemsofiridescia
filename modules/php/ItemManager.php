@@ -156,6 +156,13 @@ class ItemManager
 
         $this->game->item_cards->moveCard($this->card_id, "used", $player_id);
 
+        if ($this->id === 1) {
+            $oldGemCards_ids = $args["oldGemCards_ids"];
+            $newGem_id = (int) $args["newGem_id"];
+
+            $this->cauldronOfFortune($oldGemCards_ids, $newGem_id, $player_id);
+        }
+
         if ($this->id === 3) {
             $this->marvelousCart();
         }
@@ -172,16 +179,23 @@ class ItemManager
         }
     }
 
-    public function cauldronOfFortune(array $oldGemCard1, array $oldGemCard2, int $newGem_id, $player_id)
+    public function cauldronOfFortune(array $oldGemCards_ids, int $newGem_id, int $player_id)
     {
-        $this->game->checkLocation($oldGemCard1, "hand", $player_id);
-        $this->game->checkLocation($oldGemCard2, "hand", $player_id);
+        if (!in_array($newGem_id, range(1, 4))) {
+            throw new \BgaVisibleSystemException("This Gem doesn't exist: Cauldron of Fortune, $newGem_id'");
+        }
 
-        $oldGem1_id = (int) $oldGemCard1["type_arg"];
-        $oldGem2_id = (int) $oldGemCard2["type_arg"];
+        if (count($oldGemCards_ids) !== 2) {
+            throw new \BgaVisibleSystemException("You must select exactly 2 Gems: Cauldron of Fortune");
+        }
 
-        $this->game->decGem(1, $oldGem1_id, [$oldGemCard1], $player_id);
-        $this->game->decGem(1, $oldGem2_id, [$oldGemCard2], $player_id);
+        foreach ($oldGemCards_ids as $gemCard_id) {
+            $gemCard =  $this->game->gem_cards->getCard($gemCard_id);
+            $this->game->checkCardLocation($gemCard, "hand");
+
+            $gem_id = (int) $gemCard["type_arg"];
+            $this->game->decGem(1, $gem_id, [$gemCard], $player_id, false, true);
+        }
 
         $this->game->incGem(1, $newGem_id, $player_id);
     }

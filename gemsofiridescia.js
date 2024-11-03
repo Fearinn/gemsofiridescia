@@ -837,6 +837,20 @@ define([
             this.handleSelection();
             return;
           }
+
+          if (stateName === "client_cauldronOfFortune") {
+            if (selection.length > 2) {
+              this.showMessage(_("You can't select more than 2 Gems"), "error");
+              this.goi_stocks[player_id].gems.cargo.unselectCard(
+                lastChange,
+                true
+              );
+              return;
+            }
+
+            this.goi_selections.gems = selection;
+            this.handleSelection();
+          }
         };
 
         this.goi_stocks[player_id].explorers.scene = new CardStock(
@@ -1325,20 +1339,7 @@ define([
         }
 
         if (stateName === "rainbowTile") {
-          for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
-            this.goi_stocks.gems.rainbowOptions.addCard({
-              id: `rainbow-${gemName}`,
-              type: gemName,
-              type_arg: this.goi_info.gemIds[gemName],
-            });
-          }
-
-          const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
-          this.goi_stocks.gems.rainbowOptions.setSelectionMode(
-            "single",
-            gemCards
-          );
-
+          this.generateRainbowOptions();
           return;
         }
 
@@ -1428,19 +1429,6 @@ define([
           return;
         }
 
-        if (stateName === "client_swappingStones") {
-          const selectableExplorers = this.goi_stocks.explorers.board
-            .getCards()
-            .filter((explorerCard) => {
-              return explorerCard.type_arg != this.player_id;
-            });
-
-          this.goi_stocks.explorers.board.setSelectionMode(
-            "single",
-            selectableExplorers
-          );
-        }
-
         if (stateName === "client_sellGems") {
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple",
@@ -1479,6 +1467,41 @@ define([
           this.goi_stocks[this.player_id].items.hand.setSelectionMode(
             "single",
             usableItems
+          );
+        }
+
+        if (stateName === "client_swappingStones") {
+          const selectableExplorers = this.goi_stocks.explorers.board
+            .getCards()
+            .filter((explorerCard) => {
+              return explorerCard.type_arg != this.player_id;
+            });
+
+          this.goi_stocks.explorers.board.setSelectionMode(
+            "single",
+            selectableExplorers
+          );
+        }
+
+        if (stateName === "client_cauldronOfFortune") {
+          this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
+            "multiple"
+          );
+        }
+
+        if (stateName === "client_cauldronOfFortune2") {
+          for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
+            this.goi_stocks.gems.rainbowOptions.addCard({
+              id: `rainbow-${gemName}`,
+              type: gemName,
+              type_arg: this.goi_info.gemIds[gemName],
+            });
+          }
+
+          const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
+          this.goi_stocks.gems.rainbowOptions.setSelectionMode(
+            "single",
+            gemCards
           );
         }
 
@@ -1670,6 +1693,15 @@ define([
         this.goi_stocks.explorers.board.setSelectionMode("none");
       }
 
+      if (stateName === "client_cauldronOfFortune") {
+        this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
+      }
+
+      if (stateName === "client_cauldronOfFortune2") {
+        this.goi_stocks.gems.rainbowOptions.setSelectionMode("none");
+        this.goi_stocks.gems.rainbowOptions.removeAll();
+      }
+
       if (stateName === "transferGem") {
         this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
@@ -1732,12 +1764,6 @@ define([
         }
       }
 
-      if (stateName === "client_swappingStones") {
-        if (this.goi_selections.opponent) {
-          this.addActionButton(elementId, message, "actUseItem");
-        }
-      }
-
       if (stateName === "discardCollectedTile") {
         const selectedTile = this.goi_selections.tile;
         if (selectedTile) {
@@ -1778,6 +1804,31 @@ define([
 
       if (stateName === "client_buyItem") {
         this.addActionButton(elementId, message, "actBuyItem");
+        return;
+      }
+
+      if (stateName === "client_swappingStones") {
+        if (this.goi_selections.opponent) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
+        return;
+      }
+
+      if (stateName === "client_cauldronOfFortune") {
+        if (this.goi_selections.gems.length === 2) {
+          this.addActionButton(elementId, message, () => {
+            this.setClientState("client_cauldronOfFortune2", {
+              descriptionmyturn: _("${you} may pick a Gem to collect"),
+            });
+          });
+        }
+        return;
+      }
+
+      if (stateName === "client_cauldronOfFortune2") {
+        if (this.goi_selections.gem) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
         return;
       }
 
@@ -1823,6 +1874,19 @@ define([
           return;
         }
       }
+    },
+
+    generateRainbowOptions: function () {
+      for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
+        this.goi_stocks.gems.rainbowOptions.addCard({
+          id: `rainbow-${gemName}`,
+          type: gemName,
+          type_arg: this.goi_info.gemIds[gemName],
+        });
+      }
+
+      const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
+      this.goi_stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
     },
 
     generateItemButton: function (item_id, elementId, isUndoable) {
@@ -1982,14 +2046,16 @@ define([
 
       if (item_id === 1) {
         this.setClientState("client_cauldronOfFortune", {
-          descriptionmyturn: _("Select any two Gems to trade for another one"),
+          descriptionmyturn: _(
+            "${you} may select any two Gems to trade for another one"
+          ),
         });
       }
 
       if (item_id === 10) {
         this.setClientState("client_swappingStones", {
           descriptionmyturn: _(
-            "Select an opponent explorer to swap location with"
+            "${you} may select an opponent explorer to swap location with"
           ),
         });
       }
@@ -2011,6 +2077,17 @@ define([
       }
 
       let args = {};
+
+      if (item_id === 1) {
+        const oldGemCards_ids = this.goi_selections.gems.map((gemCard) => {
+          return Number(gemCard.id);
+        });
+
+        args = {
+          oldGemCards_ids: oldGemCards_ids,
+          newGem_id: Number(this.goi_selections.gem.type_arg),
+        };
+      }
 
       if (item_id === 10) {
         args = {
