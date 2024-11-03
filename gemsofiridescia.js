@@ -1218,6 +1218,19 @@ define([
           usableEpicElixir
         );
 
+        if (stateName.includes("client_")) {
+          this.addActionButton(
+            "goi_cancel_btn",
+            _("Cancel"),
+            () => {
+              this.restoreServerGameState();
+            },
+            null,
+            false,
+            "red"
+          );
+        }
+
         if (stateName === "revealTile") {
           const revealableTiles = args.args.revealableTiles;
           const expandedRevealableTiles = args.args.expandedRevealableTiles;
@@ -1416,17 +1429,6 @@ define([
         }
 
         if (stateName === "client_swappingStones") {
-          this.addActionButton(
-            "goi_cancel_btn",
-            _("Cancel"),
-            () => {
-              this.restoreServerGameState();
-            },
-            null,
-            false,
-            "red"
-          );
-
           const selectableExplorers = this.goi_stocks.explorers.board
             .getCards()
             .filter((explorerCard) => {
@@ -1440,17 +1442,6 @@ define([
         }
 
         if (stateName === "client_sellGems") {
-          this.addActionButton(
-            "goi_cancel_btn",
-            _("Cancel"),
-            () => {
-              this.restoreServerGameState();
-            },
-            null,
-            false,
-            "red"
-          );
-
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple",
             this.goi_stocks[this.player_id].gems.cargo.getCards()
@@ -1460,17 +1451,6 @@ define([
         if (stateName === "client_mine") {
           const activableStoneDiceCount =
             args.client_args.activableStoneDiceCount;
-
-          this.addActionButton(
-            "goi_cancel_btn",
-            _("Cancel"),
-            () => {
-              this.restoreServerGameState();
-            },
-            null,
-            false,
-            "red"
-          );
 
           for (let option = 0; option <= activableStoneDiceCount; option++) {
             const stoneDice =
@@ -1490,34 +1470,11 @@ define([
 
         if (stateName === "client_buyItem") {
           const buyableItems = args.client_args.buyableItems;
-
-          this.addActionButton(
-            "goi_cancel_btn",
-            _("Cancel"),
-            () => {
-              this.restoreServerGameState();
-            },
-            null,
-            false,
-            "red"
-          );
-
           this.goi_stocks.items.market.setSelectionMode("single", buyableItems);
         }
 
         if (stateName === "client_useItem") {
           const usableItems = args.client_args.usableItems;
-
-          this.addActionButton(
-            "goi_cancel_btn",
-            _("Cancel"),
-            () => {
-              this.restoreServerGameState();
-            },
-            null,
-            false,
-            "red"
-          );
 
           this.goi_stocks[this.player_id].items.hand.setSelectionMode(
             "single",
@@ -2021,6 +1978,12 @@ define([
 
       if (instantaneousItems.includes(item_id)) {
         this.actUseItem();
+      }
+
+      if (item_id === 1) {
+        this.setClientState("client_cauldronOfFortune", {
+          descriptionmyturn: _("Select any two Gems to trade for another one"),
+        });
       }
 
       if (item_id === 10) {
