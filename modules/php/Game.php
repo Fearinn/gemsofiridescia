@@ -772,8 +772,8 @@ class Game extends \Table
         if ($args["_no_notify"]) {
             $anchorState_id = $this->globals->get(ANCHOR_STATE);
 
-            if ($anchorState_id === 30 || $anchorState_id === 32) {
-                $anchorState_id === 4;
+            if ($anchorState_id !== 2) {
+                $anchorState_id = 4;
             }
 
             $this->gamestate->jumpToState($anchorState_id);
