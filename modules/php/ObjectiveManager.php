@@ -130,7 +130,7 @@ class ObjectiveManager
         }
 
         if ($this->id === 11) {
-            return $this->relic_cards->countCardsInLocation("hand", $current_player_id) >= 5;
+            return $this->game->relic_cards->countCardsInLocation("hand", $current_player_id) >= 5;
         }
 
         if ($this->id === 15) {
