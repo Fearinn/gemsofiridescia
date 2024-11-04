@@ -1069,7 +1069,7 @@ class Game extends \Table
         $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52, 58];
 
         if ($this->getPlayersNumber() === 2 && !$onlyHexes) {
-            $leftEdges = [2, 8, 15, 21, 28, 34, 41, 46, 53];
+            $leftEdges = [2, 8, 15, 21, 28, 34, 41, 47, 53];
             $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51, 58];
         }
 
