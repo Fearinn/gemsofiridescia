@@ -44,6 +44,7 @@ const MARVELOUS_CART = "marvelousCart";
 const EPIC_ELIXIR = "epicElixir";
 const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
+const PROSPEROUS_PICKAXE = "prosperousPickaxe";
 
 class Game extends \Table
 {
@@ -725,10 +726,13 @@ class Game extends \Table
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
         $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
+        $explorableTiles = $this->explorableTiles($player_id);
+
         return [
             "canMine" => $canMine,
             "activeStoneDiceCount" => $activeStoneDiceCount,
             "activableStoneDiceCount" => $activableStoneDiceCount,
+            "explorableTiles" => $explorableTiles,
             "canSellGems" => $canSellGems,
             "canBuyItem" => $canBuyItem,
             "buyableItems" => $buyableItems,

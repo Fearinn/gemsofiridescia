@@ -106,10 +106,10 @@ class ItemManager
                     return !$this->game->globals->get(SWAPPING_STONES) && $hasSwapableOpponent && $explorerCard["location"] === "board";
                 }
 
-                if ($this->id === 11) {
-                    $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
-                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
-                }
+                // if ($this->id === 11) {
+                //     $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+                //     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
+                // }
             }
 
             return false;
@@ -131,9 +131,10 @@ class ItemManager
             return $this->game->getTotalGemsCount($player_id) > 0;
         }
 
-        // if ($this->id === 9) {
-        //     return $this->game->getCoins($player_id) >= 3;
-        // }
+        if ($this->id === 9) {
+            $explorableTiles = $this->game->explorableTiles($player_id);
+            return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$explorableTiles;
+        }
 
         return false;
     }
@@ -178,6 +179,11 @@ class ItemManager
         if ($this->id === 8) {
             $gemCard_id = (int) $args["gemCard_id"];
             return $this->axeOfAwesomeness($gemCard_id, $player_id);
+        }
+
+        if ($this->id === 9) {
+            $tileCard_id = (int) $args["tileCard_id"];
+            $this->prosperousPickaxe($tileCard_id, $player_id);
         }
 
         if ($this->id === 10) {
@@ -237,6 +243,17 @@ class ItemManager
         );
 
         return $this->game->incGem(1, $gem_id, $player_id, null, false, true);
+    }
+
+    public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
+    {
+        $explorableTiles = $this->game->explorableTiles($player_id, true);
+        if (!array_key_exists($tileCard_id, $explorableTiles)) {
+            throw new \BgaVisibleSystemException("You can't pick this tile for the Prosperous Pickaxe: $tileCard_id");
+        }
+
+        $tileCard = $this->game->tile_cards->getCard($tileCard_id);
+        $this->game->globals->set(PROSPEROUS_PICKAXE, $tileCard);
     }
 
     public function swappingStones(int $player_id, int $opponent_id): void
@@ -302,6 +319,10 @@ class ItemManager
             return $this->game->globals->get(EPIC_ELIXIR);
         }
 
+        if ($this->id === 9) {
+            return !$this->game->globals->get(HAS_MINED) && $this->game->globals->get(PROSPEROUS_PICKAXE);
+        }
+
         return false;
     }
 
@@ -344,6 +365,10 @@ class ItemManager
 
         if ($this->id === 4) {
             $this->game->globals->set(EPIC_ELIXIR, false);
+        }
+
+        if ($this->id === 9) {
+            $this->game->globals->set(PROSPEROUS_PICKAXE, null);
         }
 
         if ($this->id === 10) {

@@ -1509,6 +1509,14 @@ define([
           );
         }
 
+        if (stateName === "client_prosperousPickaxe") {
+          const explorableTiles = args.args.explorableTiles;
+          this.goi_stocks.tiles.board.setSelectionMode(
+            "single",
+            explorableTiles
+          );
+        }
+
         if (stateName === "transferGem") {
           const availableCargos = args.args.availableCargos;
           this.goi_globals.availableCargos = availableCargos;
@@ -1710,6 +1718,10 @@ define([
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
 
+      if (stateName === "client_prosperousPickaxe") {
+        this.goi_stocks.tiles.board.setSelectionMode("none");
+      }
+
       if (stateName === "transferGem") {
         this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
@@ -1847,6 +1859,12 @@ define([
           this.addActionButton(elementId, message, "actUseItem");
         }
         return;
+      }
+
+      if (stateName === "client_prosperousPickaxe") {
+        if (this.goi_selections.tile) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
       }
 
       if (stateName === "transferGem") {
@@ -2079,6 +2097,14 @@ define([
         });
       }
 
+      if (item_id === 9) {
+        this.setClientState("client_prosperousPickaxe", {
+          descriptionmyturn: _(
+            "${you} may select a tile to collect Gems from when mining during this turn"
+          ),
+        });
+      }
+
       if (item_id === 10) {
         this.setClientState("client_swappingStones", {
           descriptionmyturn: _(
@@ -2119,6 +2145,12 @@ define([
       if (item_id === 8) {
         args = {
           gemCard_id: this.goi_selections.gem.id,
+        };
+      }
+
+      if (item_id === 9) {
+        args = {
+          tileCard_id: this.goi_selections.tile.id,
         };
       }
 
