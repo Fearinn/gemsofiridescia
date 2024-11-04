@@ -1446,15 +1446,22 @@ class Game extends \Table
             ]
         );
 
-        $castlePlayersCount = $this->castlePlayersCount();
+        $castlePlayersCount = (int) $this->castlePlayersCount();
+        $playersNumber = (int) $this->getPlayersNumber();
 
         if ($castlePlayersCount === 1) {
             $score_aux = 100;
-            $token_id = 3;
+
+            $token_id = $playersNumber > 2 ? 3 : 2;
         }
 
         if ($castlePlayersCount === 2) {
             $score_aux = 10;
+
+            if ($playersNumber === 2) {
+                return;
+            }
+
             $token_id = 2;
         }
 
@@ -1465,6 +1472,10 @@ class Game extends \Table
 
         if ($castlePlayersCount >= 4) {
             return;
+        }
+
+        if ($this->getPlayersNumber() === 2) {
+            $token_id--;
         }
 
         $token_info = $this->royaltyTokens_info[$token_id];
