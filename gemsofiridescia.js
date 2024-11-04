@@ -1728,13 +1728,7 @@ define([
       }
 
       if (stateName === "client_transferGem") {
-        const selectedGem = this.goi_selections.gem;
-
-        const gemElement =
-          this.goi_stocks[this.player_id].gems.cargo.getCardElement(
-            selectedGem
-          );
-        gemElement.classList.remove("goi_selectedGem");
+        this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
 
         for (const player_id in this.goi_globals.players) {
           const playerZoneContainerElement = document.getElementById(
@@ -2240,6 +2234,7 @@ define([
         { event: "incGem" },
         { event: "decGem" },
         { event: "transferGem" },
+        { event: "discardGem" },
         { event: "obtainIridiaStone" },
         { event: "obtainRoyaltyToken" },
         { event: "restoreRelic" },
@@ -2410,6 +2405,25 @@ define([
 
       this.goi_counters[player_id].gems[gemName].incValue(-1);
       this.goi_counters[opponent_id].gems[gemName].incValue(1);
+    },
+
+    notif_discardGem: function (notif) {
+      const player_id = notif.args.player_id;
+
+      const newGemCard = this.goi_stocks[player_id].gems.cargo
+        .getCards()
+        .filter((gemCard) => {
+          return !gemCard.box;
+        })[0];
+
+      if (newGemCard) {
+        this.goi_stocks[player_id].gems.cargo.removeCard(newGemCard);
+        this.addGemToCargo(
+          newGemCard,
+          player_id,
+          document.getElementById(`goi_cargoExcedent:${player_id}`)
+        );
+      }
     },
 
     notif_obtainIridiaStone: function (notif) {

@@ -25,6 +25,9 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
+use BgaSystemException;
+use BgaUserException;
+use BgaVisibleSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -1642,7 +1645,7 @@ class Game extends \Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemsCount($player_id) <= 7 && $player_id !== $excludedPlayer_id) {
+            if ($this->getTotalGemsCount($player_id) < 7 && $player_id !== $excludedPlayer_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -1681,19 +1684,21 @@ class Game extends \Table
     {
         $gem_id = (int) $gemCard["type_arg"];
 
+        $this->decGem(1, $gem_id, [$gemCard], $player_id);
+
         $this->notifyAllPlayers(
             "discardGem",
             clienttranslate('${player_name} returns 1 ${gem_label} to the supply'),
             [
+                "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "gemCard" => $gemCard,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "i18n" => ["gem_label"],
                 "preserve" => ["gem_id"],
                 "gem_id" => $gem_id,
             ]
         );
-
-        $this->decGem(1, $gem_id, [$gemCard], $player_id);
     }
 
     public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false, $silent = false): bool
@@ -1745,7 +1750,9 @@ class Game extends \Table
 
         $gemName = $this->gems_info[$gem_id]["name"];
 
-        foreach ($gemCards as $gemCard_id => $gemCard) {
+        foreach ($gemCards as $gemCard) {
+            $gemCard_id = (int) $gemCard["id"];
+            $gemCard = $this->gem_cards->getCard($gemCard_id);
             $this->checkCardLocation($gemCard, "hand", $player_id);
 
             $this->gem_cards->insertCardOnExtremePosition($gemCard_id, $gemName, false);
