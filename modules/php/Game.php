@@ -386,10 +386,10 @@ class Game extends \Table
             if ($tileCard) {
                 $tile_id = (int) $tileCard["type_arg"];
                 $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
-            }
 
-            if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
-                $fullCargo = true;
+                if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
+                    $fullCargo = true;
+                }
             }
 
             if ($fullCargo) {
