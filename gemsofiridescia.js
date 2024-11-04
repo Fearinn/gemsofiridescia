@@ -110,6 +110,8 @@ define([
         tile: null,
         gem: null,
         gems: [],
+        die: null,
+        dieModif: null,
         stoneDice: [],
         opponent: null,
         relic: null,
@@ -678,6 +680,21 @@ define([
           },
         }
       );
+
+      this.goi_stocks.dice.market.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        const stateName = this.getStateName();
+
+        if (selection.length > 0) {
+          this.goi_selections.die = lastChange;
+        } else {
+          this.goi_selections.die = null;
+        }
+
+        this.handleSelection();
+      };
 
       for (const gemName in this.goi_globals.marketValues) {
         const gem_id = this.goi_info.gemIds[gemName];
@@ -1399,7 +1416,7 @@ define([
           this.addActionButton("goi_sellGems_btn", _("Sell Gem(s)"), () => {
             this.setClientState("client_sellGems", {
               descriptionmyturn: _(
-                "${you} may select Gem(s) to sell (all from the same type)"
+                "${you} must select Gem(s) to sell (all from the same type)"
               ),
             });
           });
@@ -1412,7 +1429,7 @@ define([
 
           this.addActionButton("goi_buyItem_btn", _("Buy an Item"), () => {
             this.setClientState("client_buyItem", {
-              descriptionmyturn: _("${you} may select an Item to buy"),
+              descriptionmyturn: _("${you} must select an Item to buy"),
               client_args: { buyableItems },
             });
           });
@@ -1480,19 +1497,6 @@ define([
           );
         }
 
-        if (stateName === "client_swappingStones") {
-          const selectableExplorers = this.goi_stocks.explorers.board
-            .getCards()
-            .filter((explorerCard) => {
-              return explorerCard.type_arg != this.player_id;
-            });
-
-          this.goi_stocks.explorers.board.setSelectionMode(
-            "single",
-            selectableExplorers
-          );
-        }
-
         if (stateName === "client_cauldronOfFortune") {
           this.goi_stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple"
@@ -1501,6 +1505,14 @@ define([
 
         if (stateName === "client_cauldronOfFortune2") {
           this.generateRainbowOptions();
+        }
+
+        if (stateName === "client_joltyJackhammer") {
+          this.goi_stocks.dice.market.setSelectionMode("single");
+        }
+
+        if (stateName === "client_dazzlingDynamite") {
+          this.goi_stocks.dice.market.setSelectionMode("single");
         }
 
         if (stateName === "client_axeOfAwesomeness") {
@@ -1514,6 +1526,19 @@ define([
           this.goi_stocks.tiles.board.setSelectionMode(
             "single",
             explorableTiles
+          );
+        }
+
+        if (stateName === "client_swappingStones") {
+          const selectableExplorers = this.goi_stocks.explorers.board
+            .getCards()
+            .filter((explorerCard) => {
+              return explorerCard.type_arg != this.player_id;
+            });
+
+          this.goi_stocks.explorers.board.setSelectionMode(
+            "single",
+            selectableExplorers
           );
         }
 
@@ -1714,6 +1739,16 @@ define([
         this.goi_stocks.gems.rainbowOptions.removeAll();
       }
 
+      if (stateName === "client_joltyJackhammer") {
+        this.goi_stocks.dice.market.setSelectionMode("none");
+        this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
+      }
+
+      if (stateName === "client_dazzlingDynamite") {
+        this.goi_stocks.dice.market.setSelectionMode("none");
+        this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
+      }
+
       if (stateName === "client_axeOfAwesomeness") {
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
@@ -1845,6 +1880,44 @@ define([
         if (this.goi_selections.gem) {
           this.addActionButton(elementId, message, "actUseItem");
         }
+        return;
+      }
+
+      if (stateName === "client_joltyJackhammer") {
+        document.getElementById("goi_negativeModif_btn")?.remove();
+        document.getElementById("goi_positiveModif_btn")?.remove();
+
+        if (this.goi_selections.die) {
+          this.addActionButton("goi_negativeModif_btn", "-1", () => {
+            this.goi_selections.dieModif = "negative";
+            this.actUseItem();
+          });
+
+          this.addActionButton("goi_positiveModif_btn", "+1", () => {
+            this.goi_selections.dieModif = "positive";
+            this.actUseItem();
+          });
+        }
+
+        return;
+      }
+
+      if (stateName === "client_dazzlingDynamite") {
+        document.getElementById("goi_negativeModif_btn")?.remove();
+        document.getElementById("goi_positiveModif_btn")?.remove();
+
+        if (this.goi_selections.die) {
+          this.addActionButton("goi_negativeModif_btn", "-2", () => {
+            this.goi_selections.dieModif = "negative";
+            this.actUseItem();
+          });
+
+          this.addActionButton("goi_positiveModif_btn", "+2", () => {
+            this.goi_selections.dieModif = "positive";
+            this.actUseItem();
+          });
+        }
+
         return;
       }
 
@@ -2078,7 +2151,23 @@ define([
       if (item_id === 1) {
         this.setClientState("client_cauldronOfFortune", {
           descriptionmyturn: _(
-            "${you} may select any 2 Gems in your cargo to trade for other Gem"
+            "${you} must select any 2 Gems in your cargo to trade for other Gem"
+          ),
+        });
+      }
+
+      if (item_id === 6) {
+        this.setClientState("client_joltyJackhammer", {
+          descriptionmyturn: _(
+            "${you} must select a Gem Market die to modify its value"
+          ),
+        });
+      }
+
+      if (item_id === 7) {
+        this.setClientState("client_dazzlingDynamite", {
+          descriptionmyturn: _(
+            "${you} must select a Gem Market die to modify its value"
           ),
         });
       }
@@ -2086,7 +2175,7 @@ define([
       if (item_id === 8) {
         this.setClientState("client_axeOfAwesomeness", {
           descriptionmyturn: _(
-            "${you} may select any Gem in your cargo to split into 2 Gems"
+            "${you} must select any Gem in your cargo to split into 2 Gems"
           ),
         });
       }
@@ -2094,7 +2183,7 @@ define([
       if (item_id === 9) {
         this.setClientState("client_prosperousPickaxe", {
           descriptionmyturn: _(
-            "${you} may select a tile to collect Gems from when mining during this turn"
+            "${you} must select a tile to collect Gems from when mining during this turn"
           ),
         });
       }
@@ -2102,7 +2191,7 @@ define([
       if (item_id === 10) {
         this.setClientState("client_swappingStones", {
           descriptionmyturn: _(
-            "${you} may select an opponent explorer to swap location with"
+            "${you} must select an opponent explorer to swap location with"
           ),
         });
       }
@@ -2133,6 +2222,20 @@ define([
         args = {
           oldGemCards_ids: oldGemCards_ids,
           newGem_id: this.goi_selections.gem.type_arg,
+        };
+      }
+
+      if (item_id === 6) {
+        args = {
+          die: this.goi_selections.die,
+          dieModif: this.goi_selections.dieModif,
+        };
+      }
+
+      if (item_id === 7) {
+        args = {
+          die: this.goi_selections.die,
+          dieModif: this.goi_selections.dieModif,
         };
       }
 

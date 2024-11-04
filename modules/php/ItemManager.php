@@ -7,6 +7,7 @@ namespace Bga\Games\GemsOfIridescia;
 use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
+use Bga\GameFramework\Actions\Types\StringParam;
 
 class ItemManager
 {
@@ -127,6 +128,14 @@ class ItemManager
             return !$this->game->globals->get(EPIC_ELIXIR);
         }
 
+        if ($this->id === 6) {
+            return true;
+        }
+
+        if ($this->id === 7) {
+            return true;
+        }
+
         if ($this->id === 8) {
             return $this->game->getTotalGemsCount($player_id) > 0;
         }
@@ -174,6 +183,18 @@ class ItemManager
 
         if ($this->id === 4) {
             $this->epicElixir();
+        }
+
+        if ($this->id === 6) {
+            $die = (array) $args["die"];
+            $dieModif = (string) $args["dieModif"];
+            $this->joltyJackhammer($dieModif, $die, $player_id);
+        }
+
+        if ($this->id === 7) {
+            $die = (array) $args["die"];
+            $dieModif = (string) $args["dieModif"];
+            $this->dazzlingDynamite($dieModif, $die, $player_id);
         }
 
         if ($this->id === 8) {
@@ -243,6 +264,30 @@ class ItemManager
         );
 
         return $this->game->incGem(1, $gem_id, $player_id, null, false, true);
+    }
+
+    public function joltyJackhammer(#[StringParam(enum: ["negative", "positive"])] string $dieModif, #[JsonParam(alphanum: false)] array $die, int $player_id): void
+    {
+        $dieType = $die["type"];
+
+        if ($dieType === "gem") {
+            $gem_id = $die["id"];
+
+            $delta = $dieModif === "positive" ? 1 : -1;
+            $this->game->updateMarketValue($delta, $gem_id);
+        }
+    }
+
+    public function dazzlingDynamite(#[StringParam(enum: ["negative", "positive"])] string $dieModif, #[JsonParam(alphanum: false)] array $die, int $player_id): void
+    {
+        $dieType = $die["type"];
+
+        if ($dieType === "gem") {
+            $gem_id = $die["id"];
+
+            $delta = $dieModif === "positive" ? 2 : -2;
+            $this->game->updateMarketValue($delta, $gem_id);
+        }
     }
 
     public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void

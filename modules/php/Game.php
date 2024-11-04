@@ -1340,7 +1340,7 @@ class Game extends \Table
         );
 
         if ($gem_id !== 0 && $gem_id !== 10) {
-            $this->updateMarketValue($gem_id);
+            $this->updateMarketValue(1, $gem_id);
         }
 
         if ($region_id === 5) {
@@ -1812,17 +1812,17 @@ class Game extends \Table
         $this->incCoin($earnedCoins, $player_id);
     }
 
-    public function updateMarketValue(int $gem_id): void
+    public function updateMarketValue(int $delta, int $gem_id): void
     {
         $gem_info = $this->gems_info[$gem_id];
         $gemName = $gem_info["name"];
 
         $marketValueCode = "$gemName:MarketValue";
-        $marketValue = $this->globals->get($marketValueCode);
+        $marketValue = $this->globals->inc($marketValueCode, $delta);
 
-        if ($marketValue === 6) {
-            $this->globals->set($marketValueCode, 1);
-            $marketValue = 1;
+        if ($marketValue > 6) {
+            $this->globals->inc($marketValueCode, -6);
+
             $this->notifyAllPlayers(
                 'crashMarket',
                 clienttranslate('The market crashes for ${gem_label}'),
@@ -1833,8 +1833,10 @@ class Game extends \Table
                     "gem_id" => $gem_id,
                 ]
             );
-        } else {
-            $marketValue = $this->globals->inc($marketValueCode, 1);
+        }
+
+        if ($marketValue < 1) {
+           $marketValue = $this->globals->inc($marketValueCode, 6);
         }
 
         $this->notifyAllPlayers(
