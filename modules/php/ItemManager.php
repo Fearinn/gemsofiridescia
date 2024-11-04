@@ -355,6 +355,10 @@ class ItemManager
         if ($this->id === 4) {
             $this->game->globals->set(EPIC_ELIXIR, false);
         }
+
+        if ($this->id === 9) {
+            $this->game->globals->set(PROSPEROUS_PICKAXE, null);
+        }
     }
 
     public function discard(): void
