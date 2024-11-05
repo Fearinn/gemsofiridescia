@@ -8,6 +8,7 @@ use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\Actions\Types\StringParam;
+use BgaUserException;
 
 class ItemManager
 {
@@ -209,9 +210,12 @@ class ItemManager
 
         if ($this->id === 10) {
             $opponent_id = (int) $args["opponent_id"];
-            $this->game->checkPlayer($opponent_id);
-
             $this->swappingStones($player_id, $opponent_id);
+        }
+
+        if ($this->id === 11) {
+            $tileCard_id = (int) $args["tileCard_id"];
+            $this->cleverCatapult($tileCard_id);
         }
 
         return true;
@@ -369,6 +373,8 @@ class ItemManager
 
     public function swappingStones(int $player_id, int $opponent_id): void
     {
+        $this->game->checkPlayer($opponent_id);
+
         if ($player_id === $opponent_id) {
             throw new \BgaVisibleSystemException("You can't select yourself for Swapping Stones");
         }
@@ -406,12 +412,13 @@ class ItemManager
 
     public function cleverCatapult(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
-        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
+        $revealedTiles = $this->game->globals->get(REVEALED_TILES, []);
+
         if (!array_key_exists($tileCard_id, $revealedTiles)) {
-            $this->game->actRevealTile($tileCard_id, true);
+            $this->game->actRevealTile($tileCard_id, true, true);
         }
 
-        $this->game->actMoveExplorer($tileCard_id);
+        $this->game->actMoveExplorer($tileCard_id, true);
     }
 
     public function isUndoable($player_id): bool

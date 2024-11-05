@@ -1615,9 +1615,10 @@ define([
 
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
+
           this.goi_stocks.tiles.board.setSelectionMode(
             "single",
-            catapultableTiles
+            catapultableTiles.tiles
           );
         }
 
@@ -1809,6 +1810,10 @@ define([
         this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
       }
 
+      if (stateName === "client_cleverCatapult") {
+        this.goi_stocks.tiles.board.setSelectionMode("none");
+      }
+
       if (stateName === "client_swappingStones") {
         this.goi_stocks.explorers.board.setSelectionMode("none");
       }
@@ -1936,6 +1941,13 @@ define([
 
       if (stateName === "client_buyItem") {
         this.addActionButton(elementId, message, "actBuyItem");
+        return;
+      }
+
+      if (stateName === "client_cleverCatapult") {
+        if (this.goi_selections.tile) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
         return;
       }
 
@@ -2341,6 +2353,12 @@ define([
       if (item_id === 10) {
         args = {
           opponent_id: this.goi_selections.opponent,
+        };
+      }
+
+      if (item_id === 11) {
+        args = {
+          tileCard_id: this.goi_selections.tile.id,
         };
       }
 

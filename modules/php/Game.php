@@ -96,20 +96,22 @@ class Game extends \Table
      * @see action_gemsofiridescia::actMyAction
      */
 
-    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $skipTransition = false): void
+    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false, bool $skipTransition = false): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
-        $revealableTiles = $this->revealableTiles($player_id, true);
+        if (!$force) {
+            $revealableTiles = $this->revealableTiles($player_id, true);
 
-        if (!$revealableTiles) {
-            $revealableTiles = $this->expandedRevealableTiles($player_id, true);
-        }
+            if (!$revealableTiles) {
+                $revealableTiles = $this->expandedRevealableTiles($player_id, true);
+            }
 
-        if (!array_key_exists($tileCard_id, $revealableTiles)) {
-            throw new \BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
+            if (!array_key_exists($tileCard_id, $revealableTiles)) {
+                throw new \BgaVisibleSystemException("You can't reveal this tile now: actRevealTile, $tileCard_id");
+            }
         }
 
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
@@ -231,20 +233,22 @@ class Game extends \Table
         $this->gamestate->nextState("betweenTurns");
     }
 
-    public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
-        $explorableTiles = $this->explorableTiles($player_id, true);
+        if (!$force) {
+            $explorableTiles = $this->explorableTiles($player_id, true);
 
-        if (!$explorableTiles) {
-            $explorableTiles = $this->expandedExplorableTiles($player_id, true);
-        }
+            if (!$explorableTiles) {
+                $explorableTiles = $this->expandedExplorableTiles($player_id, true);
+            }
 
-        if (!array_key_exists($tileCard_id, $explorableTiles)) {
-            throw new \BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
+            if (!array_key_exists($tileCard_id, $explorableTiles)) {
+                throw new \BgaVisibleSystemException("You can't move your explorer to this tile now: actMoveExplorer, $tileCard_id");
+            }
         }
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
@@ -591,6 +595,8 @@ class Game extends \Table
             $expandedExplorableTiles = $this->expandedExplorableTiles($player_id);
         }
 
+        $catapultableTiles = $this->catapultableTiles($player_id);
+
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
         $noRevealableTile = (!$hasExpandedTiles && !$revealableTiles) || ($hasExpandedTiles && !$expandedRevealableTiles);
 
@@ -614,6 +620,7 @@ class Game extends \Table
             "hasReachedCastle" => $hasReachedCastle,
             "usableItems" => $usableItems,
             "undoableItems" => $undoableItems,
+            "catapultableTiles" => $catapultableTiles,
             "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
@@ -1069,7 +1076,17 @@ class Game extends \Table
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
             if ($explorerCard["location"] === "scene") {
-                return $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
+                if ($onlyHexes) {
+                    if ($this->getPlayersNumber() === 2) {
+                        return [2, 3, 4, 5];
+                    }
+
+                    return [1, 2, 3, 4, 5, 6];
+                }
+
+                $queryResult = $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
+                throw new \BgaUserException(json_encode($queryResult));
+                return $queryResult;
             }
 
             $tileHex = $explorerCard["location_arg"];
@@ -1153,7 +1170,7 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
 
         foreach ($adjacentTiles as $tileCard_id => $tileCard) {
-            if (!key_exists($tileCard_id, $revealedTiles)) {
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
                 if ($associative) {
                     $revealableTiles[$tileCard_id] = $tileCard;
                     continue;
@@ -1174,7 +1191,7 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES, []);
 
         foreach ($adjacentTiles as $tileCard_id => $tileCard) {
-            if (key_exists($tileCard_id, $revealedTiles)) {
+            if (array_key_exists($tileCard_id, $revealedTiles)) {
                 if ($associative) {
                     $explorableTiles[$tileCard_id] = $tileCard;
                     continue;
@@ -1187,9 +1204,18 @@ class Game extends \Table
         return $explorableTiles;
     }
 
-    public function expandedAdjacentTiles(int $player_id, array $adjacentHexes): array
+    public function expandedAdjacentTiles(int $player_id, array $adjacentHexes, bool $catapult = false): array
     {
         $result = [];
+
+        if ($catapult) {
+            foreach ($adjacentHexes as $tileHex) {
+                $expandedTiles = $this->adjacentTiles($player_id, $tileHex, true);
+                $result = array_merge($result, $expandedTiles);
+            }
+
+            return $result;
+        }
 
         foreach ($adjacentHexes as $tileHex) {
             if ($tileHex === null) {
@@ -1226,7 +1252,7 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES);
 
         foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
-            if (key_exists($tileCard_id, $revealedTiles)) {
+            if (array_key_exists($tileCard_id, $revealedTiles)) {
                 continue;
             }
 
@@ -1251,7 +1277,7 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES);
 
         foreach ($expandedAdjacentTiles as $tileCard_id => $tileCard) {
-            if (!key_exists($tileCard_id, $revealedTiles)) {
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
                 continue;
             }
 
@@ -1264,6 +1290,43 @@ class Game extends \Table
         }
 
         return $expandedExplorableTiles;
+    }
+
+    public function catapultableTiles(int $player_id, bool $associative = false): array
+    {
+        $catapultableTiles = [];
+        $catapultableHexes = [];
+
+        $adjacentHexes = $this->adjacentTiles($player_id, null, true);
+        $expandedAdjacentHexes = $this->expandedAdjacentTiles($player_id, $adjacentHexes, true);
+
+        foreach ($expandedAdjacentHexes as $tileHex) {
+            $tileCard = $this->getObjectFromDB("$this->deckSelectQuery from tile 
+            WHERE card_location='board' AND card_location_arg=$tileHex");
+
+            if ($tileCard) {
+                $tileCard_id = (int) $tileCard["id"];
+
+                $revealableTiles = $this->revealableTiles($player_id, true);
+                $explorableTiles = $this->explorableTiles($player_id, true);
+
+                if (array_key_exists($tileCard_id, $revealableTiles) || array_key_exists($tileCard_id, $explorableTiles)) {
+                    continue;
+                }
+
+                if ($associative) {
+                    $catapultableTiles[$tileCard_id] = $tileCard;
+                    continue;
+                }
+
+                $catapultableTiles[] = $tileCard;
+                continue;
+            }
+
+            $catapultableHexes[] = $tileHex;
+        }
+
+        return ["tiles" => $catapultableTiles, "hexes" => $catapultableHexes];
     }
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
@@ -2198,7 +2261,7 @@ class Game extends \Table
         foreach ($itemsMarket as $itemCard_id => $itemCard) {
             $item_id = (int) $itemCard["type_arg"];
 
-            if (!key_exists($item_id, $itemsCounts)) {
+            if (!array_key_exists($item_id, $itemsCounts)) {
                 $itemsCounts[$item_id] = 0;
             }
 
