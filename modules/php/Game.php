@@ -96,7 +96,7 @@ class Game extends \Table
      * @see action_gemsofiridescia::actMyAction
      */
 
-    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $skipTransition = false): void
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -133,7 +133,9 @@ class Game extends \Table
 
         $this->globals->inc(REVEALS_LIMIT, 1);
 
-        $this->gamestate->nextState("repeat");
+        if (!$skipTransition) {
+            $this->gamestate->nextState("repeat");
+        }
     }
 
     public function actSkipRevealTile()
@@ -1333,7 +1335,7 @@ class Game extends \Table
             $gem_id = $this->tiles_info[$tile_id]["gem"];
 
             if ($gem_id === 0 || $gem_id === 10) {
-               $gem_id = $this->globals->get(RAINBOW_GEM);
+                $gem_id = $this->globals->get(RAINBOW_GEM);
             }
 
             return $gem_id;

@@ -1613,6 +1613,14 @@ define([
           );
         }
 
+        if (stateName === "client_cleverCatapult") {
+          const catapultableTiles = args.args.catapultableTiles;
+          this.goi_stocks.tiles.board.setSelectionMode(
+            "single",
+            catapultableTiles
+          );
+        }
+
         if (stateName === "transferGem") {
           const availableCargos = args.args.availableCargos;
           this.goi_globals.availableCargos = availableCargos;
@@ -2266,6 +2274,12 @@ define([
           descriptionmyturn: _(
             "${you} must select an opponent explorer to swap location with"
           ),
+        });
+      }
+
+      if (item_id === 11) {
+        this.setClientState("client_cleverCatapult", {
+          descriptionmyturn: _("${you} must select a tile to jump to"),
         });
       }
     },

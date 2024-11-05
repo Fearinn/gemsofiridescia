@@ -104,13 +104,13 @@ class ItemManager
                     $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
-                    return !$this->game->globals->get(SWAPPING_STONES) && $hasSwapableOpponent && $explorerCard["location"] === "board";
+                    return $hasSwapableOpponent && $explorerCard["location"] === "board";
                 }
 
-                // if ($this->id === 11) {
-                //     $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
-                //     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
-                // }
+                if ($this->id === 11) {
+                    $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
+                }
             }
 
             return false;
@@ -304,7 +304,7 @@ class ItemManager
                     "i18n" => ["type_label"],
                 ]
             );
-    
+
             return true;
         }
 
@@ -402,8 +402,16 @@ class ItemManager
                 "opponentHex" => $opponentHex,
             ]
         );
+    }
 
-        $this->game->globals->set(SWAPPING_STONES, true);
+    public function cleverCatapult(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    {
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
+        if (!array_key_exists($tileCard_id, $revealedTiles)) {
+            $this->game->actRevealTile($tileCard_id, true);
+        }
+
+        $this->game->actMoveExplorer($tileCard_id);
     }
 
     public function isUndoable($player_id): bool
@@ -484,10 +492,6 @@ class ItemManager
 
         if ($this->id === 9) {
             $this->game->globals->set(PROSPEROUS_PICKAXE, null);
-        }
-
-        if ($this->id === 10) {
-            $this->game->globals->set(SWAPPING_STONES, false);
         }
 
         $this->game->item_cards->moveCard($this->card_id, "discard");

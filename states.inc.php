@@ -42,7 +42,8 @@ $machinestates = [
             "discardCollectedTile" => 20,
             "discardTile" => 21,
             "skip" => 3,
-            "moveExplorer" => 3
+            "moveExplorer" => 3,
+            "optionalActions" => 4,
         ]
     ],
 
