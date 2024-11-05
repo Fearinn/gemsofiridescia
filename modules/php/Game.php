@@ -38,7 +38,7 @@ const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
-const REROLLABLE_DICE = "rerollableDice";
+const ROLLED_DICE = "rolledDice";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
@@ -274,9 +274,7 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $explorer = $this->getExplorerByPlayerId($player_id);
-        $hex = (int) $explorer["location_arg"];
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
+        $tileCard = $this->currentTile($player_id);
 
         $this->globals->set(RAINBOW_GEM, $gem_id);
 
@@ -328,7 +326,7 @@ class Game extends \Table
             ]
         );
 
-        $tileCard = $this->globals->get(CURRENT_TILE);
+        $tileCard = $this->currentTile($player_id);
 
         $this->resolveTileEffect($tileCard, $player_id);
     }
@@ -336,7 +334,7 @@ class Game extends \Table
     public function actMine(#[JsonParam(alphanum: false)] array $stoneDice): void
     {
         $this->globals->set(HAS_MINED, true);
-        $this->globals->set(REROLLABLE_DICE, []);
+        $this->globals->set(ROLLED_DICE, []);
 
         $player_id = (int) $this->getActivePlayerId();
 
@@ -355,10 +353,7 @@ class Game extends \Table
 
         $this->decCoin(3, $player_id, true);
 
-        $explorer = $this->getExplorerByPlayerId($player_id);
-        $hex = (int) $explorer["location_arg"];
-
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location_arg=$hex");
+        $tileCard = $this->currentTile($player_id);
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
@@ -367,8 +362,8 @@ class Game extends \Table
         }
 
         $miningDice = [
-            ["id" => "1:$player_id", "type" => "mining"],
-            ["id" => "2:$player_id", "type" => "mining"],
+            ["id" => "1-$player_id", "type" => "mining"],
+            ["id" => "2-$player_id", "type" => "mining"],
         ];
 
         $dice = array_merge($miningDice, $stoneDice);
@@ -530,7 +525,7 @@ class Game extends \Table
         $availableCargos = $this->availableCargos($player_id);
 
         if (!$availableCargos) {
-            $this->discardGem($gemCard, $player_id);
+            $this->discardGem($player_id, $gemCard, null);
         } else {
             $this->transferGem($gemCard, $opponent_id, $player_id);
         }
@@ -755,7 +750,7 @@ class Game extends \Table
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
             "undoableItems" => $this->undoableItems($player_id),
-            "rerollableDice" => $this->globals->get(REROLLABLE_DICE, []),
+            "rolledDice" => $this->globals->get(ROLLED_DICE, []),
             "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
         ];
     }
@@ -811,7 +806,7 @@ class Game extends \Table
             WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
 
             if (!$availableCargos) {
-                $this->discardGem($gemCard, $player_id);
+                $this->discardGem($player_id, $gemCard, null);
                 return;
             }
 
@@ -875,9 +870,9 @@ class Game extends \Table
         $this->globals->set(HAS_EXPANDED_TILES, false);
         $this->globals->set(HAS_BOUGHT_ITEM, false);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
+        $this->globals->set(ROLLED_DICE, []);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
-        $this->globals->set(CURRENT_TILE, null);
 
         $castlePlayersCount = $this->castlePlayersCount();
 
@@ -970,13 +965,13 @@ class Game extends \Table
 
     /*   Utility functions */
 
-    public function rollDie(int | string $die_id, int $player_id, string $type, int $target = 0): int
+    public function rollDie(int | string $die_id, int $player_id, string $type): int
     {
         $face = bga_rand(1, 6);
 
         $this->notifyAllPlayers(
             'rollDie',
-            clienttranslate('${player_name} rolls a ${face} with a ${type_label} die'),
+            clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -988,12 +983,11 @@ class Game extends \Table
             ]
         );
 
-        if ($face < $target) {
-            $rerollabeDice = $this->globals->get(REROLLABLE_DICE, []);
-            $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type];
 
-            $this->globals->set(REROLLABLE_DICE, $rerollabeDice);
-        }
+        $rerollabeDice = $this->globals->get(ROLLED_DICE, []);
+        $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type, "face" => $face];
+
+        $this->globals->set(ROLLED_DICE, $rerollabeDice);
 
         return $face;
     }
@@ -1281,7 +1275,6 @@ class Game extends \Table
         $hasReachedForest = !!$this->getUniqueValueFromDB("SELECT forest from player WHERE player_id=$player_id");
 
         if ($region_id >= 3 && !$hasReachedForest) {
-            $this->globals->set(CURRENT_TILE, $tileCard);
             $this->reachForest($player_id, $tileCard);
             return;
         }
@@ -1326,6 +1319,29 @@ class Game extends \Table
         $this->gamestate->nextState("optionalActions");
     }
 
+    public function currentTile(int $player_id, bool $onlyGem = false): array | int
+    {
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+        $hex = (int) $explorerCard["location_arg"];
+
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
+        AND card_location_arg=$hex");
+
+        if ($onlyGem) {
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = $this->tiles_info[$tile_id]["gem"];
+
+            if ($gem_id === 0 || $gem_id === 10) {
+               $gem_id = $this->globals->get(RAINBOW_GEM);
+            }
+
+            return $gem_id;
+        }
+
+        return $tileCard;
+    }
+
     public function collectTile(int $player_id): void
     {
         $explorerCard = $this->getExplorerByPlayerId($player_id);
@@ -1334,11 +1350,7 @@ class Game extends \Table
             return;
         }
 
-        $hex = (int) $explorerCard["location_arg"];
-
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
-        AND card_location_arg=$hex");
-
+        $tileCard = $this->currentTile($player_id);
         $tileCard_id = (int) $tileCard["id"];
 
         $this->tile_cards->moveCard($tileCard_id, "hand", $player_id);
@@ -1627,7 +1639,7 @@ class Game extends \Table
             $die_id = $die["id"];
             $dieType = $die["type"];
 
-            $roll = $this->rollDie($die_id, $player_id, $dieType, $gemMarketValue);
+            $roll = $this->rollDie($die_id, $player_id, $dieType);
 
             if ($roll >= $gemMarketValue) {
                 $minedGemsCount++;
@@ -1701,8 +1713,16 @@ class Game extends \Table
         );
     }
 
-    public function discardGem(array $gemCard, int $player_id): void
+    public function discardGem(int $player_id, ?array $gemCard, ?int $gem_id): void
     {
+        if (!$gemCard) {
+            if (!$gem_id) {
+                throw new \BgaVisibleSystemException("One of the args 'gemCard' and 'gem_id' is mandatory: discardGem");
+            }
+
+            $gemCard = $this->getObjectFromDB("$this->deckSelectQuery from gem WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT 1");
+        }
+
         $gem_id = (int) $gemCard["type_arg"];
 
         $this->decGem(1, $gem_id, [$gemCard], $player_id);
@@ -2739,6 +2759,7 @@ class Game extends \Table
         $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
         $result["privateStoneDiceCount"] = $this->getPrivateStoneDiceCount(null);
         $result["activeStoneDiceCount"] = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+        $result["rolledDice"] = $this->globals->get(ROLLED_DICE, []);
         $result["relicsInfo"] = $this->relics_info;
         $result["relicsDeck"] = $this->getRelicsDeck();
         $result["relicsDeckTop"] = $this->getRelicsDeck(true);

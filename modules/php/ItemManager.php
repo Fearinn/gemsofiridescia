@@ -186,15 +186,15 @@ class ItemManager
         }
 
         if ($this->id === 6) {
-            $die = (array) $args["die"];
+            $die_id = (string) $args["die_id"];
             $dieModif = (string) $args["dieModif"];
-            $this->joltyJackhammer($dieModif, $die, $player_id);
+            $this->joltyJackhammer(1, $dieModif, $die_id, $player_id);
         }
 
         if ($this->id === 7) {
-            $die = (array) $args["die"];
+            $die_id = (string) $args["die_id"];
             $dieModif = (string) $args["dieModif"];
-            $this->dazzlingDynamite($dieModif, $die, $player_id);
+            $this->joltyJackhammer(2, $dieModif, $die_id, $player_id);
         }
 
         if ($this->id === 8) {
@@ -266,29 +266,94 @@ class ItemManager
         return $this->game->incGem(1, $gem_id, $player_id, null, false, true);
     }
 
-    public function joltyJackhammer(#[StringParam(enum: ["negative", "positive"])] string $dieModif, #[JsonParam(alphanum: false)] array $die, int $player_id): void
-    {
+    public function joltyJackhammer(
+        #[IntParam(min: 1, max: 2)] int $delta,
+        #[StringParam(enum: ["negative", "positive"])] string $dieModif,
+        #[StringParam(alphanum_dash: true)] string $die_id,
+        int $player_id
+    ): bool {
+        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
+
+        if (!array_key_exists($die_id, $rolledDice)) {
+            throw new \BgaVisibleSystemException("You didn't roll this die: Dazzling Dynamite, $die_id");
+        }
+
+        $delta = $dieModif === "positive" ? $delta : -$delta;
+
+        $die = $rolledDice[$die_id];
         $dieType = $die["type"];
+
 
         if ($dieType === "gem") {
             $gem_id = $die["id"];
 
-            $delta = $dieModif === "positive" ? 1 : -1;
-            $this->game->updateMarketValue($delta, $gem_id);
-            return;
+            $newDieFace = $this->game->updateMarketValue($delta, $gem_id);
+            $oldDieFace = $newDieFace - $delta;
+
+            $this->game->notifyAllPlayers(
+                "modifyDie",
+                clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->game->getPlayerNameById($player_id),
+                    "type_label" => $this->game->dice_info[$dieType],
+                    "die_id" => $die_id,
+                    "oldFace" => $oldDieFace,
+                    "face" => $newDieFace,
+                    "type" => $dieType,
+                    "i18n" => ["type_label"],
+                ]
+            );
+    
+            return true;
         }
-    }
 
-    public function dazzlingDynamite(#[StringParam(enum: ["negative", "positive"])] string $dieModif, #[JsonParam(alphanum: false)] array $die, int $player_id): void
-    {
-        $dieType = $die["type"];
+        $tileCard = $this->game->currentTile($player_id);
+        $gem_id = (int) $this->game->currentTile($player_id, true);
+        $gemName = $this->game->gems_info[$gem_id]["name"];
+        $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
 
-        if ($dieType === "gem") {
-            $gem_id = $die["id"];
+        $oldDieFace = $die["face"];
+        $newDieFace = $oldDieFace + $delta;
 
-            $delta = $dieModif === "positive" ? 2 : -2;
-            $this->game->updateMarketValue($delta, $gem_id);
+        if ($newDieFace < 1) {
+            $newDieFace += 6;
         }
+
+        if ($newDieFace > 6) {
+            $newDieFace -= 6;
+        }
+
+        $this->game->notifyAllPlayers(
+            "modifyDie",
+            clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "type_label" => $this->game->dice_info[$dieType],
+                "die_id" => $die_id,
+                "oldFace" => $oldDieFace,
+                "face" => $newDieFace,
+                "type" => $dieType,
+                "i18n" => ["type_label"],
+            ]
+        );
+
+        $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
+        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newDieFace];
+        $this->game->globals->set(ROLLED_DICE, $rolledDice);
+
+        if ($oldDieFace < $gemMarketValue) {
+            if ($newDieFace >= $gemMarketValue) {
+                return $this->game->incGem(1, $gem_id, $player_id, $tileCard, true);
+            }
+        }
+
+        if ($newDieFace < $gemMarketValue) {
+            $this->game->discardGem($player_id, null, $gem_id);
+        }
+
+        return true;
     }
 
     public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
