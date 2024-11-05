@@ -38,6 +38,7 @@ const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
+const REROLLABLE_DICE = "rerollableDice";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
@@ -335,6 +336,7 @@ class Game extends \Table
     public function actMine(#[JsonParam(alphanum: false)] array $stoneDice): void
     {
         $this->globals->set(HAS_MINED, true);
+        $this->globals->set(REROLLABLE_DICE, []);
 
         $player_id = (int) $this->getActivePlayerId();
 
@@ -360,7 +362,18 @@ class Game extends \Table
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-        $minedGemsCount = $this->mine($gem_id, $stoneDice, $player_id);
+        if ($gem_id === 0 || $gem_id === 10) {
+            $gem_id = $this->globals->get(RAINBOW_GEM);
+        }
+
+        $miningDice = [
+            ["id" => "1:$player_id", "type" => "mining"],
+            ["id" => "2:$player_id", "type" => "mining"],
+        ];
+
+        $dice = array_merge($miningDice, $stoneDice);
+
+        $minedGemsCount = $this->mine($gem_id, $dice, $player_id);
 
         if ($minedGemsCount === 0) {
             $this->notifyAllPlayers(
@@ -742,6 +755,7 @@ class Game extends \Table
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
             "undoableItems" => $this->undoableItems($player_id),
+            "rerollableDice" => $this->globals->get(REROLLABLE_DICE, []),
             "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
         ];
     }
@@ -956,7 +970,7 @@ class Game extends \Table
 
     /*   Utility functions */
 
-    public function rollDie(int | string $die_id, int $player_id, string $type): int
+    public function rollDie(int | string $die_id, int $player_id, string $type, int $target = 0): int
     {
         $face = bga_rand(1, 6);
 
@@ -973,6 +987,13 @@ class Game extends \Table
                 "i18n" => ["type_label"]
             ]
         );
+
+        if ($face < $target) {
+            $rerollabeDice = $this->globals->get(REROLLABLE_DICE, []);
+            $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type];
+
+            $this->globals->set(REROLLABLE_DICE, $rerollabeDice);
+        }
 
         return $face;
     }
@@ -1595,33 +1616,18 @@ class Game extends \Table
         return $totalGemsCount;
     }
 
-    public function mine(int $gem_id, array $stoneDice, int $player_id): int
+    public function mine(int $gem_id, array $dice, int $player_id): int
     {
-        if ($gem_id !== 0 && $gem_id !== 10) {
-            $gemName = $this->gems_info[$gem_id]["name"];
-            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
-        } else {
-            $gem_id = $this->globals->get(RAINBOW_GEM);
-            $gemName = $this->gems_info[$gem_id]["name"];
-            $gemMarketValue = $this->globals->get("$gemName:MarketValue");
-        }
-
-        $roll1 = $this->rollDie("1:$player_id", $player_id, "mining");
-        $roll2 = $this->rollDie("2:$player_id", $player_id, "mining");
+        $gemName = $this->gems_info[$gem_id]["name"];
+        $gemMarketValue = $this->globals->get("$gemName:MarketValue");
 
         $minedGemsCount = 0;
 
-        if ($roll1 >= $gemMarketValue) {
-            $minedGemsCount++;
-        }
+        foreach ($dice as $die) {
+            $die_id = $die["id"];
+            $dieType = $die["type"];
 
-        if ($roll2 >= $gemMarketValue) {
-            $minedGemsCount++;
-        }
-
-        foreach ($stoneDice as $die) {
-            $die_id = (int) $die["id"];
-            $roll = $this->rollDie($die_id, $player_id, "stone");
+            $roll = $this->rollDie($die_id, $player_id, $dieType, $gemMarketValue);
 
             if ($roll >= $gemMarketValue) {
                 $minedGemsCount++;
@@ -1634,7 +1640,11 @@ class Game extends \Table
             []
         );
 
-        foreach ($stoneDice as $die) {
+        foreach ($dice as $die) {
+            if ($die["type"] !== "stone") {
+                continue;
+            }
+
             $die_id = (int) $die["id"];
 
             $this->notifyAllPlayers(
@@ -1712,7 +1722,7 @@ class Game extends \Table
         );
     }
 
-    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false, $silent = false): bool
+    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false, bool $silent = false): bool
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
@@ -1836,7 +1846,7 @@ class Game extends \Table
         }
 
         if ($marketValue < 1) {
-           $marketValue = $this->globals->inc($marketValueCode, 6);
+            $marketValue = $this->globals->inc($marketValueCode, 6);
         }
 
         $this->notifyAllPlayers(

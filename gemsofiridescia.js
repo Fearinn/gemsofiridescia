@@ -687,6 +687,8 @@ define([
       ) => {
         const stateName = this.getStateName();
 
+        this.goi_stocks[this.player_id].dice.scene.unselectAll();
+
         if (selection.length > 0) {
           this.goi_selections.die = lastChange;
         } else {
@@ -788,6 +790,21 @@ define([
             },
           }
         );
+
+        this.goi_stocks[player_id].dice.scene.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          this.goi_stocks.dice.market.unselectAll();
+
+          if (selection.length > 0) {
+            this.goi_selections.die = lastChange;
+          } else {
+            this.goi_selections.die = null;
+          }
+
+          this.handleSelection();
+        };
 
         const dice = [
           {
@@ -1383,7 +1400,6 @@ define([
 
           this.goi_globals.undoableItems = undoableItems;
           this.goi_stocks.items.used.setSelectionMode("single", undoableItems);
-
           this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
 
           this.addActionButton(
@@ -1509,10 +1525,12 @@ define([
 
         if (stateName === "client_joltyJackhammer") {
           this.goi_stocks.dice.market.setSelectionMode("single");
+          this.goi_stocks[this.player_id].dice.scene.setSelectionMode("single");
         }
 
         if (stateName === "client_dazzlingDynamite") {
           this.goi_stocks.dice.market.setSelectionMode("single");
+          this.goi_stocks[this.player_id].dice.scene.setSelectionMode("single");
         }
 
         if (stateName === "client_axeOfAwesomeness") {
@@ -1712,6 +1730,10 @@ define([
         this.goi_stocks[this.player_id].objectives.hand.setSelectionMode(
           "none"
         );
+      }
+
+      if (stateName === "optionalActions") {
+        this.goi_stocks.items.used.setSelectionMode("none");
       }
 
       if (stateName === "client_sellGems") {
@@ -2379,10 +2401,6 @@ define([
           });
         }
 
-        if (duration === 0) {
-          return;
-        }
-
         if (!duration) {
           duration = 500;
         }
@@ -2657,18 +2675,20 @@ define([
     },
 
     notif_rollDie: function (notif) {
+      console.log(notif.args, "args");
+
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
       const face = notif.args.face;
       const type = notif.args.type;
-
-      this.goi_stocks[player_id].dice.scene.unselectAll();
 
       this.goi_stocks[player_id].dice.scene.rollDie({
         id: die_id,
         face: face,
         type: type,
       });
+
+      console.log("passed2");
 
       this.goi_globals.stoneDiceFaces[die_id] = face;
     },

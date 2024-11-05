@@ -275,6 +275,7 @@ class ItemManager
 
             $delta = $dieModif === "positive" ? 1 : -1;
             $this->game->updateMarketValue($delta, $gem_id);
+            return;
         }
     }
 
