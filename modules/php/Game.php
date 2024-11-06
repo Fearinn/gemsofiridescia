@@ -1926,7 +1926,7 @@ class Game extends \Table
         $this->incCoin($earnedCoins, $player_id);
     }
 
-    public function updateMarketValue(int $delta, int $gem_id): void
+    public function updateMarketValue(int $delta, int $gem_id): int
     {
         $gem_info = $this->gems_info[$gem_id];
         $gemName = $gem_info["name"];
@@ -1964,6 +1964,8 @@ class Game extends \Table
                 "gem_id" => $gem_id,
             ]
         );
+
+        return $marketValue;
     }
 
     public function getMarketValues(?int $gem_id): array | int

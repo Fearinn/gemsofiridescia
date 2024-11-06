@@ -198,14 +198,16 @@ class ItemManager
 
         if ($this->id === 6) {
             $die_id = (string) $args["die_id"];
+            $dieType = (string) $args["dieType"];
             $dieModif = (string) $args["dieModif"];
-            $this->joltyJackhammer(1, $dieModif, $die_id, $player_id);
+            $this->joltyJackhammer(1, $dieModif, $die_id, $dieType, $player_id);
         }
 
         if ($this->id === 7) {
             $die_id = (string) $args["die_id"];
+            $dieType = (string) $args["dieType"];
             $dieModif = (string) $args["dieModif"];
-            $this->joltyJackhammer(2, $dieModif, $die_id, $player_id);
+            $this->joltyJackhammer(2, $dieModif, $die_id, $dieType, $player_id);
         }
 
         if ($this->id === 8) {
@@ -337,38 +339,23 @@ class ItemManager
         #[IntParam(min: 1, max: 2)] int $delta,
         #[StringParam(enum: ["negative", "positive"])] string $dieModif,
         #[StringParam(alphanum_dash: true)] string $die_id,
+        #[StringParam(enum: ["gem", "stone", "mining"])] string $dieType,
         int $player_id
     ): bool {
-        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-
         $delta = $dieModif === "positive" ? $delta : -$delta;
 
-        $die = $rolledDice[$die_id];
-        $dieType = $die["type"];
-
         if ($dieType === "gem") {
-            $gem_id = $die["id"];
+            $gem_id = (int) $die_id;
 
             $newFace = $this->game->updateMarketValue($delta, $gem_id);
             $oldFace = $newFace - $delta;
 
-            $this->game->notifyAllPlayers(
-                "joltyJackhammer",
-                clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
-                [
-                    "player_id" => $player_id,
-                    "player_name" => $this->game->getPlayerNameById($player_id),
-                    "type_label" => $this->game->dice_info[$dieType],
-                    "die_id" => $die_id,
-                    "oldFace" => $oldFace,
-                    "face" => $newFace,
-                    "type" => $dieType,
-                    "i18n" => ["type_label"],
-                ]
-            );
-
             return true;
         }
+
+        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
+        $die = $rolledDice[$die_id];
+        $dieType = $die["type"];
 
         if (!array_key_exists($die_id, $rolledDice)) {
             throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer / Dazzling Dynamite, $die_id");
@@ -391,7 +378,7 @@ class ItemManager
         }
 
         $this->game->notifyAllPlayers(
-            "modifyDie",
+            "joltyJackhammer",
             clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
             [
                 "player_id" => $player_id,

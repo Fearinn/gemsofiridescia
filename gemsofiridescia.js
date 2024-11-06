@@ -2308,7 +2308,7 @@ define([
       if (item_id === 6) {
         this.setClientState("client_joltyJackhammer", {
           descriptionmyturn: _(
-            "${you} must select a Gem Market die to modify its value"
+            "${you} must select a die to modify its value"
           ),
         });
       }
@@ -2316,7 +2316,7 @@ define([
       if (item_id === 7) {
         this.setClientState("client_dazzlingDynamite", {
           descriptionmyturn: _(
-            "${you} must select a Gem Market die to modify its value"
+            "${you} must select a die to modify its value"
           ),
         });
       }
@@ -2383,6 +2383,7 @@ define([
       if (item_id === 6) {
         args = {
           die_id: this.goi_selections.die.id,
+          dieType: this.goi_selections.die.type,
           dieModif: this.goi_selections.dieModif,
         };
       }
@@ -2390,6 +2391,7 @@ define([
       if (item_id === 7) {
         args = {
           die_id: this.goi_selections.die.id,
+          dieType: this.goi_selections.die.type,
           dieModif: this.goi_selections.dieModif,
         };
       }
