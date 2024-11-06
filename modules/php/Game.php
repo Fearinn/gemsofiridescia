@@ -595,33 +595,36 @@ class Game extends \Table
             $expandedExplorableTiles = $this->expandedExplorableTiles($player_id);
         }
 
-        $catapultableTiles = $this->catapultableTiles($player_id);
+        $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
+        $catapultableTiles = [];
+        if ($catapultCard_id) {
+            $catapultableTiles = $this->catapultableTiles($player_id);
+        }
 
-        $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
         $noRevealableTile = (!$hasExpandedTiles && !$revealableTiles) || ($hasExpandedTiles && !$expandedRevealableTiles);
-
         $singleRevealableTile = (!$explorableTiles && count($revealableTiles) === 1) ||
             ($hasExpandedTiles && !$expandedExplorableTiles && count($expandedRevealableTiles) === 1);
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
-
         $skippable = (!$hasExpandedTiles && $explorableTiles) || ($hasExpandedTiles && $expandedExplorableTiles);
 
         $usableItems = $this->usableItems($player_id);
         $undoableItems = $this->undoableItems($player_id);
+
+        $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
 
         return [
             "auto" => $singleRevealableTile && !$usableItems && !$undoableItems,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
+            "catapultableTiles" => $catapultableTiles,
             "revealsLimit" => $revealsLimit,
             "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
             "usableItems" => $usableItems,
             "undoableItems" => $undoableItems,
-            "catapultableTiles" => $catapultableTiles,
-            "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $singleRevealableTile
+            "_no_notify" => $mustDiscardCollectedTile || (($noRevealableTile || $singleRevealableTile))
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
     }
@@ -664,11 +667,13 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $collectedTiles = $this->getCollectedTiles($player_id);
+        $usableItems = $this->usableItems($player_id);
 
-        $auto = count($collectedTiles) === 1;
+        $auto = count($collectedTiles) === 1 && !$usableItems;
 
         return [
             "collectedTiles" => $collectedTiles,
+            "usableItems" => $usableItems,
             "_no_notify" => $auto
         ];
     }

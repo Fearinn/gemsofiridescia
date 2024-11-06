@@ -601,6 +601,9 @@ define([
         selection,
         lastChange
       ) => {
+        this.goi_stocks[this.player_id].items.hand.unselectAll(true);
+        document.getElementById("goi_confirmItem_btn")?.remove();
+
         if (selection.length === 0) {
           this.goi_selections.tile = null;
         } else {
@@ -1014,6 +1017,9 @@ define([
           selection,
           lastChange
         ) => {
+          this.goi_stocks.tiles.board.unselectAll(true);
+          document.getElementById("goi_confirmation_btn")?.remove();
+
           if (selection.length > 0) {
             this.goi_selections.item = lastChange;
           } else {
@@ -1329,18 +1335,22 @@ define([
           const usableItems = args.args.usableItems;
 
           if (!skippable) {
-            this.gamedatas.gamestate.description = _(
-              "${actplayer} must reveal a tile"
-            );
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} must reveal a tile"
             );
             this.updatePageTitle();
           }
 
-          if (revealsLimit === 1) {
+          if (revealsLimit == 1) {
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} may reveal another tile"
+            );
+            this.updatePageTitle();
+          }
+
+          if (usableItems.length > 0) {
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} may reveal a tile or use an Item with the green flag"
             );
             this.updatePageTitle();
           }
@@ -1372,6 +1382,20 @@ define([
         }
 
         if (stateName === "discardCollectedTile") {
+          const usableItems = args.args.usableItems;
+
+          if (usableItems.length > 0) {
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item"
+            );
+            this.updatePageTitle();
+          }
+
+          this.goi_stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
+
           this.goi_stocks[this.player_id].tiles.victoryPile.setSelectionMode(
             "single"
           );
@@ -1724,25 +1748,6 @@ define([
         return;
       }
 
-      if (stateName === "revealTile") {
-        const revealsLimit = args.args.revealsLimit;
-        const skippable = args.args.skippable;
-
-        if (revealsLimit < 2) {
-          this.gamedatas.gamestate.descriptionmyturn = _(
-            "${you} may reveal another tile"
-          );
-          this.updatePageTitle();
-        }
-
-        if (skippable) {
-          this.gamedatas.gamestate.description = _(
-            "${actplayer} must reveal a tile"
-          );
-          this.updatePageTitle();
-        }
-      }
-
       if (stateName === "transferGem") {
         const availableCargos = args.args.availableCargos;
         this.goi_globals.availableCargos = availableCargos;
@@ -1775,6 +1780,7 @@ define([
       }
 
       if (stateName === "discardCollectedTile") {
+        this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi_stocks[this.player_id].tiles.victoryPile.setSelectionMode(
           "none"
         );
@@ -1895,23 +1901,20 @@ define([
       const stateName = this.getStateName();
 
       if (stateName === "revealTile") {
-        const selectedTile = this.goi_selections.tile;
-        if (selectedTile) {
+        if (this.goi_selections.tile) {
           this.addActionButton(elementId, message, "actRevealTile");
         }
       }
 
       if (stateName === "discardCollectedTile") {
-        const selectedTile = this.goi_selections.tile;
-        if (selectedTile) {
+        if (this.goi_selections.tile) {
           this.addActionButton(elementId, message, "actDiscardCollectedTile");
           return;
         }
       }
 
       if (stateName === "discardTile") {
-        const selectedTile = this.goi_selections.tile;
-        if (selectedTile) {
+        if (this.goi_selections.tile) {
           this.addActionButton(elementId, message, "actDiscardTile");
           return;
         }
@@ -1927,8 +1930,7 @@ define([
       }
 
       if (stateName === "moveExplorer") {
-        const selectedTile = this.goi_selections.tile;
-        if (selectedTile) {
+        if (this.goi_selections.tile) {
           this.addActionButton(elementId, message, "actMoveExplorer");
           return;
         }

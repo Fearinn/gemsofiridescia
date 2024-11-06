@@ -100,7 +100,7 @@ class ItemManager
                 return !$this->game->globals->get(EPIC_ELIXIR);
             }
 
-            if ($state_id === 2) {
+            if ($state_id === 2 || $state_id === 20) {
                 if ($this->id === 10) {
                     $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
@@ -109,8 +109,8 @@ class ItemManager
                 }
 
                 if ($this->id === 11) {
-                    $canExpandTiles = (!!$this->game->expandedRevealableTiles($player_id) || !!$this->game->expandedExplorableTiles($player_id));
-                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canExpandTiles;
+                    $canCatapult = !!$this->game->catapultableTiles($player_id);
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canCatapult;
                 }
             }
 
