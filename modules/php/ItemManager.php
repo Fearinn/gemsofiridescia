@@ -110,7 +110,7 @@ class ItemManager
 
                 if ($this->id === 11) {
                     $catapultableTiles = $this->game->catapultableTiles($player_id);
-                    $canCatapult = !!$catapultableTiles["tiles"] || !!$catapultableTiles["hexes"];
+                    $canCatapult = !!$catapultableTiles["tiles"] || !!$catapultableTiles["empty"];
                     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canCatapult;
                 }
             }
@@ -216,7 +216,7 @@ class ItemManager
 
         if ($this->id === 11) {
             $tileCard_id = (int) $args["tileCard_id"];
-            $this->cleverCatapult($tileCard_id);
+            $this->cleverCatapult($tileCard_id, $player_id);
         }
 
         return true;
@@ -296,7 +296,7 @@ class ItemManager
             $oldDieFace = $newDieFace - $delta;
 
             $this->game->notifyAllPlayers(
-                "modifyDie",
+                "joltyJackhammer",
                 clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
                 [
                     "player_id" => $player_id,
@@ -411,9 +411,28 @@ class ItemManager
         );
     }
 
-    public function cleverCatapult(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    public function cleverCatapult(#[IntParam(min: -58, max: 58)] int $tileCard_id, int $player_id): void
     {
         $revealedTiles = $this->game->globals->get(REVEALED_TILES, []);
+
+        if ($tileCard_id < 0) {
+            $tileHex = abs($tileCard_id);
+            $explorerCard = $this->game->getExplorerByPlayerId($player_id);
+            $this->game->explorer_cards->moveCard($explorerCard["id"], "board", $tileHex);
+
+            $this->game->notifyAllPlayers(
+                "cleverCatapult",
+                clienttranslate('${player_name} jumps to an empty tile space (hex ${hex})'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->game->getPlayerNameById($player_id),
+                    "hex" => abs($tileCard_id),
+                    "explorerCard" => $explorerCard,
+                ]
+            );
+
+            return;
+        }
 
         if (!array_key_exists($tileCard_id, $revealedTiles)) {
             $this->game->actRevealTile($tileCard_id, true, true);

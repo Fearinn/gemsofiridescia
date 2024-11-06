@@ -215,8 +215,16 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "absolute";
+
+          if (card.id < 0) {
+            div.classList.add("goi_emptyTile");
+          }
         },
         setupFrontDiv: (card, div) => {
+          if (card.id < 0) {
+            return;
+          }
+
           const backgroundCode = card.type;
           const background = `url(${g_gamethemeurl}/img/tiles-${backgroundCode}.png)`;
 
@@ -228,6 +236,10 @@ define([
           div.style.backgroundPosition = backgroundPosition;
         },
         setupBackDiv: (card, div) => {
+          if (card.id < 0) {
+            return;
+          }
+
           const background = `url(${g_gamethemeurl}/img/tilesBacks.png)`;
           const backgroundPosition = this.calcBackgroundPosition(card.type - 1);
 
@@ -637,6 +649,31 @@ define([
             }
           });
       }
+
+      this.goi_stocks.tiles.empty = new CardStock(
+        this.goi_managers.tiles,
+        document.getElementById("goi_board"),
+        {}
+      );
+
+      this.goi_stocks.tiles.empty.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        this.goi_stocks[this.player_id].items.hand.unselectAll(true);
+        document.getElementById("goi_confirmItem_btn")?.remove();
+
+        this.goi_stocks.tiles.board.unselectAll(true);
+        document.getElementById("goi_confirm_btn")?.remove();
+
+        if (selection.length === 0) {
+          this.goi_selections.tile = null;
+        } else {
+          this.goi_selections.tile = lastChange;
+        }
+
+        this.handleSelection();
+      };
 
       this.goi_stocks.explorers.board = new CardStock(
         this.goi_managers.explorers,
@@ -1639,11 +1676,26 @@ define([
 
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
+          const catapultableEmpty = catapultableTiles.empty;
 
           this.goi_stocks.tiles.board.setSelectionMode(
             "single",
             catapultableTiles.tiles
           );
+
+          for (const emptyHex in catapultableEmpty) {
+            this.goi_stocks.tiles.empty.addCard(
+              { id: -emptyHex },
+              {},
+              {
+                forceToElement: document.getElementById(
+                  `goi_tileContainer-${emptyHex}`
+                ),
+              }
+            );
+          }
+
+          this.goi_stocks.tiles.empty.setSelectionMode("single");
         }
 
         if (stateName === "transferGem") {
@@ -1818,6 +1870,8 @@ define([
 
       if (stateName === "client_cleverCatapult") {
         this.goi_stocks.tiles.board.setSelectionMode("none");
+        this.goi_stocks.tiles.empty.setSelectionMode("none");
+        this.goi_stocks.tiles.empty.removeAll();
       }
 
       if (stateName === "client_swappingStones") {
@@ -2439,7 +2493,7 @@ define([
         { event: "activateStoneDie" },
         { event: "resetStoneDice" },
         { event: "rollDie", duration: 100 },
-        { event: "modifyDie" },
+        { event: "joltyJackhammer" },
         { event: "syncDieRolls", duration: 1000 },
         { event: "incCoin" },
         { event: "incGem" },
@@ -2457,6 +2511,7 @@ define([
         { event: "cancelItem" },
         { event: "discardItems" },
         { event: "swappingStones", duration: 1000 },
+        { event: "cleverCatapult" },
         { event: "collectTile" },
         { event: "updateMarketValue" },
         {
@@ -2774,7 +2829,7 @@ define([
       this.goi_globals.rolledDice[die_id] = die;
     },
 
-    notif_modifyDie: function (notif) {
+    notif_joltyJackhammer: function (notif) {
       const player_id = notif.args.player_id;
       const die_id = notif.args.die_id;
       const face = notif.args.face;
@@ -2885,7 +2940,11 @@ define([
 
       this.goi_stocks.explorers.board.addCard(
         currentExplorerCard,
-        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${currentHex}`
+          ),
+        },
         {
           forceToElement: document.getElementById(
             `goi_tileContainer-${opponentHex}`
@@ -2895,11 +2954,33 @@ define([
 
       this.goi_stocks.explorers.board.addCard(
         opponentExplorerCard,
-        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${opponentHex}`
+          ),
+        },
         {
           forceToElement: document.getElementById(
             `goi_tileContainer-${currentHex}`
           ),
+        }
+      );
+    },
+
+    notif_cleverCatapult: function (notif) {
+      const hex = notif.args.hex;
+      const explorerCard = notif.args.explorerCard;
+
+      this.goi_stocks.explorers.board.removeCard(explorerCard);
+      this.goi_stocks.explorers.board.addCard(
+        explorerCard,
+        {
+          fromElement: document.getElementById(
+            `goi_tileContainer-${explorerCard.location_arg}`
+          ),
+        },
+        {
+          forceToElement: document.getElementById(`goi_tileContainer-${hex}`),
         }
       );
     },

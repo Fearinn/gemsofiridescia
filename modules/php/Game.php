@@ -671,9 +671,16 @@ class Game extends \Table
 
         $auto = count($collectedTiles) === 1 && !$usableItems;
 
+        $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
+        $catapultableTiles = [];
+        if ($catapultCard_id) {
+            $catapultableTiles = $this->catapultableTiles($player_id);
+        }
+
         return [
             "collectedTiles" => $collectedTiles,
             "usableItems" => $usableItems,
+            "catapultableTiles" => $catapultableTiles,
             "_no_notify" => $auto
         ];
     }
@@ -1067,8 +1074,7 @@ class Game extends \Table
 
     public function getTilesBoard(): array
     {
-        $tilesBoard = $this->getCollectionFromDB("SELECT card_id id, card_type type, card_location location, card_location_arg location_arg 
-        FROM tile WHERE card_location='board'");
+        $tilesBoard = $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board'");
 
         return $this->hideCards($tilesBoard);
     }
@@ -1090,7 +1096,6 @@ class Game extends \Table
                 }
 
                 $queryResult = $this->getCollectionFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg<=6");
-                throw new \BgaUserException(json_encode($queryResult));
                 return $queryResult;
             }
 
@@ -1300,7 +1305,7 @@ class Game extends \Table
     public function catapultableTiles(int $player_id, bool $associative = false): array
     {
         $catapultableTiles = [];
-        $catapultableHexes = [];
+        $catapultableEmpty = [];
 
         $adjacentHexes = $this->adjacentTiles($player_id, null, true);
         $expandedAdjacentHexes = $this->expandedAdjacentTiles($player_id, $adjacentHexes, true);
@@ -1328,10 +1333,14 @@ class Game extends \Table
                 continue;
             }
 
-            $catapultableHexes[] = $tileHex;
+            if (array_key_exists($tileHex, $adjacentHexes)) {
+                continue;
+            }
+
+            $catapultableEmpty[$tileHex] = $tileHex;
         }
 
-        return ["tiles" => $catapultableTiles, "hexes" => $catapultableHexes];
+        return ["tiles" => $catapultableTiles, "empty" => array_unique($catapultableEmpty)];
     }
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
@@ -2765,6 +2774,17 @@ class Game extends \Table
             $this->computeRelicsPoints($player_id);
             $this->computeObjectivePoints($player_id);
         }
+    }
+
+    public function debug_removeTiles(): void
+    {
+        $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
+        WHERE card_location='board' AND card_location_arg IN (2,7,8,9,10,11,12,13)");
+    }
+
+    public function debug_giveItem(int $item_id, int $player_id): void
+    {
+        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
     }
 
     /**

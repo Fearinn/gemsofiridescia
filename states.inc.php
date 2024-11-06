@@ -54,8 +54,8 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
-        "possibleactions" => ["actDiscardCollectedTile"],
-        "transitions" => ["revealTile" => 2]
+        "possibleactions" => ["actDiscardCollectedTile", "actUseItem"],
+        "transitions" => ["repeat" => 2, "revealTile" => 2]
     ],
 
     21 => [

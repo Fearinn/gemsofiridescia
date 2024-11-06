@@ -498,6 +498,11 @@
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
+.goi_emptyTile {
+  background-color: green;
+  opacity: 0.5;
+}
+
 .goi_tile.goi_logImage {
   height: 230px;
   width: 200px;
