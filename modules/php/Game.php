@@ -1079,7 +1079,7 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function adjacentTiles(int $player_id, int $tileHex = null, bool $onlyHexes = false): array
+    public function adjacentTiles(int $player_id, int $tileHex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true): array
     {
         $adjacentTiles = [];
 
@@ -1141,19 +1141,24 @@ class Game extends \Table
         ];
 
         if ($onlyHexes) {
-            $freeHexes = [];
+            $hexes = [];
             foreach ($adjacentHexes as $hex) {
                 if ($hex === null) {
+                    continue;
+                }
+
+                if (!$onlyUnoccupied) {
+                    $hexes[] = $hex;
                     continue;
                 }
 
                 $isOcuppied = !!$this->getUniqueValueFromDB("SELECT card_id FROM explorer WHERE card_location='board' AND card_location_arg=$hex");
 
                 if (!$isOcuppied) {
-                    $freeHexes[] = $hex;
+                    $hexes[] = $hex;
                 }
             }
-            return $freeHexes;
+            return $hexes;
         }
 
         foreach ($adjacentHexes as $hex) {
@@ -1307,7 +1312,7 @@ class Game extends \Table
         $catapultableTiles = [];
         $catapultableEmpty = [];
 
-        $adjacentHexes = $this->adjacentTiles($player_id, null, true);
+        $adjacentHexes = $this->adjacentTiles($player_id, null, true, false);
         $expandedAdjacentHexes = $this->expandedAdjacentTiles($player_id, $adjacentHexes, true);
 
         foreach ($expandedAdjacentHexes as $tileHex) {
@@ -2776,10 +2781,15 @@ class Game extends \Table
         }
     }
 
+    public function debug_moveExplorer(int $hex, int $player_id): void
+    {
+        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$hex WHERE card_type_arg=$player_id");
+    }
+
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (2,7,8,9,10,11,12,13)");
+        WHERE card_location='board' AND card_location_arg IN (23, 25)");
     }
 
     public function debug_giveItem(int $item_id, int $player_id): void
