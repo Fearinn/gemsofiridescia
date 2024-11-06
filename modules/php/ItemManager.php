@@ -130,6 +130,10 @@ class ItemManager
             return !$this->game->globals->get(EPIC_ELIXIR);
         }
 
+        if ($this->id === 5) {
+            return true;
+        }
+
         if ($this->id === 6) {
             return true;
         }
@@ -186,6 +190,11 @@ class ItemManager
         if ($this->id === 4) {
             $this->epicElixir();
         }
+
+        // if ($this->id === 5) {
+        //     $die_id = (string) $args["die_id"];
+        //     $this->luckyLibation($die_id, $player_id);
+        // }
 
         if ($this->id === 6) {
             $die_id = (string) $args["die_id"];
@@ -271,6 +280,59 @@ class ItemManager
         return $this->game->incGem(1, $gem_id, $player_id, null, false, true);
     }
 
+    public function luckyLibation(
+        #[StringParam(alphanum_dash: true)] string $die_id,
+        int $player_id
+    ): bool {
+        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
+
+        $die = $rolledDice[$die_id];
+        $dieType = $die["type"];
+        $oldFace = $die["face"];
+        $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
+        $delta = $newFace - $oldFace;
+
+        if ($dieType === "gem") {
+            $gem_id = $die["id"];
+            $this->game->updateMarketValue($delta, $newFace);
+
+            return true;
+        }
+
+        if (!array_key_exists($die_id, $rolledDice)) {
+            throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
+        }
+
+        $tileCard = $this->game->currentTile($player_id);
+        $gem_id = (int) $this->game->currentTile($player_id, true);
+        $gemName = $this->game->gems_info[$gem_id]["name"];
+        $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
+
+        if ($newFace < 1) {
+            $newFace += 6;
+        }
+
+        if ($newFace > 6) {
+            $newFace -= 6;
+        }
+
+        $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
+        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
+        $this->game->globals->set(ROLLED_DICE, $rolledDice);
+
+        if ($oldFace < $gemMarketValue) {
+            if ($newFace >= $gemMarketValue) {
+                return $this->game->incGem(1, $gem_id, $player_id, $tileCard, true);
+            }
+        }
+
+        if ($newFace < $gemMarketValue) {
+            $this->game->discardGem($player_id, null, $gem_id);
+        }
+
+        return true;
+    }
+
     public function joltyJackhammer(
         #[IntParam(min: 1, max: 2)] int $delta,
         #[StringParam(enum: ["negative", "positive"])] string $dieModif,
@@ -279,21 +341,16 @@ class ItemManager
     ): bool {
         $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
 
-        if (!array_key_exists($die_id, $rolledDice)) {
-            throw new \BgaVisibleSystemException("You didn't roll this die: Dazzling Dynamite, $die_id");
-        }
-
         $delta = $dieModif === "positive" ? $delta : -$delta;
 
         $die = $rolledDice[$die_id];
         $dieType = $die["type"];
 
-
         if ($dieType === "gem") {
             $gem_id = $die["id"];
 
-            $newDieFace = $this->game->updateMarketValue($delta, $gem_id);
-            $oldDieFace = $newDieFace - $delta;
+            $newFace = $this->game->updateMarketValue($delta, $gem_id);
+            $oldFace = $newFace - $delta;
 
             $this->game->notifyAllPlayers(
                 "joltyJackhammer",
@@ -303,8 +360,8 @@ class ItemManager
                     "player_name" => $this->game->getPlayerNameById($player_id),
                     "type_label" => $this->game->dice_info[$dieType],
                     "die_id" => $die_id,
-                    "oldFace" => $oldDieFace,
-                    "face" => $newDieFace,
+                    "oldFace" => $oldFace,
+                    "face" => $newFace,
                     "type" => $dieType,
                     "i18n" => ["type_label"],
                 ]
@@ -313,20 +370,24 @@ class ItemManager
             return true;
         }
 
+        if (!array_key_exists($die_id, $rolledDice)) {
+            throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer / Dazzling Dynamite, $die_id");
+        }
+
         $tileCard = $this->game->currentTile($player_id);
         $gem_id = (int) $this->game->currentTile($player_id, true);
         $gemName = $this->game->gems_info[$gem_id]["name"];
         $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
 
-        $oldDieFace = $die["face"];
-        $newDieFace = $oldDieFace + $delta;
+        $oldFace = $die["face"];
+        $newFace = $oldFace + $delta;
 
-        if ($newDieFace < 1) {
-            $newDieFace += 6;
+        if ($newFace < 1) {
+            $newFace += 6;
         }
 
-        if ($newDieFace > 6) {
-            $newDieFace -= 6;
+        if ($newFace > 6) {
+            $newFace -= 6;
         }
 
         $this->game->notifyAllPlayers(
@@ -337,24 +398,24 @@ class ItemManager
                 "player_name" => $this->game->getPlayerNameById($player_id),
                 "type_label" => $this->game->dice_info[$dieType],
                 "die_id" => $die_id,
-                "oldFace" => $oldDieFace,
-                "face" => $newDieFace,
+                "oldFace" => $oldFace,
+                "face" => $newFace,
                 "type" => $dieType,
                 "i18n" => ["type_label"],
             ]
         );
 
         $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newDieFace];
+        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
         $this->game->globals->set(ROLLED_DICE, $rolledDice);
 
-        if ($oldDieFace < $gemMarketValue) {
-            if ($newDieFace >= $gemMarketValue) {
+        if ($oldFace < $gemMarketValue) {
+            if ($newFace >= $gemMarketValue) {
                 return $this->game->incGem(1, $gem_id, $player_id, $tileCard, true);
             }
         }
 
-        if ($newDieFace < $gemMarketValue) {
+        if ($newFace < $gemMarketValue) {
             $this->game->discardGem($player_id, null, $gem_id);
         }
 
