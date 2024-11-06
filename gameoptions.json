@@ -1,1 +1,21 @@
-{}
+{
+  "100": {
+    "name": "4th player starts with a Clever Catapult",
+    "values": {
+      "0": {
+        "name": "Off",
+        "tmdisplay": ""
+      },
+      "1": {
+        "name": "On",
+        "tmdisplay": "On"
+      }
+    },
+    "displaycondition": [
+      {
+        "type": "minplayers",
+        "value": 4
+      }
+    ]
+  }
+}

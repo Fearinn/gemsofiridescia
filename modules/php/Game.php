@@ -26,8 +26,6 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 use BgaSystemException;
-use BgaUserException;
-use BgaVisibleSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -56,7 +54,9 @@ class Game extends \Table
     {
         parent::__construct();
 
-        $this->initGameStateLabels([]);
+        $this->initGameStateLabels([
+            "startingCatapult" => 100,
+        ]);
 
         $this->tile_cards = $this->getNew("module.common.deck");
         $this->tile_cards->init("tile");
@@ -3027,6 +3027,14 @@ class Game extends \Table
             $itemCards[] = ["type" => $item_info["cost"], "type_arg" => $item_id, "nbr" => 3];
         }
         $this->item_cards->createCards($itemCards, "deck");
+
+        if (count($players) === 4 && $this->getGameStateValue("startingCatapult") == 1) {
+            $first_player_id = (int) $this->getNextPlayerTable()[0];
+            $last_player_id = $this->getPlayerBefore($first_player_id);
+
+            $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$last_player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
+        }
+
         $this->item_cards->shuffle("deck");
         $this->item_cards->pickCardsForLocation(5, "deck", "market");
 
