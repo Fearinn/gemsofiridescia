@@ -109,7 +109,8 @@ class ItemManager
                 }
 
                 if ($this->id === 11) {
-                    $canCatapult = !!$this->game->catapultableTiles($player_id);
+                    $catapultableTiles = $this->game->catapultableTiles($player_id);
+                    $canCatapult = !!$catapultableTiles["tiles"] || !!$catapultableTiles["hexes"];
                     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $canCatapult;
                 }
             }
