@@ -112,7 +112,7 @@ define([
         gems: [],
         die: null,
         dieModif: null,
-        stoneDice: [],
+        dice: [],
         opponent: null,
         relic: null,
         item: null,
@@ -730,7 +730,9 @@ define([
         this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
         this.goi_stocks[this.player_id].dice.scene.setSelectionMode("single");
 
-        if (selection.length > 0) {
+        if (stateName === "client_luckyLibation") {
+          this.goi_selections.dice = selection;
+        } else if (selection.length > 0) {
           this.goi_selections.die = lastChange;
         } else {
           this.goi_selections.die = null;
@@ -856,10 +858,17 @@ define([
           lastChange
         ) => {
           this.goi_stocks.dice.market.setSelectionMode("none");
-          this.goi_stocks.dice.market.setSelectionMode("single");
+
+          const stateName = this.getStateName();
+          if (stateName === "client_luckyLibation") {
+          this.goi_stocks.dice.market.setSelectionMode("multiple");
+          } else {
+            this.goi_stocks.dice.market.setSelectionMode("single");
+          }
 
           if (selection.length > 0) {
             this.goi_selections.die = lastChange;
+            this.goi_selections.dice = [];
           } else {
             this.goi_selections.die = null;
           }
@@ -1509,12 +1518,12 @@ define([
 
           this.addActionButton("goi_mine_btn", _("Mine"), () => {
             if (activableStoneDiceCount === 0) {
-              this.goi_selections.stoneDice = [];
+              this.goi_selections.dice = [];
               this.actMine();
             } else {
               this.setClientState("client_mine", {
                 descriptionmyturn: _(
-                  "How many Stone Dice would ${you} like to roll? Currently active: ${activeStoneDiceCount}"
+                  "${you} must pick how many Stone Dice you'd like to roll. Currently active: ${activeStoneDiceCount}"
                 ),
                 client_args: { activableStoneDiceCount, activeStoneDiceCount },
               });
@@ -1584,7 +1593,7 @@ define([
               this.goi_stocks[this.player_id].dice.scene.getDice();
 
             this.addActionButton(`goi_mineOption_btn:${option}`, option, () => {
-              this.goi_selections.stoneDice = stoneDice
+              this.goi_selections.dice = stoneDice
                 .filter((die) => {
                   return die.type === "stone";
                 })
@@ -1617,6 +1626,20 @@ define([
 
         if (stateName === "client_cauldronOfFortune2") {
           this.generateRainbowOptions();
+        }
+
+        if (stateName === "client_luckyLibation") {
+          const rolledDice = [];
+          for (const die_id in args.args.rolledDice) {
+            const die = args.args.rolledDice[die_id];
+            rolledDice.push(die);
+          }
+
+          this.goi_stocks.dice.market.setSelectionMode("multiple");
+          this.goi_stocks[this.player_id].dice.scene.setSelectionMode(
+            "single",
+            rolledDice
+          );
         }
 
         if (stateName === "client_joltyJackhammer") {
@@ -1887,6 +1910,11 @@ define([
         this.goi_stocks.gems.rainbowOptions.removeAll();
       }
 
+      if (stateName === "client_luckyLibation") {
+        this.goi_stocks.dice.market.setSelectionMode("none");
+        this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
+      }
+
       if (stateName === "client_joltyJackhammer") {
         this.goi_stocks.dice.market.setSelectionMode("none");
         this.goi_stocks[this.player_id].dice.scene.setSelectionMode("none");
@@ -2000,20 +2028,6 @@ define([
         return;
       }
 
-      if (stateName === "client_cleverCatapult") {
-        if (this.goi_selections.tile) {
-          this.addActionButton(elementId, message, "actUseItem");
-        }
-        return;
-      }
-
-      if (stateName === "client_swappingStones") {
-        if (this.goi_selections.opponent) {
-          this.addActionButton(elementId, message, "actUseItem");
-        }
-        return;
-      }
-
       if (stateName === "client_cauldronOfFortune") {
         if (this.goi_selections.gems.length === 2) {
           this.addActionButton(elementId, message, () => {
@@ -2029,6 +2043,26 @@ define([
 
       if (stateName === "client_cauldronOfFortune2") {
         if (this.goi_selections.gem) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
+        return;
+      }
+
+      if (stateName === "client_luckyLibation") {
+        if (this.goi_selections.dice.length > 0 || this.goi_selections.die) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
+      }
+
+      if (stateName === "client_cleverCatapult") {
+        if (this.goi_selections.tile) {
+          this.addActionButton(elementId, message, "actUseItem");
+        }
+        return;
+      }
+
+      if (stateName === "client_swappingStones") {
+        if (this.goi_selections.opponent) {
           this.addActionButton(elementId, message, "actUseItem");
         }
         return;
@@ -2270,7 +2304,7 @@ define([
 
     actMine: function () {
       this.performAction("actMine", {
-        stoneDice: JSON.stringify(this.goi_selections.stoneDice),
+        stoneDice: JSON.stringify(this.goi_selections.dice),
       });
     },
 
@@ -2305,19 +2339,21 @@ define([
         });
       }
 
+      if (item_id === 5) {
+        this.setClientState("client_luckyLibation", {
+          descriptionmyturn: _("${you} must select a die from a mining atempt or a Gem Market Die to re-roll"),
+        });
+      }
+
       if (item_id === 6) {
         this.setClientState("client_joltyJackhammer", {
-          descriptionmyturn: _(
-            "${you} must select a die to modify its value"
-          ),
+          descriptionmyturn: _("${you} must select a die to modify its value"),
         });
       }
 
       if (item_id === 7) {
         this.setClientState("client_dazzlingDynamite", {
-          descriptionmyturn: _(
-            "${you} must select a die to modify its value"
-          ),
+          descriptionmyturn: _("${you} must select a die to modify its value"),
         });
       }
 
@@ -2378,6 +2414,23 @@ define([
           oldGemCards_ids: oldGemCards_ids,
           newGem_id: this.goi_selections.gem.type_arg,
         };
+      }
+
+      if (item_id === 5) {
+        const selecedDice = this.goi_selections.dice;
+        if (selecedDice.length > 0) {
+          args = {
+            die_id: null,
+            dieType: "gem",
+            gemDice: this.goi_selections.dice,
+          };
+        } else {
+          args = {
+            die_id: this.goi_selections.die.id,
+            dieType: this.goi_selections.die.type,
+            gemDice: null,
+          };
+        }
       }
 
       if (item_id === 6) {
@@ -2544,7 +2597,11 @@ define([
           });
         }
 
-        if (!duration) {
+        if (duration === 0) {
+          return;
+        }
+
+        if (duration === undefined) {
           duration = 500;
         }
 

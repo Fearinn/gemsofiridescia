@@ -1926,7 +1926,7 @@ class Game extends \Table
         $this->incCoin($earnedCoins, $player_id);
     }
 
-    public function updateMarketValue(int $delta, int $gem_id): int
+    public function updateMarketValue(int $delta, int $gem_id, bool $silent = false): int
     {
         $gem_info = $this->gems_info[$gem_id];
         $gemName = $gem_info["name"];
@@ -1953,8 +1953,9 @@ class Game extends \Table
             $marketValue = $this->globals->inc($marketValueCode, 6);
         }
 
+        $notifEvent = $silent ? "message" : "updateMarketValue";
         $this->notifyAllPlayers(
-            "updateMarketValue",
+            $notifEvent,
             clienttranslate('The market value of ${gem_label} is ${marketValue} now'),
             [
                 "marketValue" => $marketValue,

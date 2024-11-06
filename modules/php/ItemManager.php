@@ -191,10 +191,12 @@ class ItemManager
             $this->epicElixir();
         }
 
-        // if ($this->id === 5) {
-        //     $die_id = (string) $args["die_id"];
-        //     $this->luckyLibation($die_id, $player_id);
-        // }
+        if ($this->id === 5) {
+            $die_id = (string) $args["die_id"];
+            $dieType = (string) $args["dieType"];
+            $gemDice = (array) $args["gemDice"];
+            $this->luckyLibation($die_id, $dieType, $gemDice, $player_id);
+        }
 
         if ($this->id === 6) {
             $die_id = (string) $args["die_id"];
@@ -283,27 +285,46 @@ class ItemManager
     }
 
     public function luckyLibation(
-        #[StringParam(alphanum_dash: true)] string $die_id,
+        #[StringParam(alphanum_dash: true)] ?string $die_id,
+        #[StringParam(alphanum: true)] string $dieType,
+        #[JsonParam(alphanum: false)] ?array $gemDice,
         int $player_id
     ): bool {
-        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-
-        $die = $rolledDice[$die_id];
-        $dieType = $die["type"];
-        $oldFace = $die["face"];
-        $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
-        $delta = $newFace - $oldFace;
-
         if ($dieType === "gem") {
-            $gem_id = $die["id"];
-            $this->game->updateMarketValue($delta, $newFace);
+            foreach ($gemDice as $die) {
+                $die_id = $die["id"];
+                $dieType = $die["type"];
+
+                $gem_id = $die_id;
+                $gemName = $this->game->gems_info[$gem_id]["name"];
+
+                $oldFace = $this->game->globals->get("$gemName:MarketValue");
+                $newFace = $this->game->rollDie($die_id, $player_id, "gem");
+                $delta = $newFace - $oldFace;
+
+                $this->game->updateMarketValue($delta, $gem_id, true);
+            }
+
+            $this->game->notifyAllPlayers(
+                "syncDieRolls",
+                "",
+                []
+            );
 
             return true;
         }
 
+        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
+        $die = $rolledDice[$die_id];
+        $dieType = $die["type"];
+        $oldFace = $die["face"];
+
         if (!array_key_exists($die_id, $rolledDice)) {
             throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
         }
+
+        $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
+        $delta = $newFace - $oldFace;
 
         $tileCard = $this->game->currentTile($player_id);
         $gem_id = (int) $this->game->currentTile($player_id, true);
