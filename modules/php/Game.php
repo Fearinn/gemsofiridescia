@@ -2264,7 +2264,7 @@ class Game extends \Table
 
     public function bookableRelics(bool $associative = false): array
     {
-        $sql = "SELECT card_type type, card_type_arg type_arg, card_location location FROM relic WHERE card_location!='hand' ORDER BY card_type_arg";
+        $sql = "SELECT card_type type, card_type_arg type_arg, card_location location FROM relic WHERE card_location!='hand' AND card_location!='book' ORDER BY card_type_arg";
         if ($associative) {
             return $this->getCollectionFromDb($sql);
         }
@@ -2371,6 +2371,19 @@ class Game extends \Table
     {
         $itemsDiscard = $this->item_cards->getCardsInLocation("discard");
         return $itemsDiscard;
+    }
+
+    public function getBooks(): array {
+        $books = [];
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $bookItem = $this->getObjectFromDB("$this->deckSelectQuery FROM item WHERE card_location='book' AND card_location_arg=$player_id");
+            $bookRelic = $this->getObjectFromDB("$this->deckSelectQuery FROM relic WHERE card_location='book' AND card_location_arg=$player_id");
+            $books[$player_id] = ["item" => $bookItem, "relic" => $bookRelic];
+        }
+
+        return $books;
     }
 
     public function buyableItems(int $player_id, bool $associative = false): array
@@ -2889,6 +2902,7 @@ class Game extends \Table
         $result["itemsDiscard"] = $this->getItemsDiscard();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);
+        $result["books"] = $this->getBooks();
 
         return $result;
     }

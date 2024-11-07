@@ -8,7 +8,6 @@ use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\Actions\Types\StringParam;
-use BgaUserException;
 
 class ItemManager
 {
@@ -44,6 +43,10 @@ class ItemManager
 
     public function isBuyable(int $player_id): bool
     {
+        if ($this->id === 2) {
+            return $this->game->item_cards->countCardsInLocation("book", $player_id) === 0;
+        }
+
         if ($this->id === 4) {
             $underElixirEffect = $this->game->globals->get(EPIC_ELIXIR) || $this->game->globals->get(EPIC_ELIXIR_TURN);
 
@@ -168,11 +171,7 @@ class ItemManager
         $eventKey = "useItem";
 
         if ($this->id === 2) {
-            $relic_id = (int) $args["relic_id"];
-            $this->regalReferenceBook($relic_id, $player_id);
-
             $eventKey = "message";
-            return;
         }
 
         $this->game->notifyAllPlayers(
@@ -196,6 +195,11 @@ class ItemManager
             $newGem_id = (int) $args["newGem_id"];
 
             $this->cauldronOfFortune($oldGemCards_ids, $newGem_id, $player_id);
+        }
+
+        if ($this->id === 2) {
+            $relic_id = (int) $args["relic_id"];
+            $this->regalReferenceBook($relic_id, $player_id);
         }
 
         if ($this->id === 3) {
@@ -267,12 +271,13 @@ class ItemManager
         $this->game->incGem(1, $newGem_id, $player_id);
     }
 
-    public function regalReferenceBook(#[IntParam(1, 25)] int $relic_id, int $player_id): void
+    public function regalReferenceBook(#[IntParam(1, 24)] int $relic_id, int $player_id): void
     {
         $deckSelectQuery = $this->game->deckSelectQuery;
-        $relicCard = $this->game->getObjectFromDB("$deckSelectQuery from relic WHERE type_arg=$relic_id");
+        $queryResult = $this->game->getCollectionFromDB("$deckSelectQuery from relic WHERE card_type_arg=$relic_id");
+        $relicCard = array_shift($queryResult);
 
-        if ($relicCard["location"] === "hand") {
+        if ($relicCard["location"] === "hand" || $relicCard["location"] === "book") {
             throw new \BgaVisibleSystemException("You can't use the Regal Reference Book with this Relic: $relic_id");
         }
 
@@ -286,12 +291,14 @@ class ItemManager
                 "player_name" => $this->game->getPlayerNameById($player_id),
                 "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
                 "relicCard" => $relicCard,
+                "itemCard" => $this->card,
                 "preserve" => ["relicCard"],
             ]
         );
 
         $this->game->item_cards->moveCard($this->card_id, "book", $player_id);
         $this->game->relic_cards->moveCard($relicCard_id, "book", $player_id);
+        $this->game->replaceRelic();
     }
 
     public function marvelousCart(): void
@@ -623,7 +630,7 @@ class ItemManager
         if ($this->id === 2) {
             return;
         }
-        
+
         if ($this->id === 3) {
             $this->game->globals->set(MARVELOUS_CART, false);
         }

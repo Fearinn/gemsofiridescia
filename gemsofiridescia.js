@@ -77,6 +77,21 @@ define([
         coin: 5,
       };
 
+      this.goi_info.defaultSelections = {
+        tile: null,
+        gem: null,
+        gems: [],
+        die: null,
+        dieModif: null,
+        dice: [],
+        opponent: null,
+        relic: null,
+        item: null,
+        objective: null,
+      };
+
+      this.goi_selections = this.goi_info.defaultSelections;
+
       this.goi_globals.players = gamedatas.players;
       this.goi_globals.player = gamedatas.players[this.player_id];
       this.goi_globals.tilesBoard = gamedatas.tilesBoard;
@@ -105,21 +120,7 @@ define([
       this.goi_globals.usedItems = gamedatas.usedItems;
       this.goi_globals.undoableItems = gamedatas.undoableItems;
       this.goi_globals.objectives = gamedatas.objectives;
-
-      this.goi_info.defaultSelections = {
-        tile: null,
-        gem: null,
-        gems: [],
-        die: null,
-        dieModif: null,
-        dice: [],
-        opponent: null,
-        relic: null,
-        item: null,
-        objective: null,
-      };
-
-      this.goi_selections = this.goi_info.defaultSelections;
+      this.goi_globals.books = gamedatas.books;
 
       for (const player_id in this.goi_globals.players) {
         this.goi_stocks[player_id] = {
@@ -804,6 +805,7 @@ define([
                 </div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
+              <div id="goi_book:${player_id}" class="goi_book"></div>
               <div id="goi_items:${player_id}" class="goi_items"></div>
               <div id="goi_objectives:${player_id}" class="goi_objectives"></div>
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
@@ -1081,6 +1083,16 @@ define([
           this.goi_stocks[player_id].items.hand.addCard(itemCard);
         }
 
+        this.goi_stocks[player_id].items.book = new CardStock(
+          this.goi_managers.items,
+          document.getElementById(`goi_book:${player_id}`)
+        );
+
+        const bookItem = this.goi_globals.books[player_id].item;
+        if (bookItem) {
+          this.goi_stocks[player_id].items.book.addCard(bookItem);
+        }
+
         /* VICTORY PILE */
         this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
           this.goi_managers.tiles,
@@ -1148,6 +1160,33 @@ define([
         for (const relicCard_id in restoredRelics) {
           const relicCard = restoredRelics[relicCard_id];
           this.goi_stocks[player_id].relics.victoryPile.addCard(relicCard);
+        }
+
+        this.goi_stocks[player_id].relics.book = new CardStock(
+          this.goi_managers.relics,
+          document.getElementById(`goi_book:${player_id}`)
+        );
+
+        this.goi_stocks[player_id].relics.book.onSelectionChange = (
+          selection,
+          lastChange
+        ) => {
+          this.goi_stocks.relics.market.unselectAll(true);
+
+          if (selection.length > 0) {
+            this.goi_selections.relic = lastChange;
+          } else {
+            this.goi_selections.relic = null;
+          }
+
+          this.handleSelection();
+        };
+
+        const bookRelic = this.goi_globals.books[player_id].relic;
+        if (bookRelic) {
+          {
+            this.goi_stocks[player_id].relics.book.addCard(bookRelic);
+          }
         }
 
         /* SCORING MARKERS */
@@ -1225,6 +1264,8 @@ define([
         selection,
         lastChange
       ) => {
+        this.goi_stocks[this.player_id].relics.book.unselectAll(true);
+
         if (selection.length > 0) {
           this.goi_selections.relic = lastChange;
         } else {
@@ -2256,13 +2297,34 @@ define([
       const dialogElement = document.getElementById("popin_goi_bookDialog");
       dialogElement.classList.add("goi_dialog");
 
+      const selectionChange = (selection, lastChange) => {
+        document
+          .getElementById(buttonId)
+          .classList.toggle("disabled", selection.length === 0);
+
+        if (selection.length > 0) {
+          this.goi_selections.relic = lastChange;
+        } else {
+          this.goi_selections.relic = null;
+        }
+      };
+
       this.goi_stocks.relics.market_dlg = new CardStock(
         this.goi_managers.relics,
         document.getElementById("goi_relicsMarket_dlg"),
         {}
       );
 
+      this.goi_stocks.relics.market_dlg.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        this.goi_stocks.relics.deck_dlg.unselectAll(true);
+        selectionChange(selection, lastChange);
+      };
+
       this.goi_stocks.relics.market_dlg.addCards(relicsMarket);
+      this.goi_stocks.relics.market_dlg.setSelectionMode("single");
 
       this.goi_stocks.relics.deck_dlg = new CardStock(
         this.goi_managers.relics,
@@ -2270,12 +2332,25 @@ define([
         {}
       );
 
+      this.goi_stocks.relics.deck_dlg.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        this.goi_stocks.relics.market_dlg.unselectAll(true);
+        selectionChange(selection, lastChange);
+      };
+
       this.goi_stocks.relics.deck_dlg.addCards(relicsDeck);
+      this.goi_stocks.relics.deck_dlg.setSelectionMode("single");
 
       this.addActionButton(
         buttonId,
         _("Confirm selection"),
         () => {
+          this.goi_dialog.destroy();
+          this.goi_stocks.relics.market_dlg.remove();
+          this.goi_stocks.relics.deck_dlg.remove();
+
           this.actUseItem();
         },
         "goi_buttonContainer_dlg",
@@ -2503,6 +2578,12 @@ define([
         };
       }
 
+      if (item_id === 2) {
+        args = {
+          relic_id: this.goi_selections.relic.type_arg,
+        };
+      }
+
       if (item_id === 5) {
         const selecedDice = this.goi_selections.dice;
         if (selecedDice.length > 0) {
@@ -2652,6 +2733,7 @@ define([
         { event: "useItem" },
         { event: "cancelItem" },
         { event: "discardItems" },
+        { event: "regalReferenceBook", duration: 1000 },
         { event: "swappingStones", duration: 1000 },
         { event: "cleverCatapult" },
         { event: "collectTile" },
@@ -3073,6 +3155,20 @@ define([
         const itemCard = itemCards[itemCard_id];
         this.goi_stocks.items.discard.addCard(itemCard);
       }
+    },
+
+    notif_regalReferenceBook: function (notif) {
+      const player_id = notif.args.player_id;
+      const relicCard = notif.args.relicCard;
+      const itemCard = notif.args.itemCard;
+
+      this.goi_stocks[player_id].items.book.addCard(itemCard);
+      this.goi_stocks[player_id].relics.book.addCard(relicCard, {
+        fromStock:
+          relicCard.location === "deck"
+            ? this.goi_stocks.relics.deck
+            : undefined,
+      });
     },
 
     notif_swappingStones: function (notif) {

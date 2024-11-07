@@ -63,7 +63,7 @@
 }
 
 .goi_dialog {
-  top: 200px !important;
+  top: 300px !important;
   left: 200px !important;
 }
 
@@ -620,6 +620,11 @@
   gap: 8px;
 }
 
+.goi_book .goi_relic {
+  margin-top: -110%;
+  z-index: 2;
+}
+
 .goi_victoryPiles {
   display: flex;
   align-items: flex-start;
@@ -753,6 +758,7 @@
 .goi_relicsMarket {
   display: flex;
   gap: 8px;
+  overflow-y: hidden;
   overflow-x: auto;
 }
 
