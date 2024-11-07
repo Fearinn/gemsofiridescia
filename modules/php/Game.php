@@ -26,6 +26,7 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 use BgaSystemException;
+use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -555,7 +556,9 @@ class Game extends \Table
 
         $restorableRelics = $this->restorableRelics($player_id, true);
 
-        if (!array_key_exists($relicCard_id, $restorableRelics)) {
+        $relicCard = $this->relic_cards->getCard($relicCard_id);
+
+        if (!array_key_exists($relicCard_id, $restorableRelics) && !$this->checkCardLocation($relicCard, "book", $player_id)) {
             throw new \BgaVisibleSystemException("You can't restore this Relic now: actRestoreRelic, $relicCard_id");
         }
 
@@ -848,10 +851,12 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $restorableRelics = $this->restorableRelics($player_id);
+        $canRestoreBook = $this->canRestoreBook($player_id);
 
         return [
             "restorableRelics" => $restorableRelics,
-            "_no_notify" => !$restorableRelics
+            "canRestoreBook" => $canRestoreBook,
+            "_no_notify" => !$restorableRelics && !$canRestoreBook,
         ];
     }
 
@@ -1025,11 +1030,13 @@ class Game extends \Table
         }
     }
 
-    public function checkCardLocation(array $card, string | int $location, int $location_arg = null)
+    public function checkCardLocation(array $card, string | int $location, int $location_arg = null): bool
     {
         if ($card["location"] != $location || ($location_arg && $card["location_arg"] != $location_arg)) {
             throw new \BgaVisibleSystemException("Unexpected card location: $location, $location_arg");
         }
+
+        return true;
     }
 
     public function hideCard(array $card, bool $hideOrder = false, string | int $fakeId = null): array
@@ -2191,6 +2198,39 @@ class Game extends \Table
         return $restorableRelics;
     }
 
+    public function getBooks(?int $player_id = null): array
+    {
+        $books = [];
+
+        if ($player_id) {
+            $bookItem = $this->getObjectFromDB("$this->deckSelectQuery FROM item WHERE card_location='book' AND card_location_arg=$player_id");
+            $bookRelic = $this->getObjectFromDB("$this->deckSelectQuery FROM relic WHERE card_location='book' AND card_location_arg=$player_id");
+            return ["item" => $bookItem, "relic" => $bookRelic];
+        }
+
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            $bookItem = $this->getObjectFromDB("$this->deckSelectQuery FROM item WHERE card_location='book' AND card_location_arg=$player_id");
+            $bookRelic = $this->getObjectFromDB("$this->deckSelectQuery FROM relic WHERE card_location='book' AND card_location_arg=$player_id");
+            $books[$player_id] = ["item" => $bookItem, "relic" => $bookRelic];
+        }
+
+        return $books;
+    }
+
+    public function canRestoreBook(int $player_id): bool
+    {
+        $bookRelic = $this->getBooks($player_id)["relic"];
+
+        if (!$bookRelic) {
+            return false;
+        }
+
+        $relic_id = (int) $bookRelic["type_arg"];
+
+        return $this->canPayRelicCost($relic_id, $player_id);
+    }
+
     public function restoreRelic(int $relicCard_id, int $player_id): void
     {
         $relicCard = $this->relic_cards->getCard($relicCard_id);
@@ -2237,6 +2277,16 @@ class Game extends \Table
         );
 
         $this->incRoyaltyPoints($relicPoints, $player_id);
+
+
+        if ($relicCard["location"] === "book") {
+            $itemCard = $this->getBooks($player_id)["item"];
+            $itemCard_id = (int) $itemCard["id"];
+            $item = new ItemManager($itemCard_id, $this);
+
+            $item->discard();
+            return;
+        }
 
         $this->replaceRelic();
     }
@@ -2373,19 +2423,6 @@ class Game extends \Table
         return $itemsDiscard;
     }
 
-    public function getBooks(): array {
-        $books = [];
-
-        $players = $this->loadPlayersBasicInfos();
-        foreach ($players as $player_id => $player) {
-            $bookItem = $this->getObjectFromDB("$this->deckSelectQuery FROM item WHERE card_location='book' AND card_location_arg=$player_id");
-            $bookRelic = $this->getObjectFromDB("$this->deckSelectQuery FROM relic WHERE card_location='book' AND card_location_arg=$player_id");
-            $books[$player_id] = ["item" => $bookItem, "relic" => $bookRelic];
-        }
-
-        return $books;
-    }
-
     public function buyableItems(int $player_id, bool $associative = false): array
     {
         $buyableItems = [];
@@ -2484,18 +2521,9 @@ class Game extends \Table
 
         foreach ($usedItems as $itemCard_id => $itemCard) {
             $item = new ItemManager($itemCard_id, $this);
+            $item->close();
             $item->discard();
         }
-
-        $this->notifyAllPlayers(
-            "discardItems",
-            clienttranslate('All Items used by ${player_name} this turn are discarded'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "itemCards" => $usedItems
-            ]
-        );
     }
 
     public function getObjectives(int $current_player_id, bool $unique = false): array

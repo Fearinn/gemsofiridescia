@@ -627,6 +627,19 @@ class ItemManager
 
     public function discard(): void
     {
+        $this->game->notifyAllPlayers(
+            "discardItem",
+            "",
+            [
+                "itemCard" => $this->card
+            ]
+        );
+
+        $this->game->item_cards->moveCard($this->card_id, "discard");
+    }
+
+    public function close(): void
+    {
         if ($this->id === 2) {
             return;
         }
@@ -642,7 +655,5 @@ class ItemManager
         if ($this->id === 9) {
             $this->game->globals->set(PROSPEROUS_PICKAXE, null);
         }
-
-        $this->game->item_cards->moveCard($this->card_id, "discard");
     }
 }

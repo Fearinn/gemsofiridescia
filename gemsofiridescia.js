@@ -116,6 +116,7 @@ define([
       this.goi_globals.restoredRelics = gamedatas.restoredRelics;
       this.goi_globals.itemsDeck = gamedatas.itemsDeck;
       this.goi_globals.itemsMarket = gamedatas.itemsMarket;
+      this.goi_globals.itemsDiscard = gamedatas.itemsDiscard;
       this.goi_globals.boughtItems = gamedatas.boughtItems;
       this.goi_globals.usedItems = gamedatas.usedItems;
       this.goi_globals.undoableItems = gamedatas.undoableItems;
@@ -1361,6 +1362,7 @@ define([
       );
 
       const itemsDiscard = this.goi_globals.itemsDiscard;
+      console.log(itemsDiscard);
       for (const itemCard_id in itemsDiscard) {
         const itemCard = itemsDiscard[itemCard_id];
         this.goi_stocks.items.discard.addCard(itemCard);
@@ -1852,6 +1854,7 @@ define([
 
         if (stateName === "restoreRelic") {
           const restorableRelics = args.args.restorableRelics;
+          const canRestoreBook = args.args.canRestoreBook;
 
           this.addActionButton(
             "goi_undo_btn",
@@ -1873,6 +1876,12 @@ define([
 
           this.goi_stocks.relics.market.setSelectionMode("single");
           this.goi_stocks.relics.market.setSelectableCards(restorableRelics);
+
+          if (canRestoreBook) {
+            this.goi_stocks[this.player_id].relics.book.setSelectionMode(
+              "single"
+            );
+          }
         }
 
         if (stateName === "discardObjective") {
@@ -1952,16 +1961,6 @@ define([
         this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
       }
 
-      if (stateName === "client_cleverCatapult") {
-        this.goi_stocks.tiles.board.setSelectionMode("none");
-        this.goi_stocks.tiles.empty.setSelectionMode("none");
-        this.goi_stocks.tiles.empty.removeAll();
-      }
-
-      if (stateName === "client_swappingStones") {
-        this.goi_stocks.explorers.board.setSelectionMode("none");
-      }
-
       if (stateName === "client_cauldronOfFortune") {
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
@@ -1994,6 +1993,16 @@ define([
         this.goi_stocks.tiles.board.setSelectionMode("none");
       }
 
+      if (stateName === "client_cleverCatapult") {
+        this.goi_stocks.tiles.board.setSelectionMode("none");
+        this.goi_stocks.tiles.empty.setSelectionMode("none");
+        this.goi_stocks.tiles.empty.removeAll();
+      }
+
+      if (stateName === "client_swappingStones") {
+        this.goi_stocks.explorers.board.setSelectionMode("none");
+      }
+
       if (stateName === "transferGem") {
         this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
@@ -2018,6 +2027,7 @@ define([
 
       if (stateName === "restoreRelic") {
         this.goi_stocks.relics.market.setSelectionMode("none");
+        this.goi_stocks[this.player_id].relics.book.setSelectionMode("none");
       }
     },
 
@@ -2732,7 +2742,7 @@ define([
         { event: "replaceItem", duration: 1000 },
         { event: "useItem" },
         { event: "cancelItem" },
-        { event: "discardItems" },
+        { event: "discardItem", duration: 100 },
         { event: "regalReferenceBook", duration: 1000 },
         { event: "swappingStones", duration: 1000 },
         { event: "cleverCatapult" },
@@ -3148,13 +3158,9 @@ define([
       this.goi_stocks[player_id].items.hand.addCard(itemCard);
     },
 
-    notif_discardItems: function (notif) {
-      const itemCards = notif.args.itemCards;
-
-      for (const itemCard_id in itemCards) {
-        const itemCard = itemCards[itemCard_id];
-        this.goi_stocks.items.discard.addCard(itemCard);
-      }
+    notif_discardItem: function (notif) {
+      const itemCard = notif.args.itemCard;
+      this.goi_stocks.items.discard.addCard(itemCard);
     },
 
     notif_regalReferenceBook: function (notif) {
