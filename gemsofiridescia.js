@@ -931,7 +931,10 @@ define([
             if (selection.length > 0) {
               if (selection[0].type !== lastChange.type) {
                 this.goi_stocks[player_id].gems.cargo.unselectAll(true);
-                this.goi_stocks[player_id].gems.cargo.selectCard(lastChange,true);
+                this.goi_stocks[player_id].gems.cargo.selectCard(
+                  lastChange,
+                  true
+                );
                 this.goi_selections.gems = [lastChange];
               } else {
                 this.goi_selections.gems = selection;
@@ -1357,7 +1360,10 @@ define([
           usableEpicElixir
         );
 
-        if (stateName.includes("client_")) {
+        if (
+          stateName.includes("client_") &&
+          stateName !== "client_regalReferenceBook"
+        ) {
           this.addActionButton(
             "goi_cancel_btn",
             _("Cancel"),
@@ -1623,6 +1629,23 @@ define([
 
         if (stateName === "client_cauldronOfFortune2") {
           this.generateRainbowOptions();
+        }
+
+        if (stateName === "client_regalReferenceBook") {
+          const bookableRelics = args.args.bookableRelics.map((card) => {
+            card.id = `book-${card.type_arg}`;
+            return card;
+          });
+
+          const relicsMarket = bookableRelics.filter((card) => {
+            return card.location === "market";
+          });
+
+          const relicsDeck = bookableRelics.filter((card) => {
+            return card.location === "deck";
+          });
+
+          this.generateBookDialog(relicsDeck, relicsMarket);
         }
 
         if (stateName === "client_luckyLibation") {
@@ -2160,6 +2183,10 @@ define([
       }
     },
 
+    calcBackgroundPosition: function (spritePosition) {
+      return -spritePosition * 100 + "% 0%";
+    },
+
     generateRainbowOptions: function () {
       for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
         this.goi_stocks.gems.rainbowOptions.addCard({
@@ -2199,6 +2226,65 @@ define([
       );
     },
 
+    generateBookDialog: async function (relicsDeck, relicsMarket) {
+      this.goi_dialog = new ebg.popindialog();
+      this.goi_dialog.create("goi_bookDialog");
+      this.goi_dialog.setTitle(_("Regal Reference Book"));
+      this.goi_dialog.setMaxWidth(740);
+      this.goi_dialog.replaceCloseCallback((event) => {
+        this.goi_dialog.destroy();
+        this.restoreServerGameState();
+      });
+
+      const buttonId = "goi_confirm_btn";
+
+      const html = `<div id="goi_content_dlg" class="goi_content_dlg">
+      <div id="goi_buttonContainer_dlg" class="goi_buttonContainer_dlg"></div>
+        <div id="goi_marketContainer_dlg">
+            <h4>${_("Row")}</h4>
+            <div id="goi_relicsMarket_dlg" class="goi_relicsMarket"></div>
+        </div>
+        <div id="goi_deckContainer_dlg">
+            <h4>${_("Deck")}</h4>
+            <div id="goi_relicsDeck_dlg" class="goi_relicsMarket"></div>
+        </div>
+      </div>`;
+
+      this.goi_dialog.setContent(html);
+      this.goi_dialog.show();
+
+      const dialogElement = document.getElementById("popin_goi_bookDialog");
+      dialogElement.classList.add("goi_dialog");
+
+      this.goi_stocks.relics.market_dlg = new CardStock(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsMarket_dlg"),
+        {}
+      );
+
+      this.goi_stocks.relics.market_dlg.addCards(relicsMarket);
+
+      this.goi_stocks.relics.deck_dlg = new CardStock(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsDeck_dlg"),
+        {}
+      );
+
+      this.goi_stocks.relics.deck_dlg.addCards(relicsDeck);
+
+      this.addActionButton(
+        buttonId,
+        _("Confirm selection"),
+        () => {
+          this.actUseItem();
+        },
+        "goi_buttonContainer_dlg",
+        false
+      );
+
+      document.getElementById(buttonId).classList.add("disabled");
+    },
+
     handleItemSelection: function () {
       const selectedItem = this.goi_selections.item;
 
@@ -2215,10 +2301,6 @@ define([
 
         this.generateItemButton(item_id, elementId, isUndoable);
       }
-    },
-
-    calcBackgroundPosition: function (spritePosition) {
-      return -spritePosition * 100 + "% 0%";
     },
 
     findFreeBox: function (player_id) {
@@ -2333,6 +2415,12 @@ define([
           descriptionmyturn: _(
             "${you} must select any 2 Gems in your cargo to trade for other Gem"
           ),
+        });
+      }
+
+      if (item_id === 2) {
+        this.setClientState("client_regalReferenceBook", {
+          descriptionmyturn: _("${you} must select a Relic to reserve for you"),
         });
       }
 

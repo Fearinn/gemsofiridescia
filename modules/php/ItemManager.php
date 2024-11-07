@@ -122,6 +122,11 @@ class ItemManager
             return $this->game->getTotalGemsCount($player_id) >= 2;
         }
 
+        if ($this->id === 2) {
+            $bookableRelics = $this->game->bookableRelics();
+            return count($bookableRelics) > 0;
+        }
+
         if ($this->id === 3) {
             return !$this->game->globals->get(MARVELOUS_CART) && $this->game->getCoins($player_id) >= 3;
         }
@@ -160,8 +165,18 @@ class ItemManager
             throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
         }
 
+        $eventKey = "useItem";
+
+        if ($this->id === 2) {
+            $relic_id = (int) $args["relic_id"];
+            $this->regalReferenceBook($relic_id, $player_id);
+
+            $eventKey = "message";
+            return;
+        }
+
         $this->game->notifyAllPlayers(
-            "useItem",
+            $eventKey,
             clienttranslate('${player_name} uses the ${item_name}'),
             [
                 "player_id" => $player_id,
@@ -177,7 +192,7 @@ class ItemManager
         $this->game->item_cards->moveCard($this->card_id, "used", $player_id);
 
         if ($this->id === 1) {
-            $oldGemCards_ids = $args["oldGemCards_ids"];
+            $oldGemCards_ids = (array) $args["oldGemCards_ids"];
             $newGem_id = (int) $args["newGem_id"];
 
             $this->cauldronOfFortune($oldGemCards_ids, $newGem_id, $player_id);
@@ -250,6 +265,33 @@ class ItemManager
         }
 
         $this->game->incGem(1, $newGem_id, $player_id);
+    }
+
+    public function regalReferenceBook(#[IntParam(1, 25)] int $relic_id, int $player_id): void
+    {
+        $deckSelectQuery = $this->game->deckSelectQuery;
+        $relicCard = $this->game->getObjectFromDB("$deckSelectQuery from relic WHERE type_arg=$relic_id");
+
+        if ($relicCard["location"] === "hand") {
+            throw new \BgaVisibleSystemException("You can't use the Regal Reference Book with this Relic: $relic_id");
+        }
+
+        $relicCard_id = (int) $relicCard["id"];
+
+        $this->game->notifyAllPlayers(
+            "regalReferenceBook",
+            clienttranslate('${player_name} reserves the ${relic_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
+                "relicCard" => $relicCard,
+                "preserve" => ["relicCard"],
+            ]
+        );
+
+        $this->game->item_cards->moveCard($this->card_id, "book", $player_id);
+        $this->game->relic_cards->moveCard($relicCard_id, "book", $player_id);
     }
 
     public function marvelousCart(): void
@@ -578,6 +620,10 @@ class ItemManager
 
     public function discard(): void
     {
+        if ($this->id === 2) {
+            return;
+        }
+        
         if ($this->id === 3) {
             $this->game->globals->set(MARVELOUS_CART, false);
         }

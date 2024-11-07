@@ -760,6 +760,8 @@ class Game extends \Table
 
         $explorableTiles = $this->explorableTiles($player_id);
 
+        $bookableRelics = $this->bookableRelics();
+
         return [
             "canMine" => $canMine,
             "activeStoneDiceCount" => $activeStoneDiceCount,
@@ -772,6 +774,7 @@ class Game extends \Table
             "usableItems" => $usableItems,
             "undoableItems" => $this->undoableItems($player_id),
             "rolledDice" => $this->globals->get(ROLLED_DICE, []),
+            "bookableRelics" => $bookableRelics,
             "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
         ];
     }
@@ -2257,6 +2260,16 @@ class Game extends \Table
                 "preserve" => ["relicCard"],
             ]
         );
+    }
+
+    public function bookableRelics(bool $associative = false): array
+    {
+        $sql = "SELECT card_type type, card_type_arg type_arg, card_location location FROM relic WHERE card_location!='hand' ORDER BY card_type_arg";
+        if ($associative) {
+            return $this->getCollectionFromDb($sql);
+        }
+
+        return  $this->getObjectListFromDB($sql);
     }
 
     public function getItemsDeck(): array

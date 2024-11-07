@@ -564,8 +564,8 @@ $this->relics_info = [
         ]
     ],
     11 => [
-        "name" => "Citrine Miner’s Hat",
-        "tr_name" => clienttranslate("Citrine Miner’s Hat"),
+        "name" => "Citrine Miner's Hat",
+        "tr_name" => clienttranslate("Citrine Miner's Hat"),
         "leadGem" => 2,
         "type" => 2,
         "points" => 5,

@@ -62,6 +62,28 @@
   padding: 0 8px;
 }
 
+.goi_dialog {
+  top: 200px !important;
+  left: 200px !important;
+}
+
+.goi_buttonContainer_dlg a {
+  margin: 0;
+}
+
+.goi_content_dlg .goi_card {
+  height: 273px;
+  width: 200px;
+}
+
+.goi_content_dlg .card-side {
+  background-size: cover !important;
+}
+
+.goi_content_dlg .goi_cardTitle {
+  font-size: 16px;
+}
+
 .goi_card {
   height: 409px;
   width: var(--cardSize);
