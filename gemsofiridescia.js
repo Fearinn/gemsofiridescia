@@ -861,7 +861,7 @@ define([
 
           const stateName = this.getStateName();
           if (stateName === "client_luckyLibation") {
-          this.goi_stocks.dice.market.setSelectionMode("multiple");
+            this.goi_stocks.dice.market.setSelectionMode("multiple");
           } else {
             this.goi_stocks.dice.market.setSelectionMode("single");
           }
@@ -929,18 +929,15 @@ define([
 
           if (stateName === "client_sellGems") {
             if (selection.length > 0) {
-              if (selection[0].type === lastChange.type) {
-                this.goi_selections.gems.push(lastChange);
-              } else {
+              if (selection[0].type !== lastChange.type) {
                 this.goi_stocks[player_id].gems.cargo.unselectAll(true);
-                this.goi_stocks[player_id].gems.cargo.selectCard(
-                  lastChange,
-                  true
-                );
+                this.goi_stocks[player_id].gems.cargo.selectCard(lastChange,true);
                 this.goi_selections.gems = [lastChange];
+              } else {
+                this.goi_selections.gems = selection;
               }
             } else {
-              this.goi_selections.gems = [];
+              this.goi_selections.gems = selection;
             }
 
             this.handleSelection();
@@ -2341,7 +2338,9 @@ define([
 
       if (item_id === 5) {
         this.setClientState("client_luckyLibation", {
-          descriptionmyturn: _("${you} must select a die from a mining atempt or a Gem Market Die to re-roll"),
+          descriptionmyturn: _(
+            "${you} must select a die from a mining atempt or a Gem Market Die to re-roll"
+          ),
         });
       }
 
