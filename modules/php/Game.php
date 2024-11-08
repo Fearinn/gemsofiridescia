@@ -2840,6 +2840,48 @@ class Game extends \Table
         }
     }
 
+    public function debug_zombieQuit(int $player_id): void
+    {
+        $this->explorer_cards->moveAllCardsInLocation("board", "scene", null, $player_id);
+        $this->gem_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->tile_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+
+        $this->relic_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->relic_cards->moveAllCardsInLocation("book", "discard", $player_id);
+
+        $this->item_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->item_cards->moveAllCardsInLocation("book", "discard", $player_id);
+        $this->globals->set(EPIC_ELIXIR, false);
+
+        $stoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
+        $this->DbQuery("UPDATE player SET stone_die=0 WHERE player_id=$player_id");
+        $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $stoneDiceCount);
+
+        $this->DbQuery("UPDATE player SET coin=0 WHERE player_id=$player_id");
+
+        $zombies = $this->globals->get("zombies", []);
+
+        if (!in_array($player_id, $zombies)) {
+            $zombies[$player_id] = $player_id;
+            $this->globals->set("zombies", $zombies);
+
+            $this->notifyAllPlayers(
+                "zombieQuit",
+                clienttranslate('${player_name} quits the game. All his dice, tiles, gems, relics and items are discarded'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "explorerCard" => $this->getExplorerByPlayerId($player_id),
+                ]
+            );
+        }
+
+        if ($this->getActivePlayerId() == $player_id) {
+            $this->gamestate->jumpToState(6);
+        }
+    }
+
     public function debug_moveExplorer(int $hex, int $player_id): void
     {
         $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$hex WHERE card_type_arg=$player_id");
@@ -2856,7 +2898,8 @@ class Game extends \Table
         $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
     }
 
-    public function debug_reshuffleItemsDeck(): void {
+    public function debug_reshuffleItemsDeck(): void
+    {
         $this->reshuffleItemsDeck();
     }
 
@@ -2984,6 +3027,7 @@ class Game extends \Table
             $this->initStat("player", "2:GemTiles", 0, $player_id);
             $this->initStat("player", "3:GemTiles", 0, $player_id);
             $this->initStat("player", "4:GemTiles", 0, $player_id);
+            $this->initStat("player", "rainbow:Tiles", 0, $player_id);
 
             $this->initStat("player", "1:GemRelics", 0, $player_id);
             $this->initStat("player", "2:GemRelics", 0, $player_id);
@@ -2993,6 +3037,7 @@ class Game extends \Table
             $this->initStat("player", "1:TypeRelics", 0, $player_id);
             $this->initStat("player", "2:TypeRelics", 0, $player_id);
             $this->initStat("player", "3:TypeRelics", 0, $player_id);
+            $this->initStat("player", "iridia:Relics", 0, $player_id);
         }
 
         $explorerCards = [];
@@ -3138,24 +3183,53 @@ class Game extends \Table
      * @return void
      * @throws feException if the zombie mode is not supported at this game state.
      */
-    protected function zombieTurn(array $state, int $active_player): void
+    protected function zombieTurn(array $state, int $player_id): void
     {
         $state_name = $state["name"];
 
         if ($state["type"] === "activeplayer") {
-            switch ($state_name) {
-                default: {
-                        $this->gamestate->nextState("zombiePass");
-                        break;
-                    }
+            $this->explorer_cards->moveAllCardsInLocation("board", "scene", null, $player_id);
+            $this->gem_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+            $this->tile_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+            $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+
+            $this->relic_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+            $this->relic_cards->moveAllCardsInLocation("book", "discard", $player_id);
+
+            $this->item_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+            $this->item_cards->moveAllCardsInLocation("book", "discard", $player_id);
+            $this->globals->set(EPIC_ELIXIR, false);
+
+            $stoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
+            $this->DbQuery("UPDATE player SET stone_die=0 WHERE player_id=$player_id");
+            $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $stoneDiceCount);
+
+            $this->DbQuery("UPDATE player SET coin=0 WHERE player_id=$player_id");
+
+            $zombies = $this->globals->get("zombies", []);
+
+            if (!in_array($player_id, $zombies)) {
+                $zombies[$player_id] = $player_id;
+                $this->globals->set("zombies", $zombies);
+
+                $this->notifyAllPlayers(
+                    "zombieQuit",
+                    "",
+                    [
+                        "player_id" => $player_id,
+                        "player_name" => $this->getPlayerNameById($player_id),
+                        "explorerCard" => $this->getExplorerByPlayerId($player_id),
+                    ]
+                );
             }
 
+            $this->gamestate->jumpToState(6);
             return;
         }
 
         // Make sure player is in a non-blocking status for role turn.
         if ($state["type"] === "multipleactiveplayer") {
-            $this->gamestate->setPlayerNonMultiactive($active_player, '');
+            $this->gamestate->setPlayerNonMultiactive($player_id, '');
             return;
         }
 

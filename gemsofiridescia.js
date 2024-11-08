@@ -2778,6 +2778,7 @@ define([
           ignoreCurrentPlayer: true,
         },
         { event: "completeObjective", duration: 1000 },
+        { event: "zombieQuit" },
       ];
 
       notifications.forEach((notif) => {
@@ -3311,6 +3312,39 @@ define([
       const player_color = this.goi_globals.players[player_id].color;
 
       this.displayScoring(objectiveElement.id, player_color, points);
+    },
+
+    notif_zombieQuit: function (notif) {
+      const player_id = notif.args.player_id;
+      const explorerCard = notif.args.explorerCard;
+
+      const itemCards = this.goi_stocks[player_id].items.hand.getCards();
+      this.goi_stocks.items.discard.addCards(itemCards);
+      const bookCard = this.goi_stocks[player_id].items.book.getCards()
+      this.goi_stocks.items.discard.addCards(bookCard);
+
+      const stoneDice = this.goi_stocks[player_id].dice.scene
+        .getDice()
+        .filter((die) => {
+          return die.type === "stone";
+        });
+      this.goi_stocks.dice.stone.addDice(stoneDice);
+
+      this.goi_stocks[player_id].explorers.scene.addCard(explorerCard);
+      this.goi_stocks[player_id].explorers.scene.remove();
+      this.goi_stocks[player_id].relics.victoryPile.remove();
+      this.goi_stocks[player_id].relics.book.remove();
+      this.goi_stocks[player_id].gems.cargo.remove();
+      this.goi_stocks[player_id].royaltyTokens.victoryPile.remove();
+      this.goi_stocks[player_id].objectives.hand.remove();
+      this.goi_stocks[player_id] = undefined;
+
+      this.goi_counters[player_id].coins.toValue(0);
+      for (const counterKey in this.goi_counters[player_id].gems) {
+        this.goi_counters[player_id].gems[counterKey].toValue(0);
+      }
+
+      document.getElementById(`goi_playerZoneContainer:${player_id}`).remove();
     },
 
     /* LOGS MANIPULATION */
