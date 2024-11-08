@@ -286,7 +286,12 @@ class ItemManager
             throw new \BgaVisibleSystemException("You can't use the Regal Reference Book with this Relic: $relic_id");
         }
 
+        $this->game->relic_cards->shuffle("deck");
+        $relicsDeckTop = $this->game->getRelicsDeck(true);
+
         $relicCard_id = (int) $relicCard["id"];
+        $this->game->item_cards->moveCard($this->card_id, "book", $player_id);
+        $this->game->relic_cards->moveCard($relicCard_id, "book", $player_id);
 
         $this->game->notifyAllPlayers(
             "regalReferenceBook",
@@ -296,13 +301,12 @@ class ItemManager
                 "player_name" => $this->game->getPlayerNameById($player_id),
                 "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
                 "relicCard" => $relicCard,
+                "relicsDeckTop" => $relicsDeckTop,
                 "itemCard" => $this->card,
                 "preserve" => ["relicCard"],
             ]
-        );
-
-        $this->game->item_cards->moveCard($this->card_id, "book", $player_id);
-        $this->game->relic_cards->moveCard($relicCard_id, "book", $player_id);
+            );
+        
         $this->game->replaceRelic();
     }
 

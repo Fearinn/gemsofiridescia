@@ -1390,7 +1390,10 @@ define([
           });
 
         this.goi_globals.cancellableItems = activeEpicElixir;
-        this.goi_stocks.items.active.setSelectionMode("single", activeEpicElixir);
+        this.goi_stocks.items.active.setSelectionMode(
+          "single",
+          activeEpicElixir
+        );
 
         const usableEpicElixir = this.goi_stocks[this.player_id].items.hand
           .getCards()
@@ -1550,7 +1553,10 @@ define([
           this.goi_globals.rolledDice = rolledDice;
 
           this.goi_globals.cancellableItems = cancellableItems;
-          this.goi_stocks.items.active.setSelectionMode("single", cancellableItems);
+          this.goi_stocks.items.active.setSelectionMode(
+            "single",
+            cancellableItems
+          );
           this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
 
           this.addActionButton(
@@ -2380,9 +2386,11 @@ define([
         const item_id = Number(selectedItem.type_arg);
         const itemCard_id = Number(selectedItem.id);
 
-        const isCancellable = this.goi_globals.cancellableItems.some((itemCard) => {
-          return itemCard.id == itemCard_id;
-        });
+        const isCancellable = this.goi_globals.cancellableItems.some(
+          (itemCard) => {
+            return itemCard.id == itemCard_id;
+          }
+        );
 
         this.generateItemButton(item_id, elementId, isCancellable);
       }
@@ -3102,7 +3110,7 @@ define([
       const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi_stocks.relics.market.addCard(relicCard, {
-        fromStcok: this.goi_stocks.relics.deck,
+        fromStock: this.goi_stocks.relics.deck,
       });
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
@@ -3170,6 +3178,7 @@ define([
       const player_id = notif.args.player_id;
       const relicCard = notif.args.relicCard;
       const itemCard = notif.args.itemCard;
+      const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi_stocks[player_id].items.book.addCard(itemCard);
       this.goi_stocks[player_id].relics.book.addCard(relicCard, {
@@ -3178,6 +3187,10 @@ define([
             ? this.goi_stocks.relics.deck
             : undefined,
       });
+
+      this.goi_stocks.relics.deck.shuffle({ animatedCardsMax: 5 });
+      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
     },
 
     notif_swappingStones: function (notif) {
