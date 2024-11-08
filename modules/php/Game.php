@@ -616,8 +616,10 @@ class Game extends \Table
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
 
+        $auto = $singleRevealableTile && !$usableItems && !$cancellableItems;
+
         return [
-            "auto" => $singleRevealableTile && !$usableItems && !$cancellableItems,
+            "auto" => $auto,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
@@ -627,7 +629,7 @@ class Game extends \Table
             "hasReachedCastle" => $hasReachedCastle,
             "usableItems" => $usableItems,
             "cancellableItems" => $cancellableItems,
-            "_no_notify" => $mustDiscardCollectedTile || (($noRevealableTile || $singleRevealableTile))
+            "_no_notify" => $mustDiscardCollectedTile || (($noRevealableTile || $auto))
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
     }
@@ -709,6 +711,7 @@ class Game extends \Table
 
         $explorableTiles = $this->explorableTiles($player_id);
         $revealableTiles = $this->revealableTiles($player_id);
+
         $revealsLimit = $this->globals->get(REVEALS_LIMIT);
 
         if (!$explorableTiles) {
@@ -1075,15 +1078,14 @@ class Game extends \Table
 
     public function getExplorers(): array
     {
-        $explorers = $this->getCollectionFromDB($this->deckSelectQuery . " 
-        FROM explorer WHERE card_location<>'box'");
+        $explorers = $this->getCollectionFromDB("$this->deckSelectQuery FROM explorer WHERE card_location!='box'");
 
         return $explorers;
     }
 
     public function getExplorerByPlayerId(int $player_id): array
     {
-        $explorer = $this->getObjectFromDB($this->deckSelectQuery . "FROM explorer WHERE card_type_arg='$player_id'");
+        $explorer = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id");
 
         return $explorer;
     }
@@ -1185,7 +1187,7 @@ class Game extends \Table
             $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
 
             if ($tileCard) {
-                $tileCard_id = $tileCard["id"];
+                $tileCard_id = (int) $tileCard["id"];
                 $adjacentTiles[$tileCard_id] = $tileCard;
             }
         }
@@ -2999,24 +3001,24 @@ class Game extends \Table
             $this->initStat("player", "3:TypeRelics", 0, $player_id);
         }
 
-        $explorers = [];
+        $explorerCards = [];
         foreach ($this->explorers_info as $explorer_id => $explorer) {
-            $explorers[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
+            $explorerCards[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
         }
 
-        $this->explorer_cards->createCards($explorers, "deck");
+        $this->explorer_cards->createCards($explorerCards, "deck");
 
-        $explorers = $this->explorer_cards->getCardsInLocation("deck");
+        $explorerCards = $this->explorer_cards->getCardsInLocation("deck");
         $playerBoards = [];
-        foreach ($explorers as $card_id => $explorer) {
+        foreach ($explorerCards as $explorerCard_id => $explorerCard) {
             foreach ($players as $player_id => $player) {
                 $player_color = $this->getPlayerColorById($player_id);
 
-                if ($player_color === $explorer["type"]) {
-                    $playerBoards[$player_id] = $explorer["type_arg"];
+                if ($player_color === $explorerCard["type"]) {
+                    $playerBoards[$player_id] = (int) $explorerCard["type_arg"];
 
-                    $this->explorer_cards->moveCard($card_id, "scene", $player_id);
-                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$card_id'");
+                    $this->explorer_cards->moveCard($explorerCard_id, "scene", $player_id);
+                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$explorerCard_id'");
                 }
             }
         }
@@ -3164,5 +3166,40 @@ class Game extends \Table
         }
 
         throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
+    }
+
+    public function loadBugReportSQL(int $reportId, array $studioPlayers): void
+    {
+        $prodPlayers = $this->getObjectListFromDb("SELECT `player_id` FROM `player`", true);
+        $prodCount = count($prodPlayers);
+        $studioCount = count($studioPlayers);
+        if ($prodCount != $studioCount) {
+            throw new \BgaVisibleSystemException("Incorrect player count (bug report has $prodCount players, studio table has $studioCount players)");
+        }
+
+        // SQL specific to your game
+        // For example, reset the current state if it's already game over
+        $sql = [
+            "UPDATE `global` SET `global_value` = 10 WHERE `global_id` = 1 AND `global_value` = 99"
+        ];
+        foreach ($prodPlayers as $index => $prodId) {
+            $studioId = $studioPlayers[$index];
+            // SQL common to all games
+            $sql[] = "UPDATE `player` SET `player_id` = $studioId WHERE `player_id` = $prodId";
+            $sql[] = "UPDATE `global` SET `global_value` = $studioId WHERE `global_value` = $prodId";
+            $sql[] = "UPDATE `stats` SET `stats_player_id` = $studioId WHERE `stats_player_id` = $prodId";
+
+            // SQL specific to your game
+            $sql[] = "UPDATE `tile` SET `card_location_arg` = $studioId WHERE `card_location_arg` = $prodId";
+            $sql[] = "UPDATE `item` SET `card_location_arg` = $studioId WHERE `card_location_arg` = $prodId";
+            $sql[] = "UPDATE `relic` SET `card_location_arg` = $studioId WHERE `card_location_arg` = $prodId";
+            $sql[] = "UPDATE `gem` SET `card_location_arg` = $studioId WHERE `card_location_arg` = $prodId";
+            $sql[] = "UPDATE `explorer` SET `card_type_arg` = $studioId WHERE `card_type_arg` = $prodId";
+            // $sql[] = "UPDATE `my_table` SET `my_column` = REPLACE(`my_column`, $prodId, $studioId)";
+        }
+        foreach ($sql as $q) {
+            $this->DbQuery($q);
+        }
+        $this->reloadPlayersBasicInfos();
     }
 }
