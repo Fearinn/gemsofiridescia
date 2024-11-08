@@ -612,12 +612,12 @@ class Game extends \Table
         $skippable = (!$hasExpandedTiles && $explorableTiles) || ($hasExpandedTiles && $expandedExplorableTiles);
 
         $usableItems = $this->usableItems($player_id);
-        $undoableItems = $this->undoableItems($player_id);
+        $cancellableItems = $this->cancellableItems($player_id);
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$hasExpandedTiles && !$revealableTiles && !$explorableTiles;
 
         return [
-            "auto" => $singleRevealableTile && !$usableItems && !$undoableItems,
+            "auto" => $singleRevealableTile && !$usableItems && !$cancellableItems,
             "revealableTiles" => $revealableTiles,
             "expandedRevealableTiles" => $expandedRevealableTiles,
             "mustDiscardCollectedTile" => $mustDiscardCollectedTile,
@@ -626,7 +626,7 @@ class Game extends \Table
             "skippable" => $skippable,
             "hasReachedCastle" => $hasReachedCastle,
             "usableItems" => $usableItems,
-            "undoableItems" => $undoableItems,
+            "cancellableItems" => $cancellableItems,
             "_no_notify" => $mustDiscardCollectedTile || (($noRevealableTile || $singleRevealableTile))
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
@@ -775,7 +775,7 @@ class Game extends \Table
             "buyableItems" => $buyableItems,
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
-            "undoableItems" => $this->undoableItems($player_id),
+            "cancellableItems" => $this->cancellableItems($player_id),
             "rolledDice" => $this->globals->get(ROLLED_DICE, []),
             "bookableRelics" => $bookableRelics,
             "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
@@ -913,7 +913,7 @@ class Game extends \Table
         $this->giveExtraTime($player_id);
 
         $epicElixir = $this->globals->get(EPIC_ELIXIR, false);
-        $this->discardItems($player_id);
+        $this->disableItems();
 
         if ($epicElixir) {
             $this->globals->set(EPIC_ELIXIR_TURN, true);
@@ -2413,8 +2413,8 @@ class Game extends \Table
 
     public function getUsedItems(): array
     {
-        $usedItems = $this->item_cards->getCardsInLocation("used");
-        return $usedItems;
+        $activeItems = $this->item_cards->getCardsInLocation("active");
+        return $activeItems;
     }
 
     public function getItemsDiscard(): array
@@ -2465,25 +2465,25 @@ class Game extends \Table
         return $usableItems;
     }
 
-    public function undoableItems(int $player_id, bool $associative = false): array
+    public function cancellableItems(int $player_id, bool $associative = false): array
     {
-        $undoableItems = [];
-        $usedItems = $this->getUsedItems();
+        $cancellableItems = [];
+        $activeItems = $this->getUsedItems();
 
-        foreach ($usedItems as $itemCard_id => $itemCard) {
+        foreach ($activeItems as $itemCard_id => $itemCard) {
             $item = new ItemManager($itemCard_id, $this);
 
-            if ($item->isUndoable($player_id)) {
+            if ($item->isCancellable($player_id)) {
                 if ($associative) {
-                    $undoableItems[$itemCard_id] = $itemCard;
+                    $cancellableItems[$itemCard_id] = $itemCard;
                     continue;
                 }
 
-                $undoableItems[] = $itemCard;
+                $cancellableItems[] = $itemCard;
             }
         }
 
-        return $undoableItems;
+        return $cancellableItems;
     }
 
     public function replaceItem(): void
@@ -2511,17 +2511,17 @@ class Game extends \Table
         };
     }
 
-    function discardItems(int $player_id)
+    function disableItems()
     {
-        $usedItems = $this->getUsedItems();
+        $activeItems = $this->getUsedItems();
 
-        if (!$usedItems) {
+        if (!$activeItems) {
             return;
         }
 
-        foreach ($usedItems as $itemCard_id => $itemCard) {
+        foreach ($activeItems as $itemCard_id => $itemCard) {
             $item = new ItemManager($itemCard_id, $this);
-            $item->close();
+            $item->disable();
             $item->discard();
         }
     }
@@ -2854,6 +2854,10 @@ class Game extends \Table
         $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
     }
 
+    public function debug_reshuffleItemsDeck(): void {
+        $this->reshuffleItemsDeck();
+    }
+
     /**
      * Migrate database.
      *
@@ -2926,7 +2930,7 @@ class Game extends \Table
         $result["itemsDeck"] = $this->getItemsDeck();
         $result["itemsMarket"] = $this->getItemsMarket();
         $result["boughtItems"] = $this->getBoughtItems(null);
-        $result["usedItems"] = $this->getUsedItems();
+        $result["activeItems"] = $this->getUsedItems();
         $result["itemsDiscard"] = $this->getItemsDiscard();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);

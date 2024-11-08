@@ -118,8 +118,8 @@ define([
       this.goi_globals.itemsMarket = gamedatas.itemsMarket;
       this.goi_globals.itemsDiscard = gamedatas.itemsDiscard;
       this.goi_globals.boughtItems = gamedatas.boughtItems;
-      this.goi_globals.usedItems = gamedatas.usedItems;
-      this.goi_globals.undoableItems = gamedatas.undoableItems;
+      this.goi_globals.activeItems = gamedatas.activeItems;
+      this.goi_globals.cancellableItems = gamedatas.cancellableItems;
       this.goi_globals.objectives = gamedatas.objectives;
       this.goi_globals.books = gamedatas.books;
 
@@ -1050,8 +1050,8 @@ define([
         );
 
         /* ITEMS */
-        document.getElementById("goi_usedItemsTitle").textContent =
-          _("Used this turn");
+        document.getElementById("goi_activeItemsTitle").textContent =
+          _("Active");
 
         document.getElementById("goi_itemsDiscardTitle").textContent =
           _("Discard");
@@ -1330,13 +1330,13 @@ define([
         this.goi_stocks.items.market.addCard(itemCard);
       }
 
-      this.goi_stocks.items.used = new AllVisibleDeck(
+      this.goi_stocks.items.active = new AllVisibleDeck(
         this.goi_managers.items,
-        document.getElementById(`goi_usedItems`),
+        document.getElementById(`goi_activeItems`),
         { horizontalShift: "0px", verticalShift: "48px" }
       );
 
-      this.goi_stocks.items.used.onSelectionChange = (
+      this.goi_stocks.items.active.onSelectionChange = (
         selection,
         lastChange
       ) => {
@@ -1349,10 +1349,10 @@ define([
         this.handleItemSelection();
       };
 
-      const usedItems = this.goi_globals.usedItems;
-      for (const itemCard_id in usedItems) {
-        const itemCard = usedItems[itemCard_id];
-        this.goi_stocks.items.used.addCard(itemCard);
+      const activeItems = this.goi_globals.activeItems;
+      for (const itemCard_id in activeItems) {
+        const itemCard = activeItems[itemCard_id];
+        this.goi_stocks.items.active.addCard(itemCard);
       }
 
       this.goi_stocks.items.discard = new AllVisibleDeck(
@@ -1383,14 +1383,14 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
-        const usedEpicElixir = this.goi_stocks.items.used
+        const activeEpicElixir = this.goi_stocks.items.active
           .getCards()
           .filter((itemCard) => {
             return itemCard.type_arg == 4;
           });
 
-        this.goi_globals.undoableItems = usedEpicElixir;
-        this.goi_stocks.items.used.setSelectionMode("single", usedEpicElixir);
+        this.goi_globals.cancellableItems = activeEpicElixir;
+        this.goi_stocks.items.active.setSelectionMode("single", activeEpicElixir);
 
         const usableEpicElixir = this.goi_stocks[this.player_id].items.hand
           .getCards()
@@ -1544,13 +1544,13 @@ define([
           const buyableItems = args.args.buyableItems;
           const canUseItem = args.args.canUseItem;
           const usableItems = args.args.usableItems;
-          const undoableItems = args.args.undoableItems;
+          const cancellableItems = args.args.cancellableItems;
           const rolledDice = args.args.rolledDice;
 
           this.goi_globals.rolledDice = rolledDice;
 
-          this.goi_globals.undoableItems = undoableItems;
-          this.goi_stocks.items.used.setSelectionMode("single", undoableItems);
+          this.goi_globals.cancellableItems = cancellableItems;
+          this.goi_stocks.items.active.setSelectionMode("single", cancellableItems);
           this.goi_stocks[this.player_id].items.hand.setSelectionMode("none");
 
           this.addActionButton(
@@ -1946,7 +1946,7 @@ define([
       }
 
       if (stateName === "optionalActions") {
-        this.goi_stocks.items.used.setSelectionMode("none");
+        this.goi_stocks.items.active.setSelectionMode("none");
       }
 
       if (stateName === "client_sellGems") {
@@ -2251,10 +2251,10 @@ define([
       this.goi_stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
     },
 
-    generateItemButton: function (item_id, elementId, isUndoable) {
+    generateItemButton: function (item_id, elementId, isCancellable) {
       const itemName = this.goi_info.items[item_id].tr_name;
 
-      if (!isUndoable) {
+      if (!isCancellable) {
         const message = this.format_string(_("Use ${item_name}"), {
           item_name: _(itemName),
         });
@@ -2380,11 +2380,11 @@ define([
         const item_id = Number(selectedItem.type_arg);
         const itemCard_id = Number(selectedItem.id);
 
-        const isUndoable = this.goi_globals.undoableItems.some((itemCard) => {
+        const isCancellable = this.goi_globals.cancellableItems.some((itemCard) => {
           return itemCard.id == itemCard_id;
         });
 
-        this.generateItemButton(item_id, elementId, isUndoable);
+        this.generateItemButton(item_id, elementId, isCancellable);
       }
     },
 
@@ -2740,7 +2740,7 @@ define([
         { event: "reshuffleItemsDeck", duration: 5000 },
         { event: "buyItem" },
         { event: "replaceItem", duration: 1000 },
-        { event: "useItem" },
+        { event: "activateItem" },
         { event: "cancelItem" },
         { event: "discardItem", duration: 100 },
         { event: "regalReferenceBook", duration: 1000 },
@@ -3113,9 +3113,12 @@ define([
       const itemsMarket = notif.args.itemsMarket;
 
       const previousMarket = this.goi_stocks.items.market.getCards();
+      const discard = this.goi_stocks.items.discard.getCards();
+
+      const reshuffledItems = previousMarket.concat(discard);
 
       this.goi_stocks.items.deck
-        .addCards(previousMarket, {
+        .addCards(reshuffledItems, {
           fromStock: this.goi_stocks.items.market,
         })
         .then(() => {
@@ -3146,9 +3149,9 @@ define([
       });
     },
 
-    notif_useItem: function (notif) {
+    notif_activateItem: function (notif) {
       const itemCard = notif.args.itemCard;
-      this.goi_stocks.items.used.addCard(itemCard);
+      this.goi_stocks.items.active.addCard(itemCard);
     },
 
     notif_cancelItem: function (notif) {

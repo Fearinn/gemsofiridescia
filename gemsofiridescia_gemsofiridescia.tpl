@@ -111,8 +111,8 @@
     </div>
     <div id="goi_itemsZone" class="goi_itemsZone whiteblock">
       <div class="goi_itemsContainer">
-        <h3 id="goi_usedItemsTitle" class="goi_zoneTitle"></h3>
-        <div id="goi_usedItems" class="goi_usedItems"></div>
+        <h3 id="goi_activeItemsTitle" class="goi_zoneTitle"></h3>
+        <div id="goi_activeItems" class="goi_activeItems"></div>
       </div>
       <div class="goi_itemsContainer">
         <h3 id="goi_itemsDiscardTitle" class="goi_zoneTitle"></h3>

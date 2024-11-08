@@ -168,10 +168,12 @@ class ItemManager
             throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
         }
 
-        $eventKey = "useItem";
+        $eventKey = "message";
 
-        if ($this->id === 2) {
-            $eventKey = "message";
+        $possiblyCancellable = [3, 4, 9];
+
+        if (in_array($this->id, $possiblyCancellable)) {
+            $eventKey = "activateItem";
         }
 
         $this->game->notifyAllPlayers(
@@ -188,7 +190,9 @@ class ItemManager
             ]
         );
 
-        $this->game->item_cards->moveCard($this->card_id, "used", $player_id);
+        if (!in_array($this->id, $possiblyCancellable)) {
+            $this->discard();
+        }
 
         if ($this->id === 1) {
             $oldGemCards_ids = (array) $args["oldGemCards_ids"];
@@ -559,9 +563,9 @@ class ItemManager
         $this->game->actMoveExplorer($tileCard_id, true);
     }
 
-    public function isUndoable($player_id): bool
+    public function isCancellable($player_id): bool
     {
-        if (!$this->checkLocation("used", $player_id)) {
+        if (!$this->checkLocation("active", $player_id)) {
             return false;
         }
 
@@ -592,7 +596,7 @@ class ItemManager
 
     public function undo($player_id): void
     {
-        if (!$this->isUndoable($player_id)) {
+        if (!$this->isCancellable($player_id)) {
             throw new \BgaVisibleSystemException("You can't cancel this Item now: actUndoItem: $this->card_id");
         }
 
@@ -638,12 +642,8 @@ class ItemManager
         $this->game->item_cards->moveCard($this->card_id, "discard");
     }
 
-    public function close(): void
+    public function disable(): void
     {
-        if ($this->id === 2) {
-            return;
-        }
-
         if ($this->id === 3) {
             $this->game->globals->set(MARVELOUS_CART, false);
         }
