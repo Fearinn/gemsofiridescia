@@ -787,12 +787,6 @@ class Game extends \Table
 
     public function stOptionalActions(): void
     {
-        // TEMP: ONGOING TABLE FIX 
-        $item = new ItemManager(32, $this);
-        $item->disable();
-        $item->discard();
-        //
-
         $args = $this->argOptionalActions();
 
         if ($args["_no_notify"]) {
