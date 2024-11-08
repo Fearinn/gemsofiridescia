@@ -908,7 +908,7 @@ class Game extends \Table
 
         $castlePlayersCount = $this->castlePlayersCount();
 
-        if ($castlePlayersCount === $this->getPlayersNumber()) {
+        if ($castlePlayersCount === $this->getPlayersNumberNoZombie()) {
             $this->gamestate->nextState("finalScoring");
             return;
         }
@@ -968,7 +968,7 @@ class Game extends \Table
      */
     public function getGameProgression()
     {
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
 
         $progression = 0;
 
@@ -997,6 +997,31 @@ class Game extends \Table
 
     /*   Utility functions */
 
+    public function isZombie(int $player_id): bool
+    {
+        return !!$this->getUniqueValueFromDB("SELECT player_zombie from player WHERE player_id=$player_id");
+    }
+
+    public function loadPlayersNoZombie(): array
+    {
+        return $this->getCollectionFromDB("SELECT player_id id, player_name name, player_color color, player_score score FROM player WHERE player_zombie=0");
+    }
+
+    public function getPlayersNumberNoZombie(): int
+    {
+        $playersNoZombie = $this->loadPlayersNoZombie();
+        return count($playersNoZombie);
+    }
+
+    public function checkPlayer($player_id): void
+    {
+        $players = $this->loadPlayersNoZombie();
+
+        if ($player_id && !array_key_exists($player_id, $players)) {
+            throw new \BgaVisibleSystemException("This player is not in the table, $player_id");
+        }
+    }
+
     public function rollDie(int | string $die_id, int $player_id, string $type): int
     {
         $face = bga_rand(1, 6);
@@ -1022,15 +1047,6 @@ class Game extends \Table
         $this->globals->set(ROLLED_DICE, $rerollabeDice);
 
         return $face;
-    }
-
-    public function checkPlayer($player_id)
-    {
-        $players = $this->loadPlayersBasicInfos();
-
-        if ($player_id && !array_key_exists($player_id, $players)) {
-            throw new \BgaVisibleSystemException("This player is not in the table, $player_id");
-        }
     }
 
     public function checkCardLocation(array $card, string | int $location, int $location_arg = null): bool
@@ -1496,7 +1512,7 @@ class Game extends \Table
 
     public function getIridiaStoneOwner(): int | null
     {
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $foundIridia = !!$this->getUniqueValueFromDB("SELECT iridia_stone FROM player WHERE player_id=$player_id");
             if ($foundIridia) {
@@ -1543,7 +1559,7 @@ class Game extends \Table
 
         $royaltyTokens = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $royaltyTokens[$player_id] = null;
 
@@ -1576,7 +1592,7 @@ class Game extends \Table
         );
 
         $castlePlayersCount = (int) $this->castlePlayersCount();
-        $playersNumber = (int) $this->getPlayersNumber();
+        $playersNumber = (int) $this->getPlayersNumberNoZombie();
 
         if ($castlePlayersCount === 1) {
             $score_aux = 100;
@@ -1643,7 +1659,7 @@ class Game extends \Table
 
         $collectedTiles = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $collectedTiles[$player_id] = $this->tile_cards->getCardsInLocation("hand", $player_id);
         }
@@ -1660,7 +1676,7 @@ class Game extends \Table
 
         $coins = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $coins[$player_id] = (int) $this->getUniqueValueFromDB("$sql$player_id");
         }
@@ -1676,7 +1692,7 @@ class Game extends \Table
 
         $gems = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $gems[$player_id] = $this->gem_cards->getCardsInLocation("hand", $player_id);
         }
@@ -1698,7 +1714,7 @@ class Game extends \Table
             return $gemsCounts;
         }
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $gemsCounts[$player_id] = [];
 
@@ -1770,7 +1786,7 @@ class Game extends \Table
 
     public function availableCargos(int $excludedPlayer_id = null): array
     {
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
@@ -2074,7 +2090,7 @@ class Game extends \Table
 
         $privateStoneDiceCount = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $privateStoneDiceCount[$player_id] = (int) $this->getUniqueValueFromDB("$sql$player_id");
         }
@@ -2152,7 +2168,7 @@ class Game extends \Table
 
         $relicCards = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $relicCards[$player_id] = $this->relic_cards->getCardsInLocation("hand", $player_id);
         }
@@ -2210,7 +2226,7 @@ class Game extends \Table
             return ["item" => $bookItem, "relic" => $bookRelic];
         }
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $bookItem = $this->getObjectFromDB("$this->deckSelectQuery FROM item WHERE card_location='book' AND card_location_arg=$player_id");
             $bookRelic = $this->getObjectFromDB("$this->deckSelectQuery FROM relic WHERE card_location='book' AND card_location_arg=$player_id");
@@ -2405,7 +2421,7 @@ class Game extends \Table
             return $this->item_cards->getCardsInLocation("hand", $player_id);
         }
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $boughtItems[$player_id] = $this->item_cards->getCardsInLocation("hand", $player_id);
         }
@@ -2536,7 +2552,7 @@ class Game extends \Table
 
         $objectiveCards = [];
 
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
             $cards = $this->objective_cards->getCardsInLocation("hand", $player_id);
             $objectiveCards[$player_id] = $player_id === $current_player_id ? $cards : $this->hideCards($cards);
@@ -2830,7 +2846,7 @@ class Game extends \Table
 
     public function calcFinalScoring(): void
     {
-        $players = $this->loadPlayersBasicInfos();
+        $players = $this->loadPlayersNoZombie();
 
         foreach ($players as $player_id => $player) {
             $this->computeGemsPoints($player_id);
@@ -2950,7 +2966,9 @@ class Game extends \Table
 
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
+
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
+        $result["playersNoZombie"] = $this->loadPlayersNoZombie();
         $result["tilesBoard"] = $this->getTilesBoard();
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
         $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);

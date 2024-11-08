@@ -92,7 +92,7 @@ define([
 
       this.goi_selections = this.goi_info.defaultSelections;
 
-      this.goi_globals.players = gamedatas.players;
+      this.goi_globals.players = gamedatas.playersNoZombie;
       this.goi_globals.player = gamedatas.players[this.player_id];
       this.goi_globals.tilesBoard = gamedatas.tilesBoard;
       this.goi_globals.playerBoards = gamedatas.playerBoards;
@@ -3330,6 +3330,7 @@ define([
         });
       this.goi_stocks.dice.stone.addDice(stoneDice);
 
+      this.goi_stocks.scoringMarkers.track.removeCard({id: player_id});
       this.goi_stocks[player_id].explorers.scene.addCard(explorerCard);
       this.goi_stocks[player_id].explorers.scene.remove();
       this.goi_stocks[player_id].relics.victoryPile.remove();
