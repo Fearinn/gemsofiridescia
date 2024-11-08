@@ -225,15 +225,20 @@ class ItemManager
         if ($this->id === 6) {
             $die_id = (string) $args["die_id"];
             $dieType = (string) $args["dieType"];
-            $dieModif = (string) $args["dieModif"];
-            $this->joltyJackhammer(1, $dieModif, $die_id, $dieType, $player_id);
+            $delta = (int) $args["delta"];
+
+            if (abs($delta) !== 1) {
+                throw new \BgaVisibleSystemException("Invalid delta for Jolty Jackhammer: $delta");
+            }
+
+            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id);
         }
 
         if ($this->id === 7) {
             $die_id = (string) $args["die_id"];
             $dieType = (string) $args["dieType"];
-            $dieModif = (string) $args["dieModif"];
-            $this->joltyJackhammer(2, $dieModif, $die_id, $dieType, $player_id);
+            $delta = (int) $args["delta"];
+            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id);
         }
 
         if ($this->id === 8) {
@@ -243,7 +248,7 @@ class ItemManager
 
         if ($this->id === 9) {
             $tileCard_id = (int) $args["tileCard_id"];
-            $this->prosperousPickaxe($tileCard_id, $player_id);
+            return $this->prosperousPickaxe($tileCard_id, $player_id);
         }
 
         if ($this->id === 10) {
@@ -305,8 +310,8 @@ class ItemManager
                 "itemCard" => $this->card,
                 "preserve" => ["relicCard"],
             ]
-            );
-        
+        );
+
         $this->game->replaceRelic();
     }
 
@@ -415,13 +420,14 @@ class ItemManager
     }
 
     public function joltyJackhammer(
-        #[IntParam(min: 1, max: 2)] int $delta,
-        #[StringParam(enum: ["negative", "positive"])] string $dieModif,
+        #[IntParam(min: -2, max: 2)] int $delta,
         #[StringParam(alphanum_dash: true)] string $die_id,
         #[StringParam(enum: ["gem", "stone", "mining"])] string $dieType,
         int $player_id
     ): bool {
-        $delta = $dieModif === "positive" ? $delta : -$delta;
+        if ($delta === 0) {
+            throw new \BgaVisibleSystemException("Invalid delta for Jolty Jackhammer: 0");
+        }
 
         if ($dieType === "gem") {
             $gem_id = (int) $die_id;

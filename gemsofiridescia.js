@@ -82,12 +82,12 @@ define([
         gem: null,
         gems: [],
         die: null,
-        dieModif: null,
         dice: [],
         opponent: null,
         relic: null,
         item: null,
         objective: null,
+        delta: null,
       };
 
       this.goi_selections = this.goi_info.defaultSelections;
@@ -1833,27 +1833,21 @@ define([
               `goi_playerZoneContainer:${player_id}`
             );
 
-            zoneElement.classList.add(
-              "goi_selectablePlayerZone"
-            );
+            zoneElement.classList.add("goi_selectablePlayerZone");
 
             zoneElement.onclick = () => {
-              document.querySelectorAll(".goi_selectedPlayerZone").forEach((element) => {
-                if (element.id === zoneElement.id) {
-                  return;
-                } 
-                element.classList.remove("goi_selectedPlayerZone");
-              });
+              document
+                .querySelectorAll(".goi_selectedPlayerZone")
+                .forEach((element) => {
+                  if (element.id === zoneElement.id) {
+                    return;
+                  }
+                  element.classList.remove("goi_selectedPlayerZone");
+                });
 
-              zoneElement.classList.toggle(
-                "goi_selectedPlayerZone"
-              );
+              zoneElement.classList.toggle("goi_selectedPlayerZone");
 
-              if (
-                zoneElement.classList.contains(
-                  "goi_selectedPlayerZone"
-                )
-              ) {
+              if (zoneElement.classList.contains("goi_selectedPlayerZone")) {
                 this.goi_selections.opponent = player_id;
               } else {
                 this.goi_selections.opponent = null;
@@ -2027,12 +2021,8 @@ define([
           const zoneElement = document.getElementById(
             `goi_playerZoneContainer:${player_id}`
           );
-          zoneElement.classList.remove(
-            "goi_selectablePlayerZone"
-          );
-          zoneElement.classList.remove(
-            "goi_selectedPlayerZone"
-          );
+          zoneElement.classList.remove("goi_selectablePlayerZone");
+          zoneElement.classList.remove("goi_selectedPlayerZone");
           zoneElement.onclick = undefined;
         }
       }
@@ -2152,17 +2142,17 @@ define([
       }
 
       if (stateName === "client_joltyJackhammer") {
-        document.getElementById("goi_negativeModif_btn")?.remove();
-        document.getElementById("goi_positiveModif_btn")?.remove();
+        document.getElementById("goi_-1_btn")?.remove();
+        document.getElementById("goi_+1_btn")?.remove();
 
         if (this.goi_selections.die) {
-          this.addActionButton("goi_negativeModif_btn", "-1", () => {
-            this.goi_selections.dieModif = "negative";
+          this.addActionButton("goi_-1_btn", "-1", () => {
+            this.goi_selections.delta = -1;
             this.actUseItem();
           });
 
-          this.addActionButton("goi_positiveModif_btn", "+1", () => {
-            this.goi_selections.dieModif = "positive";
+          this.addActionButton("goi_+1_btn", "+1", () => {
+            this.goi_selections.delta = +1;
             this.actUseItem();
           });
         }
@@ -2171,17 +2161,30 @@ define([
       }
 
       if (stateName === "client_dazzlingDynamite") {
-        document.getElementById("goi_negativeModif_btn")?.remove();
-        document.getElementById("goi_positiveModif_btn")?.remove();
+        document.getElementById("goi_-1_btn")?.remove();
+        document.getElementById("goi_+1_btn")?.remove();
+
+        document.getElementById("goi_-2_btn")?.remove();
+        document.getElementById("goi_+2_btn")?.remove();
 
         if (this.goi_selections.die) {
-          this.addActionButton("goi_negativeModif_btn", "-2", () => {
-            this.goi_selections.dieModif = "negative";
+          this.addActionButton("goi_-1_btn", "-1", () => {
+            this.goi_selections.delta = -1;
             this.actUseItem();
           });
 
-          this.addActionButton("goi_positiveModif_btn", "+2", () => {
-            this.goi_selections.dieModif = "positive";
+          this.addActionButton("goi_+1_btn", "+1", () => {
+            this.goi_selections.delta = +1;
+            this.actUseItem();
+          });
+
+          this.addActionButton("goi_-2_btn", "-2", () => {
+            this.goi_selections.delta = -2;
+            this.actUseItem();
+          });
+
+          this.addActionButton("goi_+2_btn", "+2", () => {
+            this.goi_selections.delta = -2;
             this.actUseItem();
           });
         }
@@ -2629,7 +2632,7 @@ define([
         args = {
           die_id: this.goi_selections.die.id,
           dieType: this.goi_selections.die.type,
-          dieModif: this.goi_selections.dieModif,
+          delta: this.goi_selections.delta,
         };
       }
 
@@ -2637,7 +2640,7 @@ define([
         args = {
           die_id: this.goi_selections.die.id,
           dieType: this.goi_selections.die.type,
-          dieModif: this.goi_selections.dieModif,
+          delta: this.goi_selections.delta,
         };
       }
 
