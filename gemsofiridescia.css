@@ -372,12 +372,12 @@
 
 .goi_itemsDeck {
   position: absolute !important;
-  height: 1300px;
 }
 
 .goi_itemsMarket {
   display: grid;
   grid-template-columns: repeat(2, var(--cardSize));
+  height: 1300px !important;
   gap: 16px;
   width: 100%;
 }
