@@ -589,17 +589,17 @@
   border: 8px double white;
 }
 
-.goi_selectablePlayerZoneContainer {
+.goi_selectablePlayerZone {
   cursor: pointer;
 }
 
-.goi_selectablePlayerZoneContainer
-  ~ .goi_playerZoneContainer:not(.goi_selectablePlayerZoneContainer) {
+.goi_selectablePlayerZone
+  ~ .goi_playerZoneContainer:not(.goi_selectablePlayerZone) {
   opacity: 0.75;
   cursor: not-allowed;
 }
 
-.goi_selectedPlayerZoneContainer {
+.goi_selectedPlayerZone {
   border-style: solid;
   transform: scale(1.01);
 }

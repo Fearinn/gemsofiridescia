@@ -1819,33 +1819,39 @@ define([
           );
 
           this.goi_selections.gem = selectedGem;
-          const gemElement =
-            this.goi_stocks[this.player_id].gems.cargo.getCardElement(
-              selectedGem
-            );
-          gemElement.classList.add("goi_selectedGem");
+          this.goi_stocks[this.player_id].gems.cargo.selectCard(
+            selectedGem,
+            true
+          );
 
           for (const player_id in this.goi_globals.players) {
             if (player_id == this.player_id) {
               continue;
             }
 
-            const playerZoneContainerElement = document.getElementById(
+            const zoneElement = document.getElementById(
               `goi_playerZoneContainer:${player_id}`
             );
 
-            playerZoneContainerElement.classList.add(
-              "goi_selectablePlayerZoneContainer"
+            zoneElement.classList.add(
+              "goi_selectablePlayerZone"
             );
 
-            playerZoneContainerElement.onclick = () => {
-              playerZoneContainerElement.classList.toggle(
-                "goi_selectedPlayerZoneContainer"
+            zoneElement.onclick = () => {
+              document.querySelectorAll(".goi_selectedPlayerZone").forEach((element) => {
+                if (element.id === zoneElement.id) {
+                  return;
+                } 
+                element.classList.remove("goi_selectedPlayerZone");
+              });
+
+              zoneElement.classList.toggle(
+                "goi_selectedPlayerZone"
               );
 
               if (
-                playerZoneContainerElement.classList.contains(
-                  "goi_selectedPlayerZoneContainer"
+                zoneElement.classList.contains(
+                  "goi_selectedPlayerZone"
                 )
               ) {
                 this.goi_selections.opponent = player_id;
@@ -2018,16 +2024,16 @@ define([
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
 
         for (const player_id in this.goi_globals.players) {
-          const playerZoneContainerElement = document.getElementById(
+          const zoneElement = document.getElementById(
             `goi_playerZoneContainer:${player_id}`
           );
-          playerZoneContainerElement.classList.remove(
-            "goi_selectablePlayerZoneContainer"
+          zoneElement.classList.remove(
+            "goi_selectablePlayerZone"
           );
-          playerZoneContainerElement.classList.remove(
-            "goi_selectedPlayerZoneContainer"
+          zoneElement.classList.remove(
+            "goi_selectedPlayerZone"
           );
-          playerZoneContainerElement.onclick = undefined;
+          zoneElement.onclick = undefined;
         }
       }
 
