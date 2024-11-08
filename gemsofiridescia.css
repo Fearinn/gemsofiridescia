@@ -372,6 +372,7 @@
 
 .goi_itemsDeck {
   position: absolute !important;
+  height: 1300px;
 }
 
 .goi_itemsMarket {
