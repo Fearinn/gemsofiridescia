@@ -2411,7 +2411,7 @@ class Game extends \Table
         return $boughtItems;
     }
 
-    public function getUsedItems(): array
+    public function getActiveItems(): array
     {
         $activeItems = $this->item_cards->getCardsInLocation("active");
         return $activeItems;
@@ -2468,7 +2468,7 @@ class Game extends \Table
     public function cancellableItems(int $player_id, bool $associative = false): array
     {
         $cancellableItems = [];
-        $activeItems = $this->getUsedItems();
+        $activeItems = $this->getActiveItems();
 
         foreach ($activeItems as $itemCard_id => $itemCard) {
             $item = new ItemManager($itemCard_id, $this);
@@ -2513,7 +2513,7 @@ class Game extends \Table
 
     function disableItems()
     {
-        $activeItems = $this->getUsedItems();
+        $activeItems = $this->getActiveItems();
 
         if (!$activeItems) {
             return;
@@ -2930,7 +2930,7 @@ class Game extends \Table
         $result["itemsDeck"] = $this->getItemsDeck();
         $result["itemsMarket"] = $this->getItemsMarket();
         $result["boughtItems"] = $this->getBoughtItems(null);
-        $result["activeItems"] = $this->getUsedItems();
+        $result["activeItems"] = $this->getActiveItems();
         $result["itemsDiscard"] = $this->getItemsDiscard();
         $result["objectivesInfo"] = $this->objectives_info;
         $result["objectives"] = $this->getObjectives($current_player_id);

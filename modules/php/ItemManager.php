@@ -174,6 +174,7 @@ class ItemManager
 
         if (in_array($this->id, $possiblyCancellable)) {
             $eventKey = "activateItem";
+            $this->game->item_cards->moveCard($this->card_id, "active", $player_id);
         }
 
         $this->game->notifyAllPlayers(

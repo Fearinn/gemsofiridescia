@@ -407,7 +407,7 @@
   width: var(--cardSize);
 }
 
-.goi_itemsUsed {
+.goi_activeItems {
   width: var(--cardSize);
 }
 
