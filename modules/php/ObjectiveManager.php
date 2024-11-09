@@ -81,12 +81,11 @@ class ObjectiveManager
             }
 
             $playerRelics = $currentRelics + $iridiaRelics;
-
             return $playerRelics > 0 && $playerRelics >= $maxRelics;
         }
 
         if ($this->id >= 12 && $this->id <= 14) {
-            $relicType = $this->variable;
+            $relicType = (int) $this->variable;
 
             $currentRelics = $relicsCount = $this->game->getStat("$relicType:TypeRelics", $current_player_id);
             $iridiaRelics = $this->game->getStat("iridia:Relics", $current_player_id);
@@ -104,9 +103,55 @@ class ObjectiveManager
                 }
             }
 
-            $playerRelics = $currentRelics + $iridiaRelics;
+            $relicsForSets = $this->game->globals->get("relicsForSets:$current_player_id");
+            $iridia = (int) $relicsForSets["iridia"];
+            $jewelry = (int) $relicsForSets[1];
+            $lore = (int) $relicsForSets[2];
+            $tech = (int) $relicsForSets[3];
 
-            return  $playerRelics > 0 && $playerRelics >= $maxRelics;
+            if (
+                $currentRelics > 0 && $currentRelics >= $maxRelics
+            ) {
+                return true;
+            }
+
+            $neededWild = $maxRelics - $currentRelics;
+
+            if ($currentRelics === 0) {
+                $neededWild = 1;
+            }
+
+            if ($neededWild > $iridia) {
+                return false;
+            }
+
+            $wildIridia = $iridia - $neededWild;
+            $maxRelicsPoints = $this->game->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
+
+            $maxWithObjective = $this->points;
+            if ($relicType === 1) {
+                $maxWithObjective += $this->game->calcMaxRelicsPoints($tech, $lore, $jewelry + $neededWild, $wildIridia);
+            }
+
+            if ($relicType === 2) {
+                $maxWithObjective += $this->game->calcMaxRelicsPoints($tech, $lore + $neededWild, $jewelry, $wildIridia);
+            }
+
+            if ($relicType === 3) {
+                $maxWithObjective += $this->game->calcMaxRelicsPoints($tech + $neededWild, $lore, $jewelry, $wildIridia);
+            }
+
+            if ($maxRelicsPoints >= $maxWithObjective) {
+                return false;
+            }
+
+            $relicsForSets = $this->game->globals->get("relicsForSets:$current_player_id");
+
+            $relicsForSets[$relicType] = $currentRelics + $neededWild;
+            $relicsForSets["iridia"] = $wildIridia;
+            $this->game->globals->set("relicsForSets:$current_player_id", $relicsForSets);
+
+            return true;
         }
 
         if ($this->id === 6) {
@@ -117,7 +162,7 @@ class ObjectiveManager
                 "sapphire" => $this->game->getStat("4:GemRelics"),
             ];
 
-            $iridiaRelics = $this->game->getStat("iridiaRelics");
+            $iridiaRelics = $this->game->getStat("iridia:Relics");
 
             $differentGems = 0;
             foreach ($gemsRelics as $relicsCount) {
@@ -134,22 +179,56 @@ class ObjectiveManager
         }
 
         if ($this->id === 15) {
-            $typesRelics = [
-                "jewelry" => $this->game->getStat("1:TypeRelics"),
-                "lore" => $this->game->getStat("2:TypeRelics"),
-                "tech" => $this->game->getStat("3:TypeRelics"),
-            ];
+            $relicsForSets = $this->game->globals->get("relicsForSets:$current_player_id");
 
-            $iridiaRelics = $this->game->getStat("iridiaRelics");
+            $iridia = (int) $relicsForSets["iridia"];
+            $jewelry = (int) $relicsForSets[1];
+            $lore = (int) $relicsForSets[2];
+            $tech = (int) $relicsForSets[3];
 
-            $differentTypes = 0;
-            foreach ($typesRelics as $relicsCount) {
-                if ($relicsCount > 0) {
-                    $differentTypes++;
-                };
+            $wildIridia = $iridia;
+            $wildJewelry = $jewelry;
+            $wildTech = $tech;
+            $wildLore = $lore;
+
+            if ($jewelry === 0) {
+                if ($wildIridia === 0) {
+                    return false;
+                }
+
+                $wildIridia--;
+                $wildJewelry++;
             }
 
-            return ($differentTypes + $iridiaRelics) >= 3;
+            if ($tech === 0) {
+                if ($wildIridia === 0) {
+                    return false;
+                }
+
+                $wildIridia--;
+                $wildTech++;
+            }
+
+            if ($lore === 0) {
+                if ($wildIridia === 0) {
+                    return false;
+                }
+
+                $wildIridia--;
+                $wildLore++;
+            }
+
+            $maxRelicsPoints = $this->game->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
+            $maxWithObjective = $this->game->calcMaxRelicsPoints($wildTech, $wildLore, $wildJewelry, $wildIridia) + 7;
+
+            if ($maxRelicsPoints > $maxWithObjective) {
+                return false;
+            }
+
+            $relicsForSets = [1 => $wildJewelry, 3 => $wildTech, 2 => $wildLore, "iridia" => $wildIridia];
+            $this->game->globals->set("relicsForSets:$current_player_id", $relicsForSets);
+
+            return true;
         }
     }
 }

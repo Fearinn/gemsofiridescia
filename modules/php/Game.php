@@ -26,7 +26,6 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 use BgaSystemException;
-use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -2577,7 +2576,7 @@ class Game extends \Table
         if ($gemsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeGemsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from Gems'),
+                clienttranslate('${player_name} scores ${points_log} points from gems sets'),
                 [
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $gemsPoints,
@@ -2673,7 +2672,7 @@ class Game extends \Table
         if ($tilesPoints) {
             $this->notifyAllPlayers(
                 "computeTilesPoints",
-                clienttranslate('${player_name} scores ${points_log} points from tiles'),
+                clienttranslate('${player_name} scores ${points_log} points from tiles sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
@@ -2762,7 +2761,7 @@ class Game extends \Table
         return $maxPoints;
     }
 
-    public function calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia): int
+    public function calcMaxRelicsPoints(int $tech, int $lore, int $jewelry, int $iridia): int
     {
         $memo = [];
 
@@ -2771,31 +2770,19 @@ class Game extends \Table
 
     public function computeRelicsPoints(int $player_id): int
     {
-        $relicsCountsByType = [
-            0 => 0,
-            1 => 0,
-            2 => 0,
-            3 => 0,
-        ];
+        $relicsForSets = $this->globals->get("relicsForSets:$player_id");
 
-        $relicCards = $this->relic_cards->getCardsInLocation("hand", $player_id);
-        foreach ($relicCards as $relicCard) {
-            $relic_id = (int) $relicCard["type_arg"];
-            $type_id = (int) $this->relics_info[$relic_id]["type"];
-            $relicsCountsByType[$type_id]++;
-        }
-
-        $iridia = $relicsCountsByType[0];
-        $jewelry = $relicsCountsByType[1];
-        $lore = $relicsCountsByType[2];
-        $tech = $relicsCountsByType[3];
+        $iridia = (int) $relicsForSets["iridia"];
+        $jewelry = (int) $relicsForSets[1];
+        $lore = (int) $relicsForSets[2];
+        $tech = (int) $relicsForSets[3];
 
         $relicsPoints = $this->calcMaxRelicsPoints($tech, $lore, $jewelry, $iridia);
 
         if ($relicsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeRelicsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from relics'),
+                clienttranslate('${player_name} scores ${points_log} points from relics sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
@@ -2864,12 +2851,19 @@ class Game extends \Table
         $players = $this->loadPlayersNoZombie();
 
         $tableNames = [];
-
         foreach ($players as $player_id => $player) {
+            $relicsForSets = [
+                1 => (int) $this->getStat("1:TypeRelics", $player_id),
+                2 => (int) $this->getStat("3:TypeRelics", $player_id),
+                3 => (int) $this->getStat("2:TypeRelics", $player_id),
+                "iridia" => (int) $this->getStat("iridia:Relics", $player_id),
+            ];
+            $this->globals->set("relicsForSets:$player_id", $relicsForSets);
+
+            $objectivePoints = $this->computeObjectivePoints($player_id);
             $gemsPoints = $this->computeGemsPoints($player_id);
             $bonusTilesPoints = $this->computeTilesPoints($player_id);
             $bonusRelicsPoints = $this->computeRelicsPoints($player_id);
-            $objectivePoints = $this->computeObjectivePoints($player_id);
 
             $this->setStat($gemsPoints, "gemsPoints", $player_id);
             $this->incStat($bonusTilesPoints, "tilesPoints", $player_id);
@@ -2975,6 +2969,27 @@ class Game extends \Table
     public function debug_reshuffleItemsDeck(): void
     {
         $this->reshuffleItemsDeck();
+    }
+
+    public function debug_giveObjective(int $objective_id, int $player_id): void
+    {
+        $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->DbQuery("UPDATE objective SET card_location='hand', card_location_arg=$player_id WHERE card_type_arg=$objective_id LIMIT 1");
+    }
+
+    public function debug_calcFinalScoring(int $player_id, int $opponent_id): void
+    {
+        $this->setStat(0, "1:TypeRelics", $player_id);
+        $this->setStat(0, "2:TypeRelics", $player_id);
+        $this->setStat(2, "3:TypeRelics", $player_id);
+        $this->setStat(1, "iridia:Relics", $player_id);
+
+        $this->setStat(1, "1:TypeRelics", $opponent_id);
+        $this->setStat(0, "2:TypeRelics", $opponent_id);
+        $this->setStat(0, "3:TypeRelics", $opponent_id);
+        $this->setStat(0, "iridia:Relics", $opponent_id);
+
+        $this->calcFinalScoring();
     }
 
     /**
