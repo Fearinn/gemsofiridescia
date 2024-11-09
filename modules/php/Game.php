@@ -1408,6 +1408,7 @@ class Game extends \Table
 
             if ($tileEffect_id === 2) {
                 $this->incRoyaltyPoints($effectValue, $player_id);
+                $this->incStat($effectValue, "tilesPoints", $player_id);
             }
 
             if ($tileEffect_id === 3) {
@@ -2066,6 +2067,10 @@ class Game extends \Table
 
     public function incRoyaltyPoints(int $delta, int $player_id, bool $silent = false): void
     {
+        if ($delta === 0) {
+            return;
+        }
+
         $this->dbQuery("UPDATE player SET player_score=player_score+$delta WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
@@ -2295,7 +2300,7 @@ class Game extends \Table
         );
 
         $this->incRoyaltyPoints($relicPoints, $player_id);
-
+        $this->incStat($relicPoints, "relicsPoints", $player_id);
 
         if ($relicCard["location"] === "book") {
             $itemCard = $this->getBooks($player_id)["item"];
@@ -2561,7 +2566,7 @@ class Game extends \Table
         return $objectiveCards;
     }
 
-    public function computeGemsPoints(int $player_id): void
+    public function computeGemsPoints(int $player_id): int
     {
         $totalGemsCount = $this->getTotalGemsCount($player_id);
 
@@ -2581,6 +2586,8 @@ class Game extends \Table
                 ]
             );
         }
+
+        return $gemsPoints;
     }
 
     function tilesDp($gemsCounts, &$memo)
@@ -2643,7 +2650,7 @@ class Game extends \Table
         return $totalPoints;
     }
 
-    public function computeTilesPoints(int $player_id): void
+    public function computeTilesPoints(int $player_id): int
     {
         $tilesCountsByGem = [
             0 => 0,
@@ -2679,6 +2686,8 @@ class Game extends \Table
         }
 
         $this->incRoyaltyPoints($tilesPoints, $player_id, true);
+
+        return $tilesPoints;
     }
 
     function relicsDp($tech, $lore, $jewelry, $iridia, &$memo)
@@ -2760,7 +2769,7 @@ class Game extends \Table
         return $this->relicsDp($tech, $lore, $jewelry, $iridia, $memo);
     }
 
-    public function computeRelicsPoints(int $player_id): void
+    public function computeRelicsPoints(int $player_id): int
     {
         $relicsCountsByType = [
             0 => 0,
@@ -2799,9 +2808,11 @@ class Game extends \Table
         }
 
         $this->incRoyaltyPoints($relicsPoints, $player_id, true);
+
+        return $relicsPoints;
     }
 
-    public function computeObjectivePoints(int $player_id): void
+    public function computeObjectivePoints(int $player_id): int
     {
         $handObjectives = $this->objective_cards->getCardsInLocation("hand", $player_id);
         $objectiveCard = array_shift($handObjectives);
@@ -2841,19 +2852,66 @@ class Game extends \Table
                     "finalScoring" => true,
                 ]
             );
+
+            return $objective->points;
         }
+
+        return 0;
     }
 
     public function calcFinalScoring(): void
     {
         $players = $this->loadPlayersNoZombie();
 
+        $tableNames = [];
+
         foreach ($players as $player_id => $player) {
-            $this->computeGemsPoints($player_id);
-            $this->computeTilesPoints($player_id);
-            $this->computeRelicsPoints($player_id);
-            $this->computeObjectivePoints($player_id);
+            $gemsPoints = $this->computeGemsPoints($player_id);
+            $bonusTilesPoints = $this->computeTilesPoints($player_id);
+            $bonusRelicsPoints = $this->computeRelicsPoints($player_id);
+            $objectivePoints = $this->computeObjectivePoints($player_id);
+
+            $this->setStat($gemsPoints, "gemsPoints", $player_id);
+            $this->incStat($bonusTilesPoints, "tilesPoints", $player_id);
+            $this->incStat($bonusRelicsPoints, "relicsPoints", $player_id);
+            $this->setStat($objectivePoints, "objectivePoints", $player_id);
+
+            $tableNames[] = [
+                "str" => '${player_name}',
+                "args" => ["player_name" => $this->getPlayerNameById($player_id)],
+                "type" => "header"
+            ];
+
+            $tilesPoints = $this->getStat("tilesPoints", $player_id);
+            $relicsPoints = $this->getStat("relicsPoints", $player_id);
+
+            $totalPoints = $gemsPoints + $objectivePoints + $tilesPoints + $relicsPoints;
+
+            $tableGems[] = $gemsPoints;
+            $tableTiles[] = $tilesPoints;
+            $tableRelics[] = $relicsPoints;
+            $tableObjective[] = $objectivePoints;
+            $tableTotal[] = $totalPoints;
         }
+
+        $table = [
+            [["str" => clienttranslate("source"), "args" => [], "type" => "header"], ...$tableNames],
+            [clienttranslate("gems"), ...$tableGems],
+            [clienttranslate("tiles"), ...$tableTiles],
+            [clienttranslate("relics"), ...$tableRelics],
+            [clienttranslate("objective"), ...$tableObjective],
+            [clienttranslate("total"), ...$tableTotal]
+        ];
+
+        $this->notifyAllPlayers(
+            "tableWindow",
+            "",
+            [
+                "id" => "finalScoring",
+                "title" => clienttranslate("Final scoring"),
+                "table" => $table,
+            ]
+        );
     }
 
     public function debug_zombieQuit(int $player_id): void
@@ -3041,6 +3099,11 @@ class Game extends \Table
         $players = $this->loadPlayersBasicInfos();
 
         foreach ($players as $player_id => $player) {
+            $this->initStat("player", "gemsPoints", 0, $player_id);
+            $this->initStat("player", "tilesPoints", 0, $player_id);
+            $this->initStat("player", "relicsPoints", 0, $player_id);
+            $this->initStat("player", "objectivePoints", 0, $player_id);
+
             $this->initStat("player", "1:GemTiles", 0, $player_id);
             $this->initStat("player", "2:GemTiles", 0, $player_id);
             $this->initStat("player", "3:GemTiles", 0, $player_id);

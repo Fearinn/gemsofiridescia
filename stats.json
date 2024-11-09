@@ -64,6 +64,26 @@
       "id": 22,
       "name": "Iridia relics restored",
       "type": "int"
+    },
+    "gemsPoints": {
+      "id": 23,
+      "name": "Points from gems",
+      "type": "int"
+    },
+    "tilesPoints": {
+      "id": 24,
+      "name": "Points from tiles",
+      "type": "int"
+    },
+    "relicsPoints": {
+      "id": 25,
+      "name": "Points from relics",
+      "type": "int"
+    },
+    "objectivePoints": {
+      "id": 26,
+      "name": "Points from objective",
+      "type": "int"
     }
   }
 }
