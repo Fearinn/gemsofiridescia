@@ -2176,7 +2176,7 @@ define([
           });
 
           this.addActionButton("goi_+1_btn", "+1", () => {
-            this.goi_selections.delta = +1;
+            this.goi_selections.delta = 1;
             this.actUseItem();
           });
 
@@ -2186,7 +2186,7 @@ define([
           });
 
           this.addActionButton("goi_+2_btn", "+2", () => {
-            this.goi_selections.delta = -2;
+            this.goi_selections.delta = 2;
             this.actUseItem();
           });
         }
