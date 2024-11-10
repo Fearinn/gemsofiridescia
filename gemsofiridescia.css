@@ -444,7 +444,7 @@
   position: relative;
   background-image: url("img/board.jpg");
   background-size: cover;
-  aspect-ratio: 1.178;
+  height: calc(var(--boardSize) / 1.178);
   width: var(--boardSize);
 }
 
@@ -593,8 +593,7 @@
   cursor: pointer;
 }
 
-.goi_selectablePlayerZone
-  ~ .goi_playerZoneContainer:not(.goi_selectablePlayerZone) {
+.goi_unselectablePlayerZone {
   opacity: 0.75;
   cursor: not-allowed;
 }
@@ -655,7 +654,7 @@
   grid-template-rows: 1.1fr 0.9fr;
 
   background: url("img/playerBoards.png");
-  aspect-ratio: 1;
+  height: var(--playerBoardSize);
   width: var(--playerBoardSize);
 }
 
@@ -676,7 +675,7 @@
   bottom: 12px;
 
   background-image: url("img/explorers.png");
-  aspect-ratio: 1;
+  height: var(--explorerSize);
   width: var(--explorerSize);
   z-index: 1;
 }
@@ -730,7 +729,7 @@
 
 .goi_gem {
   background-image: url("img/gems.png");
-  aspect-ratio: 1;
+  height: var(--gemSize);
   width: var(--gemSize);
 }
 

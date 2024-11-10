@@ -1806,6 +1806,7 @@ define([
 
         if (stateName === "client_transferGem") {
           const selectedGem = args.client_args.selectedGem;
+          const availableCargos = args.args.availableCargos;
 
           this.addActionButton(
             "goi_changeMind_btn",
@@ -1825,13 +1826,14 @@ define([
           );
 
           for (const player_id in this.goi_globals.players) {
-            if (player_id == this.player_id) {
-              continue;
-            }
-
             const zoneElement = document.getElementById(
               `goi_playerZoneContainer:${player_id}`
             );
+
+            if (!availableCargos.includes(Number(player_id))) {
+              zoneElement.classList.add("goi_unselectablePlayerZone");
+              continue;
+            }
 
             zoneElement.classList.add("goi_selectablePlayerZone");
 
@@ -2010,7 +2012,6 @@ define([
       }
 
       if (stateName === "transferGem") {
-        this.goi_globals.availableCargos = [];
         this.goi_stocks[this.player_id].gems.cargo.setSelectionMode("none");
       }
 
@@ -2021,6 +2022,7 @@ define([
           const zoneElement = document.getElementById(
             `goi_playerZoneContainer:${player_id}`
           );
+          zoneElement.classList.remove("goi_unselectablePlayerZone");
           zoneElement.classList.remove("goi_selectablePlayerZone");
           zoneElement.classList.remove("goi_selectedPlayerZone");
           zoneElement.onclick = undefined;

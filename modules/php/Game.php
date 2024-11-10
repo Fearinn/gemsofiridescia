@@ -287,7 +287,7 @@ class Game extends \Table
         if (
             !$this->incGem(1, $gem_id, $player_id, $tileCard)
         ) {
-            $anchorState_id = $this->gamestate->state_id();
+            $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(31);
             return;
@@ -407,7 +407,7 @@ class Game extends \Table
             }
 
             if ($fullCargo) {
-                $anchorState_id = $this->gamestate->state_id();
+                $anchorState_id = (int) $this->gamestate->state_id();
                 $this->globals->set(ANCHOR_STATE, $anchorState_id);
                 $this->gamestate->jumpToState(31);
                 return;
@@ -461,7 +461,7 @@ class Game extends \Table
         $item = new ItemManager($itemCard_id, $this);
 
         if (!$item->use($player_id, $args)) {
-            $anchorState_id = $this->gamestate->state_id();
+            $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(31);
             return;
@@ -517,11 +517,16 @@ class Game extends \Table
 
     public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
     {
+        $player_id = (int) $this->getActivePlayerId();
+        $availableCargos = $this->availableCargos($player_id);
+
         if ($opponent_id) {
             $this->checkPlayer($opponent_id);
-        }
 
-        $player_id = (int) $this->getActivePlayerId();
+            if (!in_array($opponent_id, $availableCargos)) {
+                throw new \BgaVisibleSystemException("You can't transfer a gem to this player now: actTransferGem, $opponent_id");
+            }
+        }
 
         $gemCard_id = (int) $gemCard["id"];
         $gemCard = $this->gem_cards->getCard($gemCard_id);
@@ -797,8 +802,10 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $availableCargos = $this->availableCargos($player_id);
+
         return [
-            "availableCargos" => $this->availableCargos($player_id),
+            "availableCargos" => $availableCargos,
             "_no_notify" => $this->getTotalGemsCount($player_id) <= 7,
         ];
     }
@@ -808,7 +815,7 @@ class Game extends \Table
         $args = $this->argTransferGem();
 
         if ($args["_no_notify"]) {
-            $anchorState_id = $this->globals->get(ANCHOR_STATE);
+            $anchorState_id = (int) $this->globals->get(ANCHOR_STATE);
 
             if ($anchorState_id !== 2) {
                 $anchorState_id = 4;
@@ -1422,7 +1429,7 @@ class Game extends \Table
         }
 
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {
-            $anchorState_id = $this->gamestate->state_id();
+            $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(31);
             return;
@@ -2906,6 +2913,22 @@ class Game extends \Table
                 "table" => $table,
             ]
         );
+    }
+
+    public function debug_fillCargo(int $player_id): void
+    {
+        $this->incGem(4, 2, $player_id);
+        $this->incGem(3, 1, $player_id);
+    }
+
+    public function debug_overflowCargo(int $player_id): void
+    {
+        $this->incGem(4, 4, $player_id);
+        $this->incGem(4, 3, $player_id);
+
+        $anchorState_id = (int) $this->gamestate->state_id();
+        $this->globals->set(ANCHOR_STATE, $anchorState_id);
+        $this->gamestate->jumpToState(31);
     }
 
     public function debug_zombieQuit(int $player_id): void
