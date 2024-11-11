@@ -79,6 +79,7 @@ define([
 
       this.goi_info.defaultSelections = {
         tile: null,
+        emptyTile: null,
         gem: null,
         gems: [],
         die: null,
@@ -668,10 +669,20 @@ define([
         this.goi_stocks.tiles.board.unselectAll(true);
         document.getElementById("goi_confirm_btn")?.remove();
 
-        if (selection.length === 0) {
-          this.goi_selections.tile = null;
+        const stateName = this.getStateName();
+
+        if (stateName === "client_pickEmptyTile") {
+          if (selection.length === 0) {
+            this.goi_selections.emptyTile = null;
+          } else {
+            this.goi_selections.emptyTile = lastChange;
+          }
         } else {
-          this.goi_selections.tile = lastChange;
+          if (selection.length === 0) {
+            this.goi_selections.tile = null;
+          } else {
+            this.goi_selections.tile = lastChange;
+          }
         }
 
         this.handleSelection();
@@ -1496,6 +1507,27 @@ define([
           );
         }
 
+        if (stateName === "client_pickEmptyTile") {
+          const emptyHexes = args.args.emptyHexes;
+
+          console.log(emptyHexes);
+
+          emptyHexes.forEach((emptyHex) => {
+            console.log(emptyHex, "empty");
+            this.goi_stocks.tiles.empty.addCard(
+              { id: -emptyHex },
+              {},
+              {
+                forceToElement: document.getElementById(
+                  `goi_tileContainer-${emptyHex}`
+                ),
+              }
+            );
+          });
+
+          this.goi_stocks.tiles.empty.setSelectionMode("single");
+        }
+
         if (stateName === "discardTile") {
           const discardableTiles = this.goi_stocks.tiles.board
             .getCards()
@@ -1939,6 +1971,11 @@ define([
         );
       }
 
+      if (stateName === "client_pickEmptyTile") {
+        this.goi_stocks.tiles.empty.setSelectionMode("none");
+        this.goi_stocks.tiles.empty.removeAll();
+      }
+
       if (stateName === "moveExplorer") {
         this.goi_stocks.tiles.board.setSelectionMode("none");
       }
@@ -2065,8 +2102,21 @@ define([
 
       if (stateName === "discardCollectedTile") {
         if (this.goi_selections.tile) {
-          this.addActionButton(elementId, message, "actDiscardCollectedTile");
+          this.addActionButton(elementId, message, () => {
+            this.setClientState("client_pickEmptyTile", {
+              descriptionmyturn:
+                "${you} must pick an empty tile to move your Explorer to",
+            });
+          });
           return;
+        }
+      }
+
+      if (stateName === "client_pickEmptyTile") {
+        if (this.goi_selections.tile) {
+          this.addActionButton(elementId, message, () => {
+            this.actDiscardCollectedTile();
+          });
         }
       }
 
@@ -2464,6 +2514,7 @@ define([
     actDiscardCollectedTile: function () {
       this.performAction("actDiscardCollectedTile", {
         tileCard_id: this.goi_selections.tile.id,
+        emptyHex: Math.abs(this.goi_selections.emptyTile.id),
       });
     },
 
@@ -2828,10 +2879,11 @@ define([
     },
 
     notif_moveExplorer: function (notif) {
-      const tileCard = notif.args.tileCard;
       const explorerCard = notif.args.explorerCard;
+      const hex = notif.args.hex;
 
       this.goi_stocks.explorers.board.removeCard(explorerCard);
+
       this.goi_stocks.explorers.board.addCard(
         explorerCard,
         {
@@ -2840,9 +2892,7 @@ define([
           ),
         },
         {
-          forceToElement: document.getElementById(
-            `goi_tileContainer-${tileCard.location_arg}`
-          ),
+          forceToElement: document.getElementById(`goi_tileContainer-${hex}`),
         }
       );
     },
@@ -3322,7 +3372,7 @@ define([
 
       const itemCards = this.goi_stocks[player_id].items.hand.getCards();
       this.goi_stocks.items.discard.addCards(itemCards);
-      const bookCard = this.goi_stocks[player_id].items.book.getCards()
+      const bookCard = this.goi_stocks[player_id].items.book.getCards();
       this.goi_stocks.items.discard.addCards(bookCard);
 
       const stoneDice = this.goi_stocks[player_id].dice.scene
@@ -3332,7 +3382,7 @@ define([
         });
       this.goi_stocks.dice.stone.addDice(stoneDice);
 
-      this.goi_stocks.scoringMarkers.track.removeCard({id: player_id});
+      this.goi_stocks.scoringMarkers.track.removeCard({ id: player_id });
       this.goi_stocks[player_id].explorers.scene.addCard(explorerCard);
       this.goi_stocks[player_id].explorers.scene.remove();
       this.goi_stocks[player_id].relics.victoryPile.remove();

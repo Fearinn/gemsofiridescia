@@ -122,7 +122,6 @@ class Game extends \Table
             "revealTile",
             clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
             [
-                "i18n" => ["region_label"],
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
                 "hex" => $tileCard["location_arg"],
@@ -171,9 +170,14 @@ class Game extends \Table
         $this->gamestate->nextState("back");
     }
 
-    public function actDiscardCollectedTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    public function actDiscardCollectedTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, #[IntParam(min: 1, max: 58)] int $emptyHex): void
     {
         $player_id = (int) $this->getActivePlayerId();
+
+        $emptyHexes = $this->adjacentTiles($player_id, null, true);
+        if (!in_array($emptyHex, $emptyHexes)) {
+            throw new \BgaVisibleSystemException("You can't move your explorer to this empty tile now: actDiscardCollectedTile, $emptyHex");
+        }
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
@@ -191,6 +195,20 @@ class Game extends \Table
                 "preserve" => ["tileCard"],
                 "18n" => ["tile"],
                 "tile" => clienttranslate("tile"),
+            ]
+        );
+
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$emptyHex WHERE card_type_arg=$player_id");
+
+        $this->notifyAllPlayers(
+            "moveExplorer",
+            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex}) '),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerNameById($player_id),
+                "hex" => $emptyHex,
+                "explorerCard" => $explorerCard,
             ]
         );
 
@@ -265,7 +283,6 @@ class Game extends \Table
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
-                "i18n" => ["region_label"],
                 "preserve" => ["tileCard"],
                 "tile" => clienttranslate("tile"),
             ]
@@ -678,18 +695,22 @@ class Game extends \Table
         $collectedTiles = $this->getCollectedTiles($player_id);
         $usableItems = $this->usableItems($player_id);
 
-        $auto = count($collectedTiles) === 1 && !$usableItems;
-
         $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
         $catapultableTiles = [];
         if ($catapultCard_id) {
             $catapultableTiles = $this->catapultableTiles($player_id);
         }
 
+        $emptyHexes = $this->adjacentTiles($player_id, null, true);
+
+        $auto = count($collectedTiles) === 1 && !$usableItems && count($emptyHexes) === 1;
+
         return [
+            "auto" => $auto,
             "collectedTiles" => $collectedTiles,
             "usableItems" => $usableItems,
             "catapultableTiles" => $catapultableTiles,
+            "emptyHexes" => $emptyHexes,
             "_no_notify" => $auto
         ];
     }
@@ -698,13 +719,16 @@ class Game extends \Table
     {
         $args = $this->argDiscardCollectedTile();
 
-        $collectedTiles = $args["collectedTiles"];
-
         if ($args["_no_notify"]) {
+            $collectedTiles = $args["collectedTiles"];
+            $emptyHexes = $args["emptyHexes"];
+
             $tileCard = array_shift($collectedTiles);
             $tileCard_id = (int) $tileCard["id"];
 
-            $this->actDiscardCollectedTile($tileCard_id);
+            $emptyHex = (int) array_shift($emptyHexes);
+
+            $this->actDiscardCollectedTile($tileCard_id, $emptyHex);
             return;
         }
     }
@@ -2981,7 +3005,7 @@ class Game extends \Table
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (23, 25)");
+        WHERE card_location='board' AND card_location_arg IN (8)");
     }
 
     public function debug_giveItem(int $item_id, int $player_id): void
