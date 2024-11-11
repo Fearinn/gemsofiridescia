@@ -549,9 +549,9 @@ class ItemManager
         $revealedTiles = $this->game->globals->get(REVEALED_TILES, []);
 
         if ($tileCard_id < 0) {
-            $tileHex = abs($tileCard_id);
+            $hex = abs($tileCard_id);
             $explorerCard = $this->game->getExplorerByPlayerId($player_id);
-            $this->game->explorer_cards->moveCard($explorerCard["id"], "board", $tileHex);
+            $this->game->explorer_cards->moveCard($explorerCard["id"], "board", $hex);
 
             $this->game->notifyAllPlayers(
                 "cleverCatapult",

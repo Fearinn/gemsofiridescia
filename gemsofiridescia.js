@@ -709,7 +709,7 @@ define([
 
       for (const explorerCard_id in this.goi_globals.explorers) {
         const explorerCard = this.goi_globals.explorers[explorerCard_id];
-        const tileHex = explorerCard.location_arg;
+        const hex = explorerCard.location_arg;
 
         if (explorerCard["location"] === "board") {
           this.goi_stocks.explorers.board.addCard(
@@ -717,7 +717,7 @@ define([
             {},
             {
               forceToElement: document.getElementById(
-                `goi_tileContainer-${tileHex}`
+                `goi_tileContainer-${hex}`
               ),
             }
           );
@@ -1373,7 +1373,6 @@ define([
       );
 
       const itemsDiscard = this.goi_globals.itemsDiscard;
-      console.log(itemsDiscard);
       for (const itemCard_id in itemsDiscard) {
         const itemCard = itemsDiscard[itemCard_id];
         this.goi_stocks.items.discard.addCard(itemCard);
@@ -1489,12 +1488,23 @@ define([
 
         if (stateName === "discardCollectedTile") {
           const usableItems = args.args.usableItems;
+          const singleCollectedTile = args.args.singleCollectedTile;
 
           if (usableItems.length > 0) {
             this.gamedatas.gamestate.descriptionmyturn = _(
               "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item"
             );
             this.updatePageTitle();
+          } else if (singleCollectedTile) {
+            this.goi_selections.tile = singleCollectedTile;
+
+            this.setClientState("client_pickEmptyTile", {
+              descriptionmyturn:
+                "${you} must pick an empty tile to move your Explorer to",
+            });
+
+            document.getElementById("goi_cancel_btn").remove();
+            return;
           }
 
           this.goi_stocks[this.player_id].items.hand.setSelectionMode(
@@ -1510,10 +1520,7 @@ define([
         if (stateName === "client_pickEmptyTile") {
           const emptyHexes = args.args.emptyHexes;
 
-          console.log(emptyHexes);
-
           emptyHexes.forEach((emptyHex) => {
-            console.log(emptyHex, "empty");
             this.goi_stocks.tiles.empty.addCard(
               { id: -emptyHex },
               {},
