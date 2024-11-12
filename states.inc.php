@@ -104,7 +104,7 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} must discard a Secret Objective'),
         "type" => "activeplayer",
         "possibleactions" => ["actDiscardObjective"],
-        "transitions" => ["optionalActions" => 4]
+        "transitions" => ["rainbowTile" => 30, "optionalActions" => 4],
     ],
 
     4 => [
