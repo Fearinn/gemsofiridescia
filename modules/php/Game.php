@@ -26,6 +26,7 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 use BgaSystemException;
+use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -185,7 +186,7 @@ class Game extends \Table
                 "player_name" => $this->getPlayerNameById($player_id),
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
-                "18n" => ["tile"],
+                "i18n" => ["tile"],
                 "tile" => clienttranslate("tile"),
             ]
         );
@@ -442,7 +443,9 @@ class Game extends \Table
             }
         }
 
-        $this->sellGem(count($gemCards), $gem_id, $gemCards, $player_id);
+        $delta = count($gemCards);
+
+        $this->sellGem($delta, $gem_id, $gemCards, $player_id);
         $this->globals->set(HAS_SOLD_GEMS, true);
 
         $this->gamestate->nextState("repeat");
@@ -520,9 +523,17 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCard, ?int $opponent_id): void
+    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
     {
         $player_id = (int) $this->getActivePlayerId();
+
+        $excedentGems = $this->getTotalGemsCount($player_id) - 7;
+        $transferredGemsCount = count($gemCards);
+
+        if ($transferredGemsCount > $excedentGems) {
+            throw new \BgaVisibleSystemException("You can't transfer more Gems than your excedent");
+        }
+
         $availableCargos = $this->availableCargos($player_id);
 
         if ($opponent_id) {
@@ -533,17 +544,30 @@ class Game extends \Table
             }
         }
 
-        $gemCard_id = (int) $gemCard["id"];
-        $gemCard = $this->gem_cards->getCard($gemCard_id);
+        $gemCardsByType = [];
+        foreach ($gemCards as $gemCard) {
+            $gemCard_id = (int) $gemCard["id"];
+            $gemCard = $this->gem_cards->getCard($gemCard_id);
 
-        $this->checkCardLocation($gemCard, "hand", $player_id);
+            $this->checkCardLocation($gemCard, "hand", $player_id);
+
+            $gem_id = (int) $gemCard["type"];
+
+            if (!array_key_exists($gem_id, $gemCardsByType)) {
+                $gemCardsByType[$gem_id] = [];
+            }
+
+            $gemCardsByType[$gem_id][] = $gemCard;
+        }
 
         $availableCargos = $this->availableCargos($player_id);
 
-        if (!$availableCargos) {
-            $this->discardGem($player_id, $gemCard, null);
-        } else {
-            $this->transferGem($gemCard, $opponent_id, $player_id);
+        foreach ($gemCardsByType as $gemCards) {
+            if (!$availableCargos) {
+                $this->discardGems($player_id, $gemCards, null);
+            } else {
+                $this->transferGems($gemCards, $opponent_id, $player_id);
+            }
         }
 
         $this->gamestate->nextState("repeat");
@@ -797,11 +821,13 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
+        $excedentGems = $this->getTotalGemsCount($player_id) - 7;
         $availableCargos = $this->availableCargos($player_id);
 
         return [
+            "excedentGems" => $excedentGems,
             "availableCargos" => $availableCargos,
-            "_no_notify" => $this->getTotalGemsCount($player_id) <= 7,
+            "_no_notify" => $excedentGems <= 0,
         ];
     }
 
@@ -837,14 +863,14 @@ class Game extends \Table
             WHERE card_location='hand' AND card_location_arg=$player_id LIMIT 1");
 
             if (!$availableCargos) {
-                $this->discardGem($player_id, $gemCard, null);
+                $this->discardGems($player_id, [$gemCard], null);
                 return;
             }
 
             if (count($availableCargos) === 1) {
                 $opponent_id = array_shift($availableCargos);
 
-                $this->transferGem($gemCard, $opponent_id, $player_id);
+                $this->transferGems([$gemCard], $opponent_id, $player_id);
                 $this->gamestate->nextState("repeat");
             }
         }
@@ -1755,54 +1781,76 @@ class Game extends \Table
         return $availableCargos;
     }
 
-    public function transferGem(array $gemCard, int $opponent_id, int $player_id, $auto = false): void
+    public function transferGems(array $gemCards, int $opponent_id, int $player_id): void
     {
-        $gem_id = (int) $gemCard["type_arg"];
-        $gemCard_id = (int) $gemCard["id"];
-        $gem_info = $this->gems_info[$gem_id];
-        $gemName = $gem_info["name"];
+        $gemCardsByType = [];
+        foreach ($gemCards as $gemCard) {
+            $gemCard_id = (int) $gemCard["id"];
+            $gemCard = $this->gem_cards->getCard($gemCard_id);
+            $this->checkCardLocation($gemCard, "hand", $player_id);
 
-        $this->gem_cards->moveCard($gemCard_id, "hand", $opponent_id);
+            $this->gem_cards->moveCard($gemCard_id, "hand", $opponent_id);
 
-        $this->notifyAllPlayers(
-            "transferGem",
-            clienttranslate('${player_name} gives away 1 ${gem_label} to ${player_name2}'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "player_id2" => $opponent_id,
-                "player_name2" => $this->getPlayerNameById($opponent_id),
-                "gem_label" => $gem_info["tr_name"],
-                "gemName" => $gemName,
-                "gemCard" => $gemCard,
-                "18n" => ["gem_label"],
-                "preserve" => ["gem_id"],
-                "gem_id" => $gem_id,
-            ]
-        );
-    }
+            $gem_id = (int) $gemCard["type_arg"];
 
-    public function discardGem(int $player_id, ?array $gemCard, ?int $gem_id): void
-    {
-        if (!$gemCard) {
-            if (!$gem_id) {
-                throw new \BgaVisibleSystemException("One of the args 'gemCard' and 'gem_id' is mandatory: discardGem");
+            if (!array_key_exists($gem_id, $gemCardsByType)) {
+                $gemCardsByType[$gem_id] = [];
             }
 
-            $gemCard = $this->getObjectFromDB("$this->deckSelectQuery from gem WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT 1");
+            $gemCardsByType[$gem_id][] = $gemCard;
         }
 
-        $gem_id = (int) $gemCard["type_arg"];
+        foreach ($gemCardsByType as $gem_id => $gemCards) {
+            $delta = count($gemCards);
 
-        $this->decGem(1, $gem_id, [$gemCard], $player_id);
+            $gem_info = $this->gems_info[$gem_id];
+            $gemName = $gem_info["name"];
+
+            $this->notifyAllPlayers(
+                "transferGem",
+                clienttranslate('${player_name} gives away ${delta} ${gem_label} to ${player_name2}'),
+                [
+                    "player_id" => $player_id,
+                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_id2" => $opponent_id,
+                    "player_name2" => $this->getPlayerNameById($opponent_id),
+                    "delta" => $delta,
+                    "gem_label" => $gem_info["tr_name"],
+                    "gemName" => $gemName,
+                    "gemCards" => $gemCards,
+                    "i18n" => ["gem_label"],
+                    "preserve" => ["gem_id"],
+                    "gem_id" => $gem_id,
+                ]
+            );
+        }
+    }
+
+    public function discardGems(int $player_id, ?array $gemCards, ?int $gem_id, int $delta = 1): void
+    {
+        if (!$gemCards) {
+            if (!$gem_id) {
+                throw new \BgaVisibleSystemException("One of the args 'gemCards' and 'gem_id' is mandatory: discardGem");
+            }
+
+            $gemCards = $this->getCollectionFromDB("$this->deckSelectQuery from gem WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT 1");
+        }
+
+        if (!$gem_id) {
+            $gemCard = array_shift($gemCards);
+            $gem_id = (int) $gemCard["type_arg"];
+        }
+
+        $this->decGem($gem_id, $gemCards, $player_id);
 
         $this->notifyAllPlayers(
-            "discardGem",
-            clienttranslate('${player_name} returns 1 ${gem_label} to the supply'),
+            "discardGems",
+            clienttranslate('${player_name} returns ${delta} ${gem_label} to the supply'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "gemCard" => $gemCard,
+                "delta" => $delta,
+                "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "i18n" => ["gem_label"],
                 "preserve" => ["gem_id"],
@@ -1848,8 +1896,10 @@ class Game extends \Table
         return true;
     }
 
-    public function decGem(int $delta, int $gem_id, array $gemCards, int $player_id, bool $sell = false, bool $trade = false): void
+    public function decGem(int $gem_id, array $gemCards, int $player_id, bool $sell = false, bool $trade = false): void
     {
+        $delta = count($gemCards);
+
         if ($delta <= 0) {
             throw new \BgaVisibleSystemException("The delta must be positive: decGem, $delta");
         }
@@ -1863,6 +1913,7 @@ class Game extends \Table
         foreach ($gemCards as $gemCard) {
             $gemCard_id = (int) $gemCard["id"];
             $gemCard = $this->gem_cards->getCard($gemCard_id);
+
             $this->checkCardLocation($gemCard, "hand", $player_id);
 
             $this->gem_cards->insertCardOnExtremePosition($gemCard_id, $gemName, false);
@@ -1898,7 +1949,6 @@ class Game extends \Table
         $gemName = $this->gems_info[$gem_id]["name"];
 
         $this->decGem(
-            $delta,
             $gem_id,
             $gemCards,
             $player_id,
@@ -2238,7 +2288,7 @@ class Game extends \Table
             $gemCards = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
             $gemCards = array_slice($gemCards, 0, $gemCost, true);
 
-            $this->decGem($gemCost, $gem_id, $gemCards, $player_id);
+            $this->decGem($gem_id, $gemCards, $player_id);
         }
 
         $this->relic_cards->moveCard($relicCard_id, "hand", $player_id);

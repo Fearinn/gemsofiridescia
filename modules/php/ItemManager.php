@@ -413,7 +413,7 @@ class ItemManager
         }
 
         if ($newFace < $gemMarketValue) {
-            $this->game->discardGem($player_id, null, $gem_id);
+            $this->game->discardGems($player_id, null, $gem_id);
         }
 
         return true;
@@ -490,11 +490,7 @@ class ItemManager
         }
 
         if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
-            $this->game->discardGem($player_id, null, $gem_id);
-
-            if ($delta === 2) {
-                $this->game->discardGem($player_id, null, $gem_id);
-            }
+            $this->game->discardGems($player_id, null, $gem_id, $delta);
 
             $this->handleProsperousGem(-$delta, $player_id);
         }
@@ -688,12 +684,7 @@ class ItemManager
         $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
 
         if ($delta < 0) {
-            $this->game->discardGem($player_id, null, $gem_id);
-
-            if ($delta === -2) {
-                $this->game->discardGem($player_id, null, $gem_id);
-            }
-
+            $this->game->discardGems($player_id, null, $gem_id, abs($delta));
             return true;
         }
 
