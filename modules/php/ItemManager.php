@@ -108,7 +108,7 @@ class ItemManager
                     $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
-                    return $hasSwapableOpponent && $explorerCard["location"] === "board";
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $hasSwapableOpponent && $explorerCard["location"] === "board";
                 }
 
                 if ($this->id === 11) {
