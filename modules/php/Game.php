@@ -1920,7 +1920,7 @@ class Game extends \Table
         $marketValue = $this->globals->inc($marketValueCode, $delta);
 
         if ($marketValue > 6) {
-            $this->globals->inc($marketValueCode, -6);
+            $marketValue = $this->globals->inc($marketValueCode, -6);
 
             $this->notifyAllPlayers(
                 'crashMarket',
