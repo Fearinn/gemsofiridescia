@@ -410,11 +410,12 @@
 }
 
 .goi_activeItems {
-  width: var(--cardSize);
+  width: var(--cardSize) !important;
 }
 
 .goi_itemsDiscard {
-  width: var(--cardSize);
+  pointer-events: none;
+  width: var(--cardSize) !important;
 }
 
 .goi_item,
