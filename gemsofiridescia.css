@@ -687,11 +687,14 @@
 }
 
 .goi_cargoExcedent {
+  box-sizing: border-box;
   position: absolute;
   top: calc(var(--playerBoardSize) / 5 * -1);
   display: flex;
   align-items: center;
   gap: 4px;
+  max-width: var(--playerBoardSize);
+  overflow-x: auto;
 }
 
 .goi_cargoBox {

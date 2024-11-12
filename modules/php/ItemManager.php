@@ -481,17 +481,25 @@ class ItemManager
         $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
         $this->game->globals->set(ROLLED_DICE, $rolledDice);
 
-        if ($oldFace < $gemMarketValue) {
-            if ($newFace >= $gemMarketValue) {
-                return $this->game->incGem(1, $gem_id, $player_id, $tileCard, true);
-            }
+        $fullCargo = false;
+        $delta = $this->game->globals->get(MARVELOUS_CART) ? 2 : 1;
+
+        if ($oldFace < $gemMarketValue && $newFace >= $gemMarketValue) {
+            $fullCargo = !$this->game->incGem($delta, $gem_id, $player_id, $tileCard, true);
+            $fullCargo = !$this->handleProsperousGem($delta, $player_id);
         }
 
-        if ($newFace < $gemMarketValue) {
+        if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
             $this->game->discardGem($player_id, null, $gem_id);
+
+            if ($delta === 2) {
+                $this->game->discardGem($player_id, null, $gem_id);
+            }
+
+            $this->handleProsperousGem(-$delta, $player_id);
         }
 
-        return true;
+        return !$fullCargo;
     }
 
     public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
@@ -666,5 +674,29 @@ class ItemManager
         if ($this->id === 9) {
             $this->game->globals->set(PROSPEROUS_PICKAXE, null);
         }
+    }
+
+    public function handleProsperousGem(int $delta, int $player_id): bool
+    {
+        $tileCard = $this->game->globals->get(PROSPEROUS_PICKAXE);
+
+        if (!$tileCard) {
+            return true;
+        }
+
+        $tile_id = (int) $tileCard["type_arg"];
+        $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
+
+        if ($delta < 0) {
+            $this->game->discardGem($player_id, null, $gem_id);
+
+            if ($delta === -2) {
+                $this->game->discardGem($player_id, null, $gem_id);
+            }
+
+            return true;
+        }
+
+        return $this->game->incGem($delta, $gem_id, $player_id, $tileCard, true);
     }
 }
