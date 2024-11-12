@@ -248,7 +248,7 @@ class ItemManager
 
         if ($this->id === 9) {
             $tileCard_id = (int) $args["tileCard_id"];
-            return $this->prosperousPickaxe($tileCard_id, $player_id);
+            $this->prosperousPickaxe($tileCard_id, $player_id);
         }
 
         if ($this->id === 10) {
