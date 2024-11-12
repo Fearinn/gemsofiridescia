@@ -628,7 +628,7 @@ class Game extends \Table
             "hasReachedCastle" => $hasReachedCastle,
             "usableItems" => $usableItems,
             "cancellableItems" => $cancellableItems,
-            "_no_notify" => $mustDiscardCollectedTile || (($noRevealableTile || $auto))
+            "_no_notify" => $mustDiscardCollectedTile || $noRevealableTile || $auto
                 || $revealsLimit === 2 || $hasReachedCastle,
         ];
     }
@@ -2931,7 +2931,7 @@ class Game extends \Table
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (9, 10, 11, 12, 14, 15, 16, 17)");
+        WHERE card_location='board' AND card_location_arg IN (2,9)");
     }
 
     public function debug_giveItem(int $item_id, int $player_id): void

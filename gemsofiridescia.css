@@ -59,7 +59,7 @@
   align-items: flex-start;
   justify-content: center;
   gap: 16px;
-  padding: 0 8px;
+  padding: 0 32px;
 }
 
 .goi_dialog {
@@ -372,13 +372,15 @@
 
 .goi_itemsDeck {
   position: absolute !important;
+  top: 5px !important;
 }
 
 .goi_itemsMarket {
   display: grid;
   grid-template-columns: repeat(2, var(--cardSize));
-  height: 1300px !important;
+  grid-template-rows: repeat(3, 409px);
   gap: 16px;
+  height: 1260px !important;
   width: 100%;
 }
 
@@ -616,7 +618,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
 .goi_book .goi_relic {
