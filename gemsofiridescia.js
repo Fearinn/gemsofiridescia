@@ -2109,6 +2109,190 @@ define([
       return this.gamedatas.gamestate.name;
     },
 
+    playSound: function (sound, duration = null) {
+      if (this.getGameUserPreference(102) == 0) {
+        return;
+      }
+
+      this.disableNextMoveSound();
+      playSound(`gemsofiridescia_${sound}`);
+
+      if (duration) {
+        setTimeout(() => {
+          stopSound(`gemsofiridescia_${sound}`);
+        }, duration);
+      }
+    },
+
+    calcBackgroundPosition: function (spritePosition) {
+      return -spritePosition * 100 + "% 0%";
+    },
+
+    generateRainbowOptions: function () {
+      for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
+        this.goi_stocks.gems.rainbowOptions.addCard({
+          id: `rainbow-${gemName}`,
+          type: gemName,
+          type_arg: this.goi_info.gemIds[gemName],
+        });
+      }
+
+      const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
+      this.goi_stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
+    },
+
+    generateItemButton: function (item_id, elementId, isCancellable) {
+      const itemName = this.goi_info.items[item_id].tr_name;
+
+      if (!isCancellable) {
+        const message = this.format_string(_("Use ${item_name}"), {
+          item_name: _(itemName),
+        });
+
+        this.addActionButton(elementId, message, "onUseItem");
+        return;
+      }
+
+      const message = this.format_string(_("Cancel ${item_name}"), {
+        item_name: _(itemName),
+      });
+
+      this.addActionButton(
+        elementId,
+        message,
+        "actUndoItem",
+        null,
+        false,
+        "gray"
+      );
+    },
+
+    generateBookDialog: async function (relicsDeck, relicsMarket) {
+      this.goi_dialog = new ebg.popindialog();
+      this.goi_dialog.create("goi_bookDialog");
+      this.goi_dialog.setTitle(_("Regal Reference Book"));
+      this.goi_dialog.setMaxWidth(740);
+      this.goi_dialog.replaceCloseCallback((event) => {
+        this.goi_dialog.destroy();
+        this.restoreServerGameState();
+      });
+
+      const buttonId = "goi_confirm_btn";
+
+      const html = `<div id="goi_content_dlg" class="goi_content_dlg">
+      <div id="goi_buttonContainer_dlg" class="goi_buttonContainer_dlg"></div>
+        <div id="goi_marketContainer_dlg">
+            <h4>${_("Row")}</h4>
+            <div id="goi_relicsMarket_dlg" class="goi_relicsMarket"></div>
+        </div>
+        <div id="goi_deckContainer_dlg">
+            <h4>${_("Deck")}</h4>
+            <div id="goi_relicsDeck_dlg" class="goi_relicsMarket"></div>
+        </div>
+      </div>`;
+
+      this.goi_dialog.setContent(html);
+      this.goi_dialog.show();
+
+      const dialogElement = document.getElementById("popin_goi_bookDialog");
+      dialogElement.classList.add("goi_dialog");
+
+      const selectionChange = (selection, lastChange) => {
+        document
+          .getElementById(buttonId)
+          .classList.toggle("disabled", selection.length === 0);
+
+        if (selection.length > 0) {
+          this.goi_selections.relic = lastChange;
+        } else {
+          this.goi_selections.relic = null;
+        }
+      };
+
+      this.goi_stocks.relics.market_dlg = new CardStock(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsMarket_dlg"),
+        {}
+      );
+
+      this.goi_stocks.relics.market_dlg.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        this.goi_stocks.relics.deck_dlg.unselectAll(true);
+        selectionChange(selection, lastChange);
+      };
+
+      this.goi_stocks.relics.market_dlg.addCards(relicsMarket);
+      this.goi_stocks.relics.market_dlg.setSelectionMode("single");
+
+      this.goi_stocks.relics.deck_dlg = new CardStock(
+        this.goi_managers.relics,
+        document.getElementById("goi_relicsDeck_dlg"),
+        {}
+      );
+
+      this.goi_stocks.relics.deck_dlg.onSelectionChange = (
+        selection,
+        lastChange
+      ) => {
+        this.goi_stocks.relics.market_dlg.unselectAll(true);
+        selectionChange(selection, lastChange);
+      };
+
+      this.goi_stocks.relics.deck_dlg.addCards(relicsDeck);
+      this.goi_stocks.relics.deck_dlg.setSelectionMode("single");
+
+      this.addActionButton(
+        buttonId,
+        _("Confirm selection"),
+        () => {
+          this.goi_dialog.destroy();
+          this.goi_stocks.relics.market_dlg.remove();
+          this.goi_stocks.relics.deck_dlg.remove();
+
+          this.actUseItem();
+        },
+        "goi_buttonContainer_dlg",
+        false
+      );
+
+      document.getElementById(buttonId).classList.add("disabled");
+    },
+
+    findFreeBox: function (player_id) {
+      const occupiedBoxes = [];
+
+      this.goi_stocks[player_id].gems.cargo.getCards().forEach((gemCard) => {
+        occupiedBoxes.push(gemCard.box);
+      });
+
+      for (let box = 1; box <= 7; box++) {
+        if (!occupiedBoxes.includes(box)) {
+          return box;
+        }
+      }
+    },
+
+    addGemToCargo: function (gemCard, player_id, originElement) {
+      const box = this.findFreeBox(player_id);
+      gemCard.box = box;
+
+      const destinationElement = box
+        ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
+        : document.getElementById(`goi_cargoExcedent:${player_id}`);
+
+      this.goi_stocks[player_id].gems.cargo.addCard(
+        gemCard,
+        {
+          fromElement: originElement,
+        },
+        {
+          forceToElement: destinationElement,
+        }
+      );
+    },
+
     handleSelection: function (
       elementId = "goi_confirmation_btn",
       message = _("Confirm selection")
@@ -2326,142 +2510,6 @@ define([
       }
     },
 
-    calcBackgroundPosition: function (spritePosition) {
-      return -spritePosition * 100 + "% 0%";
-    },
-
-    generateRainbowOptions: function () {
-      for (const gemName in this.goi_globals.gemsCounts[this.player_id]) {
-        this.goi_stocks.gems.rainbowOptions.addCard({
-          id: `rainbow-${gemName}`,
-          type: gemName,
-          type_arg: this.goi_info.gemIds[gemName],
-        });
-      }
-
-      const gemCards = this.goi_stocks.gems.rainbowOptions.getCards();
-      this.goi_stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
-    },
-
-    generateItemButton: function (item_id, elementId, isCancellable) {
-      const itemName = this.goi_info.items[item_id].tr_name;
-
-      if (!isCancellable) {
-        const message = this.format_string(_("Use ${item_name}"), {
-          item_name: _(itemName),
-        });
-
-        this.addActionButton(elementId, message, "onUseItem");
-        return;
-      }
-
-      const message = this.format_string(_("Cancel ${item_name}"), {
-        item_name: _(itemName),
-      });
-
-      this.addActionButton(
-        elementId,
-        message,
-        "actUndoItem",
-        null,
-        false,
-        "gray"
-      );
-    },
-
-    generateBookDialog: async function (relicsDeck, relicsMarket) {
-      this.goi_dialog = new ebg.popindialog();
-      this.goi_dialog.create("goi_bookDialog");
-      this.goi_dialog.setTitle(_("Regal Reference Book"));
-      this.goi_dialog.setMaxWidth(740);
-      this.goi_dialog.replaceCloseCallback((event) => {
-        this.goi_dialog.destroy();
-        this.restoreServerGameState();
-      });
-
-      const buttonId = "goi_confirm_btn";
-
-      const html = `<div id="goi_content_dlg" class="goi_content_dlg">
-      <div id="goi_buttonContainer_dlg" class="goi_buttonContainer_dlg"></div>
-        <div id="goi_marketContainer_dlg">
-            <h4>${_("Row")}</h4>
-            <div id="goi_relicsMarket_dlg" class="goi_relicsMarket"></div>
-        </div>
-        <div id="goi_deckContainer_dlg">
-            <h4>${_("Deck")}</h4>
-            <div id="goi_relicsDeck_dlg" class="goi_relicsMarket"></div>
-        </div>
-      </div>`;
-
-      this.goi_dialog.setContent(html);
-      this.goi_dialog.show();
-
-      const dialogElement = document.getElementById("popin_goi_bookDialog");
-      dialogElement.classList.add("goi_dialog");
-
-      const selectionChange = (selection, lastChange) => {
-        document
-          .getElementById(buttonId)
-          .classList.toggle("disabled", selection.length === 0);
-
-        if (selection.length > 0) {
-          this.goi_selections.relic = lastChange;
-        } else {
-          this.goi_selections.relic = null;
-        }
-      };
-
-      this.goi_stocks.relics.market_dlg = new CardStock(
-        this.goi_managers.relics,
-        document.getElementById("goi_relicsMarket_dlg"),
-        {}
-      );
-
-      this.goi_stocks.relics.market_dlg.onSelectionChange = (
-        selection,
-        lastChange
-      ) => {
-        this.goi_stocks.relics.deck_dlg.unselectAll(true);
-        selectionChange(selection, lastChange);
-      };
-
-      this.goi_stocks.relics.market_dlg.addCards(relicsMarket);
-      this.goi_stocks.relics.market_dlg.setSelectionMode("single");
-
-      this.goi_stocks.relics.deck_dlg = new CardStock(
-        this.goi_managers.relics,
-        document.getElementById("goi_relicsDeck_dlg"),
-        {}
-      );
-
-      this.goi_stocks.relics.deck_dlg.onSelectionChange = (
-        selection,
-        lastChange
-      ) => {
-        this.goi_stocks.relics.market_dlg.unselectAll(true);
-        selectionChange(selection, lastChange);
-      };
-
-      this.goi_stocks.relics.deck_dlg.addCards(relicsDeck);
-      this.goi_stocks.relics.deck_dlg.setSelectionMode("single");
-
-      this.addActionButton(
-        buttonId,
-        _("Confirm selection"),
-        () => {
-          this.goi_dialog.destroy();
-          this.goi_stocks.relics.market_dlg.remove();
-          this.goi_stocks.relics.deck_dlg.remove();
-
-          this.actUseItem();
-        },
-        "goi_buttonContainer_dlg",
-        false
-      );
-
-      document.getElementById(buttonId).classList.add("disabled");
-    },
-
     handleItemSelection: function () {
       const selectedItem = this.goi_selections.item;
 
@@ -2480,39 +2528,6 @@ define([
 
         this.generateItemButton(item_id, elementId, isCancellable);
       }
-    },
-
-    findFreeBox: function (player_id) {
-      const occupiedBoxes = [];
-
-      this.goi_stocks[player_id].gems.cargo.getCards().forEach((gemCard) => {
-        occupiedBoxes.push(gemCard.box);
-      });
-
-      for (let box = 1; box <= 7; box++) {
-        if (!occupiedBoxes.includes(box)) {
-          return box;
-        }
-      }
-    },
-
-    addGemToCargo: function (gemCard, player_id, originElement) {
-      const box = this.findFreeBox(player_id);
-      gemCard.box = box;
-
-      const destinationElement = box
-        ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
-        : document.getElementById(`goi_cargoExcedent:${player_id}`);
-
-      this.goi_stocks[player_id].gems.cargo.addCard(
-        gemCard,
-        {
-          fromElement: originElement,
-        },
-        {
-          forceToElement: destinationElement,
-        }
-      );
     },
 
     ///////////////////////////////////////////////////
@@ -2820,6 +2835,7 @@ define([
         { event: "resetStoneDice" },
         { event: "rollDie", duration: 100 },
         { event: "joltyJackhammer" },
+        { event: "dynamiteSFX" },
         { event: "syncDieRolls", duration: 1000 },
         { event: "incCoin" },
         { event: "incGem" },
@@ -2884,8 +2900,9 @@ define([
 
     notif_revealTile: function (notif) {
       const tileCard = notif.args.tileCard;
-
       this.goi_stocks.tiles.board.flipCard(tileCard);
+
+      this.playSound("flip");
     },
 
     notif_discardCollectedTile: function (notif) {
@@ -2946,6 +2963,8 @@ define([
           hex ? document.getElementById(`goi_tileContainer-${hex}`) : undefined
         );
       }
+
+      this.playSound("gems");
     },
 
     notif_decGem: function (notif) {
@@ -3028,6 +3047,8 @@ define([
         type: "iridia",
         type_arg: 0,
       });
+
+      this.playSound("iridia", 5000);
     },
 
     notif_obtainRoyaltyToken: function (notif) {
@@ -3056,6 +3077,10 @@ define([
       }
 
       this.goi_counters[player_id].coins.span.style.left = positionLeft;
+
+      if (delta > 0) {
+        this.playSound("coins", 2000);
+      }
     },
 
     notif_incRoyaltyPoints: function (notif) {
@@ -3159,6 +3184,8 @@ define([
 
       this.goi_stocks[player_id].dice.scene.rollDie(die);
       this.goi_globals.rolledDice[die_id] = die;
+
+      this.playSound("dice");
     },
 
     notif_joltyJackhammer: function (notif) {
@@ -3180,6 +3207,10 @@ define([
       if (type === "stone") {
         this.notif_activateStoneDie(notif);
       }
+    },
+
+    notif_dynamiteSFX: function (notif) {
+      this.playSound("explosion");
     },
 
     notif_syncDieRolls: function (notif) {},
@@ -3315,6 +3346,8 @@ define([
           ),
         }
       );
+
+      this.playSound("swapping", 2500);
     },
 
     notif_cleverCatapult: function (notif) {

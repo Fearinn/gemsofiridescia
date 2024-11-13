@@ -18,5 +18,13 @@
       "1": { "name": "Icons", "default": true }
     },
     "needReload": true
+  },
+  "102": {
+    "name": "Sound effects",
+    "values": {
+      "0": { "name": "Disabled" },
+      "1": { "name": "Enabled", "default": true }
+    },
+    "needReload": true
   }
 }

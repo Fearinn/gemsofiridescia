@@ -1509,7 +1509,7 @@ class Game extends \Table
     public function obtainIridiaStone(int $player_id): void
     {
         if ($this->getIridiaStoneOwner()) {
-            throw new \BgaVisibleSystemException("The Iridia Stone has already been found: collectIridiaStone");
+            throw new \BgaVisibleSystemException("The Iridia Stone has already been found: obtainIridiaStone");
         }
 
         $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=1000 WHERE player_id=$player_id");

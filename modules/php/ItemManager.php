@@ -238,7 +238,8 @@ class ItemManager
             $die_id = (string) $args["die_id"];
             $dieType = (string) $args["dieType"];
             $delta = (int) $args["delta"];
-            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id);
+
+            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id, true);
         }
 
         if ($this->id === 8) {
@@ -423,7 +424,8 @@ class ItemManager
         #[IntParam(min: -2, max: 2)] int $delta,
         #[StringParam(alphanum_dash: true)] string $die_id,
         #[StringParam(enum: ["gem", "stone", "mining"])] string $dieType,
-        int $player_id
+        int $player_id,
+        bool $isDynamite = false,
     ): bool {
         if ($delta === 0) {
             throw new \BgaVisibleSystemException("Invalid delta for Jolty Jackhammer: 0");
@@ -431,6 +433,14 @@ class ItemManager
 
         if ($dieType === "gem") {
             $gem_id = (int) $die_id;
+
+            if ($isDynamite) {
+                $this->game->notifyAllPlayers(
+                    "dynamiteSFX",
+                    "",
+                    [],
+                );
+            }
 
             $newFace = $this->game->updateMarketValue($delta, $gem_id);
             $oldFace = $newFace - $delta;
@@ -443,7 +453,7 @@ class ItemManager
         $dieType = $die["type"];
 
         if (!array_key_exists($die_id, $rolledDice)) {
-            throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer / Dazzling Dynamite, $die_id");
+            throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer, $die_id");
         }
 
         $tileCard = $this->game->currentTile($player_id);
@@ -460,6 +470,14 @@ class ItemManager
 
         if ($newFace > 6) {
             $newFace -= 6;
+        }
+
+        if ($isDynamite) {
+            $this->game->notifyAllPlayers(
+                "dynamiteSFX",
+                "",
+                [],
+            );
         }
 
         $this->game->notifyAllPlayers(

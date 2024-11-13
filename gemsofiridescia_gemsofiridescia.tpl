@@ -10,6 +10,102 @@
 -------
 -->
 <link rel="stylesheet" href="https://use.typekit.net/jim0ypy.css" />
+<audio
+  id="audiosrc_gemsofiridescia_coins"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_coins.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_coins"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_coins.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_dice"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_dice.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_dice"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_dice.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_explosion"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_explosion.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_explosion"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_explosion.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_flip"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_flip.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_flip"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_flip.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_gems"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_gems.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_gems"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_gems.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_iridia"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_iridia.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_iridia"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_iridia.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_rhom"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_rhom.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_rhom"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_rhom.ogg"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_gemsofiridescia_swapping"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_swapping.mp3"
+  preload="none"
+  autobuffer
+></audio>
+<audio
+  id="audiosrc_o_gemsofiridescia_swapping"
+  src="{GAMETHEMEURL}img/sounds/gemsofiridescia_swapping.ogg"
+  preload="none"
+  autobuffer
+></audio>
 <div id="goi_gameArea" class="goi_gameArea">
   <div class="goi_relicsContainer">
     <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
