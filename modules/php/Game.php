@@ -1625,6 +1625,7 @@ class Game extends \Table
         );
 
         $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=$score_aux WHERE player_id=$player_id");
+        $this->setStat($tokenPoints, "tokenPoints", $player_id);
         $this->incRoyaltyPoints($tokenPoints, $player_id);
     }
 
@@ -2885,23 +2886,29 @@ class Game extends \Table
 
             $tilesPoints = $this->getStat("tilesPoints", $player_id);
             $relicsPoints = $this->getStat("relicsPoints", $player_id);
+            $tokenPoints = $this->getStat("tokenPoints", $player_id);
+            $iridiaPoints = $this->getStat("iridiaPoints", $player_id);
 
-            $totalPoints = $gemsPoints + $objectivePoints + $tilesPoints + $relicsPoints;
+            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $iridiaPoints;
 
             $tableGems[] = $gemsPoints;
             $tableTiles[] = $tilesPoints;
             $tableRelics[] = $relicsPoints;
             $tableObjective[] = $objectivePoints;
+            $tableToken[] = $tokenPoints;
+            $tableIridia[] = $iridiaPoints;
             $tableTotal[] = $totalPoints;
         }
 
         $table = [
-            [["str" => clienttranslate("source"), "args" => [], "type" => "header"], ...$tableNames],
-            [clienttranslate("gems"), ...$tableGems],
-            [clienttranslate("tiles"), ...$tableTiles],
-            [clienttranslate("relics"), ...$tableRelics],
-            [clienttranslate("objective"), ...$tableObjective],
-            [clienttranslate("total"), ...$tableTotal]
+            [["str" => clienttranslate("From:"), "args" => [], "type" => "header"], ...$tableNames],
+            [clienttranslate("Gems"), ...$tableGems],
+            [clienttranslate("Tiles"), ...$tableTiles],
+            [clienttranslate("Relics"), ...$tableRelics],
+            [clienttranslate("Objective"), ...$tableObjective],
+            [clienttranslate("Royalty Token"), ...$tableToken],
+            [clienttranslate("Iridia Stone"), ...$tableIridia],
+            [clienttranslate("Total"), ...$tableTotal],
         ];
 
         $this->notifyAllPlayers(
@@ -3141,6 +3148,8 @@ class Game extends \Table
             $this->initStat("player", "tilesPoints", 0, $player_id);
             $this->initStat("player", "relicsPoints", 0, $player_id);
             $this->initStat("player", "objectivePoints", 0, $player_id);
+            $this->initStat("player", "tokenPoints", 0, $player_id);
+            $this->initStat("player", "iridiaPoints", 0, $player_id);
 
             $this->initStat("player", "1:GemTiles", 0, $player_id);
             $this->initStat("player", "2:GemTiles", 0, $player_id);

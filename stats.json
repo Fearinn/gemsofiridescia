@@ -67,22 +67,32 @@
     },
     "gemsPoints": {
       "id": 23,
-      "name": "Points from gems",
+      "name": "Points from Gems",
       "type": "int"
     },
     "tilesPoints": {
       "id": 24,
-      "name": "Points from tiles",
+      "name": "Points from Tiles",
       "type": "int"
     },
     "relicsPoints": {
       "id": 25,
-      "name": "Points from relics",
+      "name": "Points from Relics",
       "type": "int"
     },
     "objectivePoints": {
       "id": 26,
-      "name": "Points from objective",
+      "name": "Points from Objective",
+      "type": "int"
+    },
+    "tokenPoints": {
+      "id": 27,
+      "name": "Points from Royalty Token",
+      "type": "int"
+    },
+    "iridiaPoints": {
+      "id": 28,
+      "name": "Points from Iridia Stone",
       "type": "int"
     }
   }
