@@ -26,7 +26,6 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 use BgaSystemException;
-use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -382,6 +381,8 @@ class Game extends \Table
 
         $minedGemsCount = $this->mine($gem_id, $dice, $player_id);
 
+        $this->incStat(1, "miningAttempts", $player_id);
+
         if ($minedGemsCount === 0) {
             $this->notifyAllPlayers(
                 "failToMine",
@@ -391,6 +392,8 @@ class Game extends \Table
                     "player_name" => $this->getPlayerNameById($player_id)
                 ]
             );
+
+            $this->incStat(1, "failedMiningAttempts", $player_id);
         } else {
             if ($this->globals->get(MARVELOUS_CART)) {
                 $minedGemsCount *= 2;
@@ -458,6 +461,7 @@ class Game extends \Table
         $item = new ItemManager($itemCard_id, $this);
 
         $item->buy($player_id);
+        $this->incStat(1, "itemsPurchased", $player_id);
 
         $this->gamestate->nextState("repeat");
     }
@@ -1457,6 +1461,7 @@ class Game extends \Table
 
         $statName = $gem_id === 0 || $gem_id === 10 ? "rainbow:Tiles" : "$gem_id:GemTiles";
         $this->incStat(1, $statName, $player_id);
+        $this->incStat(1, "tilesCollected", $player_id);
 
         $this->notifyAllPlayers(
             "collectTile",
@@ -2043,6 +2048,8 @@ class Game extends \Table
                 "i18n" => ["coin"],
             ]
         );
+
+        $this->incStat($delta, "coinsObtained", $player_id);
     }
 
     public function decCoin(int $delta, int $player_id): void
@@ -2922,6 +2929,11 @@ class Game extends \Table
         );
     }
 
+    public function debug_stat(int $player_id): void {
+        $stat = $this->getStat("miningAttempts", $player_id);
+        throw new \BgaUserException($stat);
+    }
+
     public function debug_fillCargo(int $player_id): void
     {
         $this->incGem(4, 2, $player_id);
@@ -3144,6 +3156,11 @@ class Game extends \Table
         $players = $this->loadPlayersBasicInfos();
 
         foreach ($players as $player_id => $player) {
+            $this->initStat("player", "coinsObtained", 0, $player_id);
+            $this->initStat("player", "miningAttempts", 0, $player_id);
+            $this->initStat("player", "failedMiningAttempts", 0, $player_id);
+            $this->initStat("player", "itemsPurchased", 0, $player_id);
+
             $this->initStat("player", "gemsPoints", 0, $player_id);
             $this->initStat("player", "tilesPoints", 0, $player_id);
             $this->initStat("player", "relicsPoints", 0, $player_id);
@@ -3151,6 +3168,7 @@ class Game extends \Table
             $this->initStat("player", "tokenPoints", 0, $player_id);
             $this->initStat("player", "iridiaPoints", 0, $player_id);
 
+            $this->initStat("player", "tilesCollected", 0, $player_id);
             $this->initStat("player", "1:GemTiles", 0, $player_id);
             $this->initStat("player", "2:GemTiles", 0, $player_id);
             $this->initStat("player", "3:GemTiles", 0, $player_id);

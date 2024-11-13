@@ -1,5 +1,30 @@
 {
   "player": {
+    "coinsObtained": {
+      "id": 29,
+      "name": "Coins collected",
+      "type": "int"
+    },
+    "miningAttempts": {
+      "id": 30,
+      "name": "Mining attempts",
+      "type": "int"
+    },
+    "failedMiningAttempts": {
+      "id": 31,
+      "name": "Failed mining attempts",
+      "type": "int"
+    },
+    "itemsPurchased": {
+      "id": 32,
+      "name": "Items purchased",
+      "type": "int"
+    },
+    "tilesCollected": {
+      "id": 33,
+      "name": "Total tiles collected",
+      "type": "int"
+    },
     "1:GemTiles": {
       "id": 10,
       "name": "Amethyst tiles collected",
