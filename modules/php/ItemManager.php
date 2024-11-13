@@ -44,7 +44,11 @@ class ItemManager
     public function isBuyable(int $player_id): bool
     {
         if ($this->id === 2) {
-            return $this->game->item_cards->countCardsInLocation("book", $player_id) === 0;
+           $hasBook = $this->game->item_cards->countCardsInLocation("book", $player_id) > 0;
+
+           if ($hasBook) {
+                return false;
+           }
         }
 
         if ($this->id === 4) {
