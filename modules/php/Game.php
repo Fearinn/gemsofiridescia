@@ -75,6 +75,8 @@ class Game extends \Table
 
         $this->item_cards = $this->getNew("module.common.deck");
         $this->item_cards->init("item");
+        $this->item_cards->autoreshuffle = true;
+        $this->item_cards->autoreshuffle_trigger = ["obj" => $this, "method" => "reshuffleItemsDeck"];
 
         $this->rhom_cards = $this->getNew("module.common.deck");
         $this->rhom_cards->init("rhom");
