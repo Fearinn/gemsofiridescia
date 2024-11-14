@@ -2333,6 +2333,11 @@ class Game extends \Table
     public function replaceRelic(): void
     {
         $relicCard = $this->relic_cards->pickCardForLocation("deck", "market");
+
+        if (!$relicCard) {
+            return;
+        }
+
         $relic_id = $relicCard["type_arg"];
 
         $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
@@ -2931,7 +2936,8 @@ class Game extends \Table
         );
     }
 
-    public function debug_stat(int $player_id): void {
+    public function debug_stat(int $player_id): void
+    {
         $stat = $this->getStat("miningAttempts", $player_id);
         throw new \BgaUserException($stat);
     }
