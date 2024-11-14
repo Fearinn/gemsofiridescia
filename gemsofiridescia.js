@@ -93,6 +93,10 @@ define([
 
       this.goi_selections = this.goi_info.defaultSelections;
 
+      this.goi_globals.isSolo = gamedatas.isSolo;
+      this.goi_globals.realPlayer = gamedatas.realPlayer;
+      this.goi_globals.bot = gamedatas.bot;
+
       this.goi_globals.players = gamedatas.playersNoZombie;
       this.goi_globals.player = gamedatas.players[this.player_id];
       this.goi_globals.tilesBoard = gamedatas.tilesBoard;
@@ -123,6 +127,8 @@ define([
       this.goi_globals.cancellableItems = gamedatas.cancellableItems;
       this.goi_globals.objectives = gamedatas.objectives;
       this.goi_globals.books = gamedatas.books;
+
+      console.log(gamedatas.explorers, "EXPLORERS");
 
       for (const player_id in this.goi_globals.players) {
         this.goi_stocks[player_id] = {
@@ -543,6 +549,10 @@ define([
 
       /* PLAYER PANELS */
       for (const player_id in this.goi_globals.players) {
+        if (this.goi_globals.isSolo && player_id == 1) {
+          continue;
+        }
+
         this.goi_counters[player_id] = {};
 
         this.getPlayerPanelElement(
@@ -1393,6 +1403,28 @@ define([
         this.goi_stocks.items.discard.addCard(itemCard);
       }
 
+      if (this.goi_globals.isSolo) {
+        const realPlayer = this.goi_globals.realPlayer;
+        const bot = this.goi_globals.bot;
+
+        let xclone = document.getElementById(
+          `overall_player_board_${realPlayer.id}`
+        ).outerHTML;
+        xclone = xclone.replaceAll(realPlayer.id, bot.id);
+        xclone = xclone.replaceAll(realPlayer.name, bot.name);
+        xclone = xclone.replaceAll(realPlayer.color, bot.color);
+        const node = dojo.place(xclone, "player_boards", "last");
+
+        document.getElementById(
+          `avatar_${bot.id}`
+        ).src = `${g_gamethemeurl}/img/rhomAvatar.jpg`;
+        document.getElementById(`player_score_${bot.id}`).textContent = 0;
+        document
+          .getElementById(`goi_gemCounters:${bot.id}`)
+          .querySelector(".goi_coinIcon")
+          .remove();
+      }
+
       this.setupNotifications();
 
       console.log("Ending game setup");
@@ -1408,6 +1440,8 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
+        console.log(this.goi_stocks, this.player_id, "player_id");
+
         const activeEpicElixir = this.goi_stocks.items.active
           .getCards()
           .filter((itemCard) => {

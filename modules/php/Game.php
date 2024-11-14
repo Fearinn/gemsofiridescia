@@ -1030,6 +1030,11 @@ class Game extends \Table
 
     /*   Utility functions */
 
+    public function isSolo(): bool
+    {
+        return $this->getPlayersNumber() === 1;
+    }
+
     public function isZombie(int $player_id): bool
     {
         return !!$this->getUniqueValueFromDB("SELECT player_zombie from player WHERE player_id=$player_id");
@@ -1037,7 +1042,13 @@ class Game extends \Table
 
     public function loadPlayersNoZombie(): array
     {
-        return $this->getCollectionFromDB("SELECT player_id id, player_name name, player_color color, player_score score FROM player WHERE player_zombie=0");
+        $players = $this->getCollectionFromDB("SELECT player_id id, player_name name, player_color color, player_score score FROM player WHERE player_zombie=0");
+
+        if ($this->isSolo()) {
+            $players[1] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+        }
+
+        return $players;
     }
 
     public function getPlayersNumberNoZombie(): int
@@ -1311,16 +1322,16 @@ class Game extends \Table
         return $this->closestEmpty($player_id, $adjacentHexes);
     }
 
-    public function expandedCatapultableHexes(int $player_id, array $adjacentHexes, bool $catapult = false): array
+    public function expandedCatapultableHexes(int $player_id, array $adjacentHexes): array
     {
-        $result = [];
+        $expandedCatapultableHexes = [];
 
         foreach ($adjacentHexes as $hex) {
             $expandedHexes = $this->adjacentTiles($player_id, $hex, true);
-            $result = array_merge($result, $expandedHexes);
+            $expandedCatapultableHexes = array_merge($expandedCatapultableHexes, $expandedHexes);
         }
 
-        return $result;
+        return $expandedCatapultableHexes;
     }
 
     public function catapultableTiles(int $player_id, bool $associative = false): array
@@ -3091,7 +3102,8 @@ class Game extends \Table
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
 
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["playersNoZombie"] = $this->loadPlayersNoZombie();
+        $playersNoZombie = $this->loadPlayersNoZombie();
+        $result["playersNoZombie"] = $playersNoZombie;
         $result["tilesBoard"] = $this->getTilesBoard();
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
         $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
@@ -3122,6 +3134,14 @@ class Game extends \Table
         $result["objectives"] = $this->getObjectives($current_player_id);
         $result["books"] = $this->getBooks();
 
+        $isSolo = $this->isSolo();
+        $result["isSolo"] = $isSolo;
+
+        if ($isSolo) {
+            $result["realPlayer"] = array_shift($playersNoZombie);
+            $result["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+        }
+
         return $result;
     }
 
@@ -3137,7 +3157,6 @@ class Game extends \Table
 
     protected function setupNewGame($players, $options = [])
     {
-
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 
@@ -3158,7 +3177,13 @@ class Game extends \Table
             )
         );
 
-        $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
+        $colors = $gameinfos["player_colors"];
+        if (count($players) === 1) {
+            unset($colors[3]);
+            $this->DbQuery("INSERT INTO robot () VALUES ()");
+        }
+
+        $this->reattributeColorsBasedOnPreferences($players, $colors);
         $this->reloadPlayersBasicInfos();
 
         $players = $this->loadPlayersBasicInfos();
@@ -3203,8 +3228,9 @@ class Game extends \Table
 
         $explorerCards = $this->explorer_cards->getCardsInLocation("deck");
         $playerBoards = [];
-        foreach ($explorerCards as $explorerCard_id => $explorerCard) {
-            foreach ($players as $player_id => $player) {
+
+        foreach ($players as $player_id => $player) {
+            foreach ($explorerCards as $explorerCard_id => $explorerCard) {
                 $player_color = $this->getPlayerColorById($player_id);
 
                 if ($player_color === $explorerCard["type"]) {
@@ -3214,6 +3240,14 @@ class Game extends \Table
                     $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$explorerCard_id'");
                 }
             }
+        }
+
+        if ($this->isSolo()) {
+            $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type='ffa500'");
+            $playerBoards[1] = (int) $explorerCard["type_arg"];
+
+            $this->explorer_cards->moveCard($explorerCard_id, "scene", 1);
+            $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id='$explorerCard_id'");
         }
 
         $this->globals->set(PLAYER_BOARDS, $playerBoards);
@@ -3243,7 +3277,7 @@ class Game extends \Table
             }
         }
 
-        if (count($players) === 2) {
+        if (count($players) <= 2) {
             $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
             WHERE card_location='board' AND 
             card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
@@ -3283,7 +3317,7 @@ class Game extends \Table
 
         $itemCards = [];
         foreach ($this->items_info as $item_id => $item_info) {
-            if (count($players) === 2 && ($item_id === 10 || $item_id === 11)) {
+            if (count($players) <= 2 && ($item_id === 10 || $item_id === 11)) {
                 continue;
             }
 
