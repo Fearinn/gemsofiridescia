@@ -44,6 +44,7 @@ $machinestates = [
             "skip" => 3,
             "moveExplorer" => 3,
             "optionalActions" => 4,
+            "startSolo" => 22,
         ]
     ],
 
@@ -65,6 +66,15 @@ $machinestates = [
         "type" => "activeplayer",
         "possibleactions" => ["actDiscardTile"],
         "transitions" => ["betweenTurns" => 6],
+    ],
+
+    22 => [
+        "name" => "startSolo",
+        "description" => clienttranslate('${actplayer} must click the button to start the solo journey'),
+        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo journey'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actStartSolo"],
+        "transitions" => ["rhomFirstTurn" => 80],
     ],
 
     3 => [
@@ -126,7 +136,7 @@ $machinestates = [
         "args" => "argRestoreRelic",
         "action" => "stRestoreRelic",
         "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6]
+        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6],
     ],
 
     6 => [
@@ -143,7 +153,16 @@ $machinestates = [
         "description" => clienttranslate("Computing final scoring..."),
         "type" => "game",
         "action" => "stFinalScoring",
-        "transitions" => ["gameEnd" => 99]
+        "transitions" => ["gameEnd" => 99],
+    ],
+
+    80 => [
+        "name" => "rhomFirstTurn",
+        "description" => clienttranslate('${rhom} is playing its first turn'),
+        "type" => "game",
+        "args" => "argRhomFirstTurn",
+        "action" => "stRhomFirstTurn",
+        "transitions" => ["realTurn" => 2],
     ],
 
     // Final state.

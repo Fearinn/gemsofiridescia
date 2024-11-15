@@ -121,7 +121,7 @@ class Game extends \Table
             clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "hex" => $tileCard["location_arg"],
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
@@ -184,7 +184,7 @@ class Game extends \Table
             clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
                 "i18n" => ["tile"],
@@ -200,7 +200,7 @@ class Game extends \Table
             clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex}) '),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "hex" => $emptyHex,
                 "explorerCard" => $explorerCard,
             ]
@@ -233,7 +233,7 @@ class Game extends \Table
             clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex}) '),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
@@ -269,7 +269,7 @@ class Game extends \Table
             clienttranslate('${player_name} moves his explorer to a new ${tile} (hex ${hex}) '),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
@@ -321,7 +321,7 @@ class Game extends \Table
             clienttranslate('${player_name} discards a Secret Objective'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "objectiveCard" => $this->hideCard($objectiveCard)
             ]
         );
@@ -391,7 +391,7 @@ class Game extends \Table
                 clienttranslate('${player_name} fails to mine his tile'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id)
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id)
                 ]
             );
 
@@ -611,6 +611,10 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
+    public function actStartSolo(): void {
+        $this->gamestate->nextState("rhomFirstTurn");
+    }
+
     /**
      * Game state arguments, example content.
      *
@@ -665,6 +669,11 @@ class Game extends \Table
 
     public function stRevealTile(): void
     {
+        if ($this->isSolo() && $this->globals->get("rhomFirstTurn", true)) {
+            $this->gamestate->nextState("startSolo");
+            return;
+        }
+
         $args = $this->argRevealTile();
 
         if ($args["_no_notify"]) {
@@ -959,7 +968,7 @@ class Game extends \Table
                 clienttranslate('${player_name} starts a new turn (${item_name})'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "item_name" => clienttranslate("Epic Elixir"),
                     "i18n" => ["item_name"],
                     "preserve" => "item_id",
@@ -974,7 +983,7 @@ class Game extends \Table
                 clienttranslate('${player_name} passes'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 ]
             );
             $this->activeNextPlayer();
@@ -987,6 +996,29 @@ class Game extends \Table
     {
         $this->calcFinalScoring();
         $this->gamestate->nextState("gameEnd");
+    }
+
+    /* SOLO MODE */
+
+    public function stRhomFirstTurn(): void
+    {
+        $this->rollDie("1-1", 1, "mining");
+        $this->rollDie("2-1", 1, "mining");
+
+        $this->notifyAllPlayers(
+            "syncDieRolls",
+            "",
+            []
+        );
+
+        $this->globals->set("rhomFirstTurn", false);
+        $this->gamestate->nextState("realTurn");
+    }
+
+    public function argRhomFirstTurn(): array {
+        return [
+            "rhom" => "Rhom"
+        ];
     }
 
     /**
@@ -1057,6 +1089,15 @@ class Game extends \Table
         return count($playersNoZombie);
     }
 
+    public function getPlayerOrRhomNameById($player_id): string
+    {
+        if ($player_id === 1) {
+            return "Rhom";
+        }
+
+        return $this->getPlayerNameById($player_id);
+    }
+
     public function checkPlayer($player_id): void
     {
         $players = $this->loadPlayersNoZombie();
@@ -1075,7 +1116,7 @@ class Game extends \Table
             clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "die_id" => $die_id,
                 "face" => $face,
                 "type" => $type,
@@ -1139,7 +1180,7 @@ class Game extends \Table
 
     public function getExplorerByPlayerId(int $player_id): array
     {
-        $explorer = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id");
+        $explorer = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location!='box'");
 
         return $explorer;
     }
@@ -1503,7 +1544,7 @@ class Game extends \Table
             clienttranslate('${player_name} reaches the Forest region'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
             ]
         );
 
@@ -1537,7 +1578,7 @@ class Game extends \Table
             clienttranslate('${player_name} finds the Iridia Stone'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
+                "player_name" => $this->getPlayerOrRhomNameById($player_id)
             ]
         );
 
@@ -1588,7 +1629,7 @@ class Game extends \Table
             clienttranslate('${player_name} reaches the Castle row'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
+                "player_name" => $this->getPlayerOrRhomNameById($player_id)
             ]
         );
 
@@ -1634,7 +1675,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains the ${token_label}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "token_id" => $token_id,
                 "token_label" => $tokenLabel,
                 "tokenName" => $tokenName,
@@ -1830,9 +1871,9 @@ class Game extends \Table
                 clienttranslate('${player_name} gives away ${delta} ${gem_label} to ${player_name2}'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "player_id2" => $opponent_id,
-                    "player_name2" => $this->getPlayerNameById($opponent_id),
+                    "player_name2" => $this->getPlayerOrRhomNameById($opponent_id),
                     "delta" => $delta,
                     "gem_label" => $gem_info["tr_name"],
                     "gemName" => $gemName,
@@ -1867,7 +1908,7 @@ class Game extends \Table
             clienttranslate('${player_name} returns ${delta} ${gem_label} to the supply'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
@@ -1896,7 +1937,7 @@ class Game extends \Table
             $message,
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "gemName" => $gemName,
@@ -1951,7 +1992,7 @@ class Game extends \Table
             $message,
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
@@ -2054,7 +2095,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
@@ -2082,7 +2123,7 @@ class Game extends \Table
             clienttranslate('${player_name} spends ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => -$delta,
                 "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
@@ -2105,7 +2146,7 @@ class Game extends \Table
             $silent ? "" : clienttranslate('${player_name} scores ${points_log} point(s)'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "points" => $delta,
                 "points_log" => $delta,
                 "preserve" => ["points_log"],
@@ -2144,7 +2185,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains a Stone Die'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "die_id" => 4 - $publicStoneDiceCount
             ]
         );
@@ -2318,7 +2359,7 @@ class Game extends \Table
             clienttranslate('${player_name} restores the ${relic_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "relic_name" => $relic_info["tr_name"],
                 "relicCard" => $relicCard,
                 "i18n" => ["relic_name"],
@@ -2611,7 +2652,7 @@ class Game extends \Table
                 "computeGemsPoints",
                 clienttranslate('${player_name} scores ${points_log} points from gems sets'),
                 [
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $gemsPoints,
                     "points_log" => $gemsPoints,
                     "preserve" => ["points_log"],
@@ -2708,7 +2749,7 @@ class Game extends \Table
                 clienttranslate('${player_name} scores ${points_log} points from tiles sets'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $tilesPoints,
                     "preserve" => ["points_log", "finalScoring"],
                     "points_log" => $tilesPoints,
@@ -2818,7 +2859,7 @@ class Game extends \Table
                 clienttranslate('${player_name} scores ${points_log} points from relics sets'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $relicsPoints,
                     "preserve" => ["points_log", "finalScoring"],
                     "points_log" => $relicsPoints,
@@ -2846,7 +2887,7 @@ class Game extends \Table
             clienttranslate('${player_name} reveals ${objective_name} as his Secret Objective'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "objective_name" => $objective->tr_name,
                 "objectiveCard" => $objectiveCard,
                 "i18n" => ["objective_name"],
@@ -2862,7 +2903,7 @@ class Game extends \Table
                 clienttranslate('${player_name} completes the ${objective_name} objective and scores ${points_log} points'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "objective_name" => $objective->tr_name,
                     "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
@@ -2905,7 +2946,7 @@ class Game extends \Table
 
             $tableNames[] = [
                 "str" => '${player_name}',
-                "args" => ["player_name" => $this->getPlayerNameById($player_id)],
+                "args" => ["player_name" => $this->getPlayerOrRhomNameById($player_id)],
                 "type" => "header"
             ];
 
@@ -3000,7 +3041,7 @@ class Game extends \Table
                 clienttranslate('${player_name} quits the game. All his dice, tiles, gems, relics and items are discarded'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "explorerCard" => $this->getExplorerByPlayerId($player_id),
                 ]
             );
@@ -3405,7 +3446,7 @@ class Game extends \Table
                     "",
                     [
                         "player_id" => $player_id,
-                        "player_name" => $this->getPlayerNameById($player_id),
+                        "player_name" => $this->getPlayerOrRhomNameById($player_id),
                         "explorerCard" => $this->getExplorerByPlayerId($player_id),
                     ]
                 );

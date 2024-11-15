@@ -128,8 +128,6 @@ define([
       this.goi_globals.objectives = gamedatas.objectives;
       this.goi_globals.books = gamedatas.books;
 
-      console.log(gamedatas.explorers, "EXPLORERS");
-
       for (const player_id in this.goi_globals.players) {
         this.goi_stocks[player_id] = {
           gems: {},
@@ -1440,8 +1438,6 @@ define([
       console.log("Entering state: " + stateName, args);
 
       if (this.isCurrentPlayerActive()) {
-        console.log(this.goi_stocks, this.player_id, "player_id");
-
         const activeEpicElixir = this.goi_stocks.items.active
           .getCards()
           .filter((itemCard) => {
@@ -1979,6 +1975,10 @@ define([
           this.goi_stocks[this.player_id].objectives.hand.setSelectionMode(
             "single"
           );
+        }
+
+        if (stateName === "startSolo") {
+          this.addActionButton("goi_startSolo_btn", _("Start"), "actStartSolo");
         }
 
         return;
@@ -2852,6 +2852,10 @@ define([
       });
     },
 
+    actStartSolo: function () {
+      this.performAction("actStartSolo");
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -3596,6 +3600,10 @@ define([
       try {
         if (log && args && !args.processed) {
           args.processed = true;
+
+          if (args.player_name?.includes("Rhom") && this.goi_globals.isSolo) {
+            args.player_name = `<!--PNS--><span class="playername" style="color: #${this.goi_globals.bot.color}">Rhom</span><!--PNE-->`;
+          }
 
           if (args.tile && args.tileCard) {
             const tileCard = args.tileCard;
