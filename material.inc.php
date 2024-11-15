@@ -923,3 +923,166 @@ $this->items_info = [
         "cost" => 3,
     ]
 ];
+
+$this->weathervane_info = [
+    1 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 1,
+        "weathervane" => "left",
+    ],
+    2 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 1,
+        "weathervane" => "left",
+    ],
+    3 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 1,
+        "weathervane" => "right",
+    ],
+    4 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 1,
+        "weathervane" => "right",
+    ],
+    5 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 2,
+        "weathervane" => "left",
+    ],
+    6 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 2,
+        "weathervane" => "left",
+    ],
+    7 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 2,
+        "weathervane" => "right",
+    ],
+    8 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 2,
+        "weathervane" => "right",
+    ],
+    9 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 3,
+        "weathervane" => "left",
+    ],
+    10 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 3,
+        "weathervane" => "left",
+    ],
+    11 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 3,
+        "weathervane" => "right",
+    ],
+    12 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 3,
+        "weathervane" => "right",
+    ],
+    13 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 4,
+        "weathervane" => "left",
+    ],
+    14 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 4,
+        "weathervane" => "left",
+    ],
+    15 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 4,
+        "weathervane" => "right",
+    ],
+    16 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 4,
+        "weathervane" => "right",
+    ],
+];

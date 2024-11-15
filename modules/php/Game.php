@@ -102,8 +102,6 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $tileCard = $this->tile_cards->getCard($tileCard_id);
-
         if (!$force) {
             $revealableTiles = $this->revealableTiles($player_id, true);
 
@@ -112,25 +110,7 @@ class Game extends \Table
             }
         }
 
-        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
-        $revealedTiles[$tileCard_id] = $tileCard;
-        $this->globals->set(REVEALED_TILES, $revealedTiles);
-
-        $this->notifyAllPlayers(
-            "revealTile",
-            clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "hex" => $tileCard["location_arg"],
-                "tileCard" => $tileCard,
-                "preserve" => ["tileCard"],
-                "i18n" => ["tile"],
-                "tile" => clienttranslate("tile"),
-            ]
-        );
-
-        $this->globals->inc(REVEALS_LIMIT, 1);
+        $this->revealTile($tileCard_id, $player_id);
 
         if (!$skipTransition) {
             $this->gamestate->nextState("repeat");
@@ -611,7 +591,8 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
-    public function actStartSolo(): void {
+    public function actStartSolo(): void
+    {
         $this->gamestate->nextState("rhomFirstTurn");
     }
 
@@ -1002,8 +983,48 @@ class Game extends \Table
 
     public function stRhomFirstTurn(): void
     {
-        $this->rollDie("1-1", 1, "mining");
-        $this->rollDie("2-1", 1, "mining");
+        $hex_1 = $this->rollDie("1-1", 1, "mining");
+        $hex_2 = $this->rollDie("2-1", 1, "mining");
+
+        $weathervaneDirection = $this->weathervaneDirection();
+
+        if ($weathervaneDirection === "right") {
+            if ($hex_1 === 1 || $hex_1 === 6) {
+                $hex_1 = 2;
+            }
+
+            if ($hex_2 === 1 || $hex_2 === 6) {
+                $hex_2 = 2;
+            }
+        }
+
+        if ($weathervaneDirection === "left") {
+            if ($hex_1 === 1 || $hex_1 === 6) {
+                $hex_1 = 5;
+            }
+
+            if ($hex_2 === 1 || $hex_2 === 6) {
+                $hex_2 = 5;
+            }
+        }
+
+        if ($hex_1 === $hex_2) {
+            if ($weathervaneDirection === "right") {
+                $hex_2++;
+
+                if ($hex_2 === 6) {
+                    $hex_2 = 2;
+                }
+            }
+
+            if ($weathervaneDirection === "left") {
+                $hex_2 = $hex_1 - 1;
+
+                if ($hex_2 = 1) {
+                    $hex_2 = 5;
+                }
+            }
+        }
 
         $this->notifyAllPlayers(
             "syncDieRolls",
@@ -1011,11 +1032,18 @@ class Game extends \Table
             []
         );
 
+        $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_1");
+        $this->revealTile($tileCard_id, 1);
+
+        $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_2");
+        $this->revealTile($tileCard_id, 1);
+
         $this->globals->set("rhomFirstTurn", false);
         $this->gamestate->nextState("realTurn");
     }
 
-    public function argRhomFirstTurn(): array {
+    public function argRhomFirstTurn(): array
+    {
         return [
             "rhom" => "Rhom"
         ];
@@ -1414,6 +1442,33 @@ class Game extends \Table
         }
 
         return ["tiles" => $catapultableTiles, "empty" => array_unique($catapultableEmpty)];
+    }
+
+    public function revealTile(int $tileCard_id, int $player_id): void
+    {
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
+        $revealedTiles[$tileCard_id] = $tileCard;
+        $this->globals->set(REVEALED_TILES, $revealedTiles);
+
+        $this->notifyAllPlayers(
+            "revealTile",
+            clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "hex" => $tileCard["location_arg"],
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard"],
+                "i18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
+            ]
+        );
+
+        if ($player_id !== 1) {
+            $this->globals->inc(REVEALS_LIMIT, 1);
+        }
     }
 
     public function resolveTileEffect(array $tileCard, int $player_id): void
@@ -2988,6 +3043,16 @@ class Game extends \Table
         );
     }
 
+    /* SOLO UTILITY */
+
+    public function weathervaneDirection(): string
+    {
+        $rhomDeckTop =  $this->rhom_cards->getCardOnTop("deck");
+        return $rhomDeckTop["direction"];
+    }
+
+    /*  DEBUG */
+
     public function debug_stat(int $player_id): void
     {
         $stat = $this->getStat("miningAttempts", $player_id);
@@ -3283,25 +3348,34 @@ class Game extends \Table
             }
         }
 
-        if ($this->isSolo()) {
+        if (count($players) === 1) {
             $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type='ffa500'");
             $playerBoards[1] = (int) $explorerCard["type_arg"];
 
             $this->explorer_cards->moveCard($explorerCard_id, "scene", 1);
             $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id='$explorerCard_id'");
+
+            $rhomCards = [];
+            foreach ($this->weathervane_info as $weathervane_id => $weathervane_info) {
+                $direction = $weathervane_info["weathervane"];
+                $rhomCards[] = ["type" => $direction, "type_arg" => $weathervane_id, "nbr" => 1];
+            }
+
+            $this->rhom_cards->createCards($rhomCards, "deck");
+            $this->rhom_cards->shuffle("deck");
         }
 
         $this->globals->set(PLAYER_BOARDS, $playerBoards);
         $this->explorer_cards->moveAllCardsInLocation("deck", "box");
 
-        $tiles = [];
+        $tileCards = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
 
-            $tiles[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
+            $tileCards[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
-        $this->tile_cards->createCards($tiles, "deck");
+        $this->tile_cards->createCards($tileCards, "deck");
 
         $hex = 1;
         foreach ($this->regions_info as $region_id => $region) {

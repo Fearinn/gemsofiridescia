@@ -3601,8 +3601,17 @@ define([
         if (log && args && !args.processed) {
           args.processed = true;
 
-          if (args.player_name?.includes("Rhom") && this.goi_globals.isSolo) {
-            args.player_name = `<!--PNS--><span class="playername" style="color: #${this.goi_globals.bot.color}">Rhom</span><!--PNE-->`;
+          const botColor = this.goi_globals.bot.color;
+          if (args.rhom) {
+            args.rhom = `<span style="font-weight: bold; color: #${botColor}">Rhom</span>`;
+          }
+
+          if (
+            args.player_name &&
+            args.player_id == 1 &&
+            this.goi_globals.isSolo
+          ) {
+            args.player_name = `<!--PNS--><span class="playername" style="color: #${botColor}">Rhom</span><!--PNE-->`;
           }
 
           if (args.tile && args.tileCard) {
