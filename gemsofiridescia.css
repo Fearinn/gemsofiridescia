@@ -47,6 +47,7 @@
 
   text-rendering: optimizeLegibility;
 
+  box-sizing: border-box;
   display: grid;
   grid-template-areas:
     "d d d d d ."
@@ -57,9 +58,10 @@
     "a a a a a b"
     "c c c c c c";
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 16px;
-  padding: 0 32px;
+  padding: 16px;
+  overflow-x: auto;
 }
 
 .goi_dialog {
@@ -356,7 +358,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  width: calc(var(--cardSize) * 3);
+  width: calc(var(--cardSize) * 2.1);
 }
 
 .goi_void {
