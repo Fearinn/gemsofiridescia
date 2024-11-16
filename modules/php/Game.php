@@ -3045,10 +3045,23 @@ class Game extends \Table
 
     /* SOLO UTILITY */
 
+    public function getRhomDeck(bool $onlyTop = false): array {
+        $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
+        if ($onlyTop) {
+            return $this->hideCard($rhomDeckTop);
+        }
+
+        $rhomDeck = $this->rhom_cards->getCardsInLocation("deck");
+        $rhomDeckTop_id = (int) $rhomDeckTop["id"];
+        unset($rhomDeck[$rhomDeckTop_id]);
+
+        return $this->hideCards($rhomDeck, false, true);
+    }
+
     public function weathervaneDirection(): string
     {
         $rhomDeckTop =  $this->rhom_cards->getCardOnTop("deck");
-        return $rhomDeckTop["direction"];
+        return $rhomDeckTop["type"];
     }
 
     /*  DEBUG */
@@ -3246,6 +3259,8 @@ class Game extends \Table
         if ($isSolo) {
             $result["realPlayer"] = array_shift($playersNoZombie);
             $result["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+            $result["rhomDeck"] = $this->getRhomDeck();
+            $result["rhomDeckTop"] = $this->getRhomDeck(true);
         }
 
         return $result;
@@ -3356,9 +3371,9 @@ class Game extends \Table
             $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id='$explorerCard_id'");
 
             $rhomCards = [];
-            foreach ($this->weathervane_info as $weathervane_id => $weathervane_info) {
-                $direction = $weathervane_info["weathervane"];
-                $rhomCards[] = ["type" => $direction, "type_arg" => $weathervane_id, "nbr" => 1];
+            foreach ($this->rhom_info as $rhom_id => $rhom_info) {
+                $direction = $rhom_info["weathervane"];
+                $rhomCards[] = ["type" => $direction, "type_arg" => $rhom_id, "nbr" => 1];
             }
 
             $this->rhom_cards->createCards($rhomCards, "deck");
