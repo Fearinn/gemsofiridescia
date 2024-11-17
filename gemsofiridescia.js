@@ -60,7 +60,7 @@ define([
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75],
+        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 1],
         defaultZoom: [0.5],
       });
 
