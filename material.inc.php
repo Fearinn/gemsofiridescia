@@ -924,7 +924,7 @@ $this->items_info = [
     ]
 ];
 
-$this->weathervane_info = [
+$this->rhom_info = [
     1 => [
         "directions" => [
             "left" => 1,

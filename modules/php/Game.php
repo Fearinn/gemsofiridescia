@@ -988,6 +988,10 @@ class Game extends \Table
 
         $weathervaneDirection = $this->weathervaneDirection();
 
+        $weathervaneDirection = "left";
+        $hex_1 = 1;
+        $hex_2 = 6;
+
         if ($weathervaneDirection === "right") {
             if ($hex_1 === 1 || $hex_1 === 6) {
                 $hex_1 = 2;
@@ -1018,9 +1022,9 @@ class Game extends \Table
             }
 
             if ($weathervaneDirection === "left") {
-                $hex_2 = $hex_1 - 1;
+                $hex_2--;
 
-                if ($hex_2 = 1) {
+                if ($hex_2 === 1) {
                     $hex_2 = 5;
                 }
             }
