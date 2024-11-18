@@ -35,15 +35,23 @@
   background-image: none;
 }
 
+html {
+  --cardHeight: 306.75px;
+  --cardSize: 225px;
+  --tileHeight: 172.5px;
+  --tileSize: 150px;
+}
+
 .goi_gameArea {
-  --boardSize: 2500px;
-  --playerBoardSize: 600px;
-  --tileSize: 200px;
-  --tileSpacing: 5px;
-  --explorerSize: 175px;
-  --gemSize: 90px;
-  --dieSize: 80px;
-  --cardSize: 300px;
+  --boardSize: 1875px;
+  --playerBoardSize: 450px;
+  --tileSize: 150px;
+  --tileSpacing: 3.75px;
+  --explorerSize: 131.25px;
+  --gemSize: 67.5px;
+  --dieSize: 60px;
+  --cardHeight: 306.75px;
+  --cardSize: 225px;
 
   text-rendering: optimizeLegibility;
 
@@ -72,11 +80,6 @@
   margin: 0;
 }
 
-.goi_content_dlg .goi_card {
-  height: 273px;
-  width: 200px;
-}
-
 .goi_content_dlg .card-side {
   background-size: cover !important;
 }
@@ -86,7 +89,7 @@
 }
 
 .goi_card {
-  height: 409px;
+  height: var(--cardHeight);
   width: var(--cardSize);
 }
 
@@ -95,7 +98,7 @@
 }
 
 .goi_logImage .goi_cardTitle {
-  font-size: 2em;
+  font-size: 24px;
 }
 
 .goi_card,
@@ -112,7 +115,7 @@
 .goi_cardTitle {
   font-family: "sketchnote-square", sans-serif;
   color: white;
-  font-size: 1.5em;
+  font-size: 20px;
   text-align: center;
 
   position: absolute;
@@ -123,7 +126,7 @@
 }
 
 .bga-help_button .goi_cardTitle {
-  font-size: 1.1em;
+  font-size: 20px;
   top: 3%;
 }
 
@@ -131,7 +134,7 @@
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 0.8em;
+  font-size: 12px;
 
   position: absolute;
   top: 17%;
@@ -141,7 +144,7 @@
   flex-direction: column;
   justify-content: space-around;
   gap: 2px;
-  height: var(--maxHeight);
+  height: 65%;
   overflow-y: auto;
   width: 100%;
 }
@@ -155,7 +158,8 @@
   font-family: "sketchnote-square", sans-serif;
   background-color: white;
   border-radius: 100%;
-  font-size: 1.5em !important;
+  font-size: 20px !important;
+  padding: 1px;
   height: auto !important;
   width: 15% !important;
 }
@@ -167,19 +171,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 32px;
   height: 100%;
 }
 
 .goi_helpCard {
   position: relative;
   background-image: url("img/playerAids.png");
-  height: 273px;
-  width: 200px;
 }
 
 .goi_helpCardSubtitle {
-  line-height: 0.9em;
+  line-height: 14px;
   text-indent: 2px;
   font-family: "sketchnote-square", sans-serif;
 }
@@ -281,7 +283,7 @@
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 1.2em;
+  font-size: 16px;
 
   position: absolute;
   left: 0;
@@ -309,7 +311,7 @@
 
 .goi_selectedDie {
   border: 4px solid red !important;
-  top: 16px;
+  top: 12px;
 }
 
 .goi_activeDie {
@@ -322,7 +324,7 @@
   right: 10%;
   display: flex;
   flex-direction: column;
-  gap: 90px;
+  gap: 67.5px;
   width: var(--dieSize);
 }
 
@@ -379,9 +381,8 @@
 .goi_itemsMarket {
   display: grid;
   grid-template-columns: repeat(2, var(--cardSize));
-  grid-template-rows: repeat(3, 409px);
+  grid-template-rows: repeat(3, var(--cardHeight));
   gap: 16px;
-  height: 1260px !important;
   width: 100%;
 }
 
@@ -392,14 +393,13 @@
 
 .goi_itemsZone {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: calc(409px + 20px);
+  gap: 4px;
+  min-height: calc(var(--cardHeight) + 20px);
 }
 
 .goi_zoneTitle {
   font-family: "sketchnote-square", sans-serif;
-  font-size: 2.5em;
+  font-size: 32px;
 }
 
 .goi_itemsContainer {
@@ -428,7 +428,7 @@
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 10px;
+  font-size: 7.5px;
 
   display: flex;
   align-items: center;
@@ -456,37 +456,38 @@
   width: var(--boardSize);
 }
 
-.goi_scoringHundred {
-  position: absolute;
-  top: 5%;
-  right: 5%;
-  width: 50px;
-}
-
 .goi_scoringMarker {
   position: absolute;
   transform: rotate(45deg);
-  height: 50px;
-  width: 50px;
+  height: 37.5px;
+  width: 37.5px;
 }
 
 .goi_scoringMarker:not(:first-child) {
   margin-top: 4px;
 }
 
+.goi_scoringHundred {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 37.5px;
+}
+
+
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
   position: absolute;
-  top: 30%;
-  left: 25%;
+  top: 17.5%;
+  left: 17.5%;
   color: white;
   transform: rotate(-45deg);
 }
 
 .goi_tilesGrid {
   position: absolute;
-  top: 275px;
-  left: 275px;
+  top: 13%;
+  left: 10.5%;
 }
 
 .goi_tilesRow {
@@ -529,14 +530,9 @@
   opacity: 0.5;
 }
 
-.goi_tile.goi_logImage {
-  height: 230px;
-  width: 200px;
-}
-
 .goi_tile .card-side {
   box-shadow: none !important;
-  height: 230px;
+  height: var(--tileHeight);
   width: var(--tileSize);
 }
 
@@ -547,14 +543,15 @@
 
 .goi_selectedTile::after {
   position: absolute;
-  bottom: 24px;
-  left: 80px;
+  bottom: 12%;
+  left: 37.5%;
 
   animation: pickaxe infinite 2s;
   content: "";
   background: url("img/pickaxe.png");
-  height: calc(var(--tileSize) / 5);
-  width: calc(var(--tileSize) / 5);
+  background-size: cover;
+  height: calc(var(--tileSize) / 4);
+  width: calc(var(--tileSize) / 4);
   z-index: 1;
 }
 
@@ -643,8 +640,8 @@
 
 .goi_royaltyToken {
   background-image: url("img/royaltyTokens.png");
-  height: 250px;
-  width: 250px;
+  height: 187.5px;
+  width: 187.5px;
   margin: 0 -48px;
 }
 

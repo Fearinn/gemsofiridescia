@@ -62,7 +62,7 @@ define([
         },
         zoomLevels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
         defaultZoom: 0.2,
-        smooth: false,
+        smooth: true,
       });
 
       this.goi_info.relics = gamedatas.relicsInfo;
@@ -151,7 +151,7 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_helpCardContent" style="--maxHeight: 180px;"> 
+      <div id="goi_helpCardContent" class="goi_helpCardContent"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
@@ -177,9 +177,9 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "273px",
+            expandedHeight: "306.75px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
-            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}">
+            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
               ${aidContent}
             </div>`,
@@ -212,8 +212,8 @@ define([
       });
 
       this.goi_managers.tiles = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 200,
+        cardHeight: 172.5,
+        cardWidth: 150,
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -287,8 +287,8 @@ define([
       });
 
       this.goi_managers.relics = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -336,8 +336,8 @@ define([
       });
 
       this.goi_managers.objectives = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -402,8 +402,8 @@ define([
       });
 
       this.goi_managers.items = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -500,7 +500,7 @@ define([
         const slotId = Number(slot.dataset.slotId);
 
         if (slotId <= 34) {
-          slot.style.bottom = `${4.5 + slotId * 2.5}%`;
+          slot.style.bottom = `${3.75 + slotId * 2.5}%`;
           slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
@@ -513,7 +513,7 @@ define([
 
         if (slotId >= 75) {
           slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
-          slot.style.right = slotId % 2 === 0 ? "7%" : "4.75%";
+          slot.style.right = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
       });
@@ -1042,7 +1042,7 @@ define([
         this.goi_stocks[player_id].objectives.hand = new AllVisibleDeck(
           this.goi_managers.objectives,
           document.getElementById(`goi_objectives:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          { horizontalShift: "0px", verticalShift: "36px" }
         );
 
         this.goi_stocks[player_id].objectives.hand.onSelectionChange = (
