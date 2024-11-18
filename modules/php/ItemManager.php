@@ -44,11 +44,11 @@ class ItemManager
     public function isBuyable(int $player_id): bool
     {
         if ($this->id === 2) {
-           $hasBook = $this->game->item_cards->countCardsInLocation("book", $player_id) > 0;
+            $hasBook = $this->game->item_cards->countCardsInLocation("book", $player_id) > 0;
 
-           if ($hasBook) {
+            if ($hasBook) {
                 return false;
-           }
+            }
         }
 
         if ($this->id === 4) {
@@ -292,7 +292,7 @@ class ItemManager
         $queryResult = $this->game->getCollectionFromDB("$deckSelectQuery from relic WHERE card_type_arg=$relic_id");
         $relicCard = array_shift($queryResult);
 
-        if ($relicCard["location"] === "hand" || $relicCard["location"] === "book") {
+        if ($relicCard["location"] !== "deck" && $relicCard["location"] !== "market") {
             throw new \BgaVisibleSystemException("You can't use the Regal Reference Book with this Relic: $relic_id");
         }
 
@@ -311,13 +311,16 @@ class ItemManager
                 "player_name" => $this->game->getPlayerNameById($player_id),
                 "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
                 "relicCard" => $relicCard,
+                "relicsDeckCount" => $this->game->relic_cards->countCardsInLocation("deck"),
                 "relicsDeckTop" => $relicsDeckTop,
                 "itemCard" => $this->card,
                 "preserve" => ["relicCard"],
             ]
         );
 
-        $this->game->replaceRelic();
+        if ($relicCard["location"] === "market") {
+            $this->game->replaceRelic();
+        }
     }
 
     public function marvelousCart(): void

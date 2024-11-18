@@ -2340,7 +2340,7 @@ class Game extends \Table
 
         $relic_id = $relicCard["type_arg"];
 
-        $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+        $relicsDeckTop = $this->getRelicsDeck(true);
         $relic_info = $this->relics_info[$relic_id];
 
         $this->notifyAllPlayers(
@@ -2348,7 +2348,8 @@ class Game extends \Table
             clienttranslate('A new Relic is revealed: the ${relic_name}'),
             [
                 "relic_name" => $relic_info["tr_name"],
-                "relicsDeckTop" => $this->hideCard($relicsDeckTop, true, "fake"),
+                "relicsDeckCount" => $this->relic_cards->countCardsInLocation("deck"),
+                "relicsDeckTop" => $relicsDeckTop,
                 "relicCard" => $relicCard,
                 "i18n" => ["relic_name"],
                 "preserve" => ["relicCard"],

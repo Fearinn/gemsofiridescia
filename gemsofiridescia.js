@@ -3226,13 +3226,15 @@ define([
     notif_replaceRelic: function (notif) {
       const relicCard = notif.args.relicCard;
       const relicsDeckTop = notif.args.relicsDeckTop;
+      const relicsDeckCount = notif.args.relicsDeckCount;
 
       this.goi_stocks.relics.market.addCard(relicCard, {
         fromStock: this.goi_stocks.relics.deck,
       });
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
-      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+      this.goi_stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
+      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
     },
 
     notif_reshuffleItemsDeck: function (notif) {
@@ -3296,6 +3298,7 @@ define([
       const player_id = notif.args.player_id;
       const relicCard = notif.args.relicCard;
       const itemCard = notif.args.itemCard;
+      const relicsDeckCount = notif.args.relicsDeckCount;
       const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi_stocks[player_id].items.book.addCard(itemCard);
@@ -3307,7 +3310,7 @@ define([
       });
 
       this.goi_stocks.relics.deck.shuffle({ animatedCardsMax: 5 });
-      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+      this.goi_stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
       this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
     },
 
