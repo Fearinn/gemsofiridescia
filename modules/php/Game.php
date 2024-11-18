@@ -2161,9 +2161,14 @@ class Game extends \Table
         );
     }
 
-    public function getRelicsDeck(bool $onlyTop = false): array
+    public function getRelicsDeck(bool $onlyTop = false): ?array
     {
         $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+
+        if ($relicsDeckTop === null) {
+            return null;
+        }
+
         $relicsDeckTop_id = $relicsDeckTop["id"];
 
         if ($onlyTop) {

@@ -1266,6 +1266,7 @@ define([
             id: "goi_relicsDeckCounter",
             position: "top",
             extraClasses: "goi_deckCounter",
+            hideWhenEmpty: true,
           },
         }
       );
@@ -1279,8 +1280,11 @@ define([
       }
 
       const relicsDeckTop = this.goi_globals.relicsDeckTop;
-      this.goi_stocks.relics.deck.addCard(relicsDeckTop);
-      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+
+      if (relicsDeckTop) {
+        this.goi_stocks.relics.deck.addCard(relicsDeckTop);
+        this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
 
       this.goi_stocks.relics.market = new CardStock(
         this.goi_managers.relics,
@@ -3234,7 +3238,10 @@ define([
 
       this.goi_stocks.relics.deck.removeCard({ id: "fake" });
       this.goi_stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
-      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+
+      if (relicsDeckTop) {
+        this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
     },
 
     notif_reshuffleItemsDeck: function (notif) {
@@ -3310,8 +3317,12 @@ define([
       });
 
       this.goi_stocks.relics.deck.shuffle({ animatedCardsMax: 5 });
+
       this.goi_stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
-      this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+
+      if (relicsDeckTop) {
+        this.goi_stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
     },
 
     notif_swappingStones: function (notif) {
