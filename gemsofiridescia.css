@@ -62,6 +62,7 @@
   gap: 16px;
   padding: 16px;
   overflow-x: auto;
+  will-change: transform, scroll-position;
 }
 
 .goi_dialog {
