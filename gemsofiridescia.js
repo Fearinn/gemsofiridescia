@@ -1122,12 +1122,13 @@ define([
         }
 
         /* VICTORY PILE */
-        this.goi_stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
+        this.goi_stocks[player_id].tiles.victoryPile = new CardStock(
           this.goi_managers.tiles,
           document.getElementById(`goi_tilesPile:${player_id}`),
           {
-            horizontalShift: "0px",
-            verticalShift: "48px",
+            sort: (tile, otherTile) => {
+              return tile.type_arg - otherTile.type_arg;
+            },
           }
         );
 
@@ -1178,10 +1179,16 @@ define([
           });
         }
 
-        this.goi_stocks[player_id].relics.victoryPile = new AllVisibleDeck(
+        this.goi_stocks[player_id].relics.victoryPile = new CardStock(
           this.goi_managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          {
+            sort: (relic, otherRelic) => {
+              const relicType = this.goi_info.relics[relic.type_arg]["type"];
+              const otherRelicType = this.goi_info.relics[otherRelic.type_arg]["type"];
+              return relicType - otherRelicType;
+            },
+          }
         );
 
         const restoredRelics = this.goi_globals.restoredRelics[player_id];

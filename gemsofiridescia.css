@@ -17,7 +17,8 @@
   position: relative !important;
 }
 
-.all-visible-deck:empty, .deck[data-empty="true"] {
+.all-visible-deck:empty,
+.deck[data-empty="true"] {
   display: none !important;
 }
 
@@ -467,7 +468,6 @@ html {
   width: 37.5px;
 }
 
-
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
   position: absolute;
@@ -492,6 +492,20 @@ html {
 
 .goi_tilesRow:nth-child(odd) {
   margin-left: calc(var(--tileSize) / 2);
+}
+
+.goi_tilesPile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.goi_tilesPile .goi_tile {
+  position: relative !important;
+}
+
+.goi_tilesPile .goi_tile:not(:first-child) {
+  margin-top: -80%;
 }
 
 .goi_tileContainer {
@@ -756,6 +770,10 @@ html {
   gap: 8px;
   overflow-y: hidden;
   overflow-x: auto;
+}
+
+.goi_relicsPile .goi_relic.card:not(:first-child) {
+  margin-top: -95%;
 }
 
 /* END OF CUSTOM STYLES */
