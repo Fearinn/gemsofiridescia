@@ -93,14 +93,6 @@ html {
   width: var(--cardSize);
 }
 
-.goi_card.goi_logImage {
-  width: 300px;
-}
-
-.goi_logImage .goi_cardTitle {
-  font-size: 24px;
-}
-
 .goi_card,
 .goi_card .card-side {
   border-radius: 12px;
