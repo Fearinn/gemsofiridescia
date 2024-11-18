@@ -17,8 +17,8 @@
   position: relative !important;
 }
 
-.all-visible-deck:empty {
-  display: none;
+.all-visible-deck:empty, .deck[data-empty="true"] {
+  display: none !important;
 }
 
 .all-visible-deck > .card {
@@ -58,13 +58,13 @@ html {
   box-sizing: border-box;
   display: grid;
   grid-template-areas:
-    "d d d d d ."
-    "a a a a a b"
-    "a a a a a b"
-    "a a a a a b"
-    "a a a a a b"
-    "a a a a a b"
-    "c c c c c c";
+    ". d d d d d ."
+    "e a a a a a b"
+    "e a a a a a b"
+    "e a a a a a b"
+    "e a a a a a b"
+    "e a a a a a b"
+    "c c c c c c c";
   align-items: flex-start;
   justify-content: center;
   gap: 16px;
@@ -384,6 +384,7 @@ html {
 }
 
 .goi_itemsZone {
+  grid-area: e;
   display: flex;
   gap: 4px;
   min-height: calc(var(--cardHeight) + 20px);
@@ -564,11 +565,11 @@ html {
 .goi_playerZones {
   grid-area: c;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-start;
   flex-wrap: wrap;
   gap: 16px;
-  max-width: calc(var(--boardSize) + (var(--cardSize) * 2) + 24px);
+  max-width: calc(var(--boardSize) + ((var(--cardSize) * 2) + 24px) * 2);
   width: 100%;
 }
 

@@ -111,6 +111,17 @@
     <div id="goi_relicsDeck" class="goi_relicsDeck"></div>
     <div id="goi_relicsMarket" class="goi_relicsMarket"></div>
   </div>
+  <div id="goi_itemsZone" class="goi_itemsZone whiteblock">
+    <div id="goi_void" class="goi_void"></div>
+    <div class="goi_itemsContainer">
+      <h3 id="goi_activeItemsTitle" class="goi_zoneTitle"></h3>
+      <div id="goi_activeItems" class="goi_activeItems"></div>
+    </div>
+    <div class="goi_itemsContainer">
+      <h3 id="goi_itemsDiscardTitle" class="goi_zoneTitle"></h3>
+      <div id="goi_itemsDiscard" class="goi_itemsDiscard"></div>
+    </div>
+  </div>
   <div id="goi_board" class="goi_board">
     <div id="goi_scoringTrack" class="goi_scoringTrack"></div>
     <div class="goi_tilesGrid">
@@ -198,21 +209,10 @@
   <div id="goi_playerZones" class="goi_playerZones"></div>
   <div id="goi_items" class="goi_items">
     <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
-    <div id="goi_void" class="goi_void"></div>
     <div id="goi_merchant" class="goi_merchant">
       <div id="goi_itemsDeck" class="goi_itemsDeck"></div>
       <div id="goi_itemsMarket" class="goi_itemsMarket">
         <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
-      </div>
-    </div>
-    <div id="goi_itemsZone" class="goi_itemsZone whiteblock">
-      <div class="goi_itemsContainer">
-        <h3 id="goi_activeItemsTitle" class="goi_zoneTitle"></h3>
-        <div id="goi_activeItems" class="goi_activeItems"></div>
-      </div>
-      <div class="goi_itemsContainer">
-        <h3 id="goi_itemsDiscardTitle" class="goi_zoneTitle"></h3>
-        <div id="goi_itemsDiscard" class="goi_itemsDiscard"></div>
       </div>
     </div>
   </div>
