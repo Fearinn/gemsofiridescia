@@ -34,7 +34,6 @@ define([
       this._attachedTooltips = {};
 
       this.goi = {};
-
       this.goi.info = {};
       this.goi.globals = {};
       this.goi.managers = {};
@@ -63,8 +62,9 @@ define([
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.125, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 1],
-        defaultZoom: [0.5],
+        zoomLevels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        defaultZoom: 0.2,
+        smooth: true,
       });
 
       this.goi.info.relics = gamedatas.relicsInfo;
@@ -159,7 +159,7 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_helpCardContent" style="--maxHeight: 180px;"> 
+      <div id="goi_helpCardContent" class="goi_helpCardContent"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
@@ -185,9 +185,9 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "273px",
+            expandedHeight: "306.75px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
-            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard bga-card" style="background-position: ${aidBackgroundPosition}">
+            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
               ${aidContent}
             </div>`,
@@ -220,8 +220,8 @@ define([
       });
 
       this.goi.managers.tiles = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 200,
+        cardHeight: 172.5,
+        cardWidth: 150,
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -295,8 +295,8 @@ define([
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -344,8 +344,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -410,8 +410,8 @@ define([
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 306.75,
+        cardWidth: 225,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -529,7 +529,7 @@ define([
         const slotId = Number(slot.dataset.slotId);
 
         if (slotId <= 34) {
-          slot.style.bottom = `${4.5 + slotId * 2.5}%`;
+          slot.style.bottom = `${3.75 + slotId * 2.5}%`;
           slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
@@ -542,7 +542,7 @@ define([
 
         if (slotId >= 75) {
           slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
-          slot.style.right = slotId % 2 === 0 ? "7%" : "4.75%";
+          slot.style.right = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
       });
@@ -567,8 +567,7 @@ define([
 
       this.goi.stocks.gems.void = new VoidStock(
         this.goi.managers.gems,
-        document.getElementById("goi_void"),
-        {}
+        document.getElementById("goi_void")
       );
 
       /* PLAYER PANELS */
@@ -1075,7 +1074,7 @@ define([
         this.goi.stocks[player_id].objectives.hand = new AllVisibleDeck(
           this.goi.managers.objectives,
           document.getElementById(`goi_objectives:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          { horizontalShift: "0px", verticalShift: "36px" }
         );
 
         this.goi.stocks[player_id].objectives.hand.onSelectionChange = (
@@ -1155,12 +1154,13 @@ define([
         }
 
         /* VICTORY PILE */
-        this.goi.stocks[player_id].tiles.victoryPile = new AllVisibleDeck(
+        this.goi.stocks[player_id].tiles.victoryPile = new CardStock(
           this.goi.managers.tiles,
           document.getElementById(`goi_tilesPile:${player_id}`),
           {
-            horizontalShift: "0px",
-            verticalShift: "48px",
+            sort: (tile, otherTile) => {
+              return tile.type_arg - otherTile.type_arg;
+            },
           }
         );
 
@@ -1182,6 +1182,13 @@ define([
           const tileCard = collectedTiles[tileCard_id];
           this.goi.stocks[player_id].tiles.victoryPile.addCard(tileCard);
         }
+
+        this.goi.stocks[player_id].tiles.void = new VoidStock(
+          this.goi.managers.tiles,
+          document.getElementById("goi_void")
+        );
+
+        /* ROYALTY TOKENS */
 
         this.goi.stocks[player_id].gems.iridiaStone = new CardStock(
           this.goi.managers.gems,
@@ -1211,10 +1218,17 @@ define([
           });
         }
 
-        this.goi.stocks[player_id].relics.victoryPile = new AllVisibleDeck(
+        this.goi.stocks[player_id].relics.victoryPile = new CardStock(
           this.goi.managers.relics,
           document.getElementById(`goi_relicsPile:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          {
+            sort: (relic, otherRelic) => {
+              const relicType = this.goi.info.relics[relic.type_arg]["type"];
+              const otherRelicType =
+                this.goi.info.relics[otherRelic.type_arg]["type"];
+              return relicType - otherRelicType;
+            },
+          }
         );
 
         const restoredRelics = this.goi.globals.restoredRelics[player_id];
@@ -1299,6 +1313,7 @@ define([
             id: "goi_relicsDeckCounter",
             position: "top",
             extraClasses: "goi_deckCounter",
+            hideWhenEmpty: true,
           },
         }
       );
@@ -1312,8 +1327,11 @@ define([
       }
 
       const relicsDeckTop = this.goi.globals.relicsDeckTop;
-      this.goi.stocks.relics.deck.addCard(relicsDeckTop);
-      this.goi.stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+
+      if (relicsDeckTop) {
+        this.goi.stocks.relics.deck.addCard(relicsDeckTop);
+        this.goi.stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
 
       this.goi.stocks.relics.market = new CardStock(
         this.goi.managers.relics,
@@ -1957,7 +1975,7 @@ define([
 
         if (stateName === "client_transferGem") {
           const selectedGems = args.client_args.selectedGems;
-          const availableCargos = args.args.availableCargos;
+          const availableCargos = args.client_args.availableCargos;
 
           this.goi.selections.gems = selectedGems;
 
@@ -2563,10 +2581,24 @@ define([
               return;
             }
 
+            const selectedGems = this.goi.selections.gems;
+
+            const client_availableCargos = availableCargos.filter(
+              (player_id) => {
+                const totalGemsCount =
+                  this.goi.stocks[player_id].gems.cargo.getCards().length;
+
+                return totalGemsCount + selectedGems.length <= 7;
+              }
+            );
+
             this.setClientState("client_transferGem", {
               descriptionmyturn:
                 "${you} must pick an opponent to transfer the selected Gem to",
-              client_args: { selectedGems: this.goi.selections.gems },
+              client_args: {
+                selectedGems,
+                availableCargos: client_availableCargos,
+              },
             });
           });
         }
@@ -3004,13 +3036,13 @@ define([
       const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks[player_id].tiles.victoryPile.removeCard(tileCard);
+      this.goi.stocks[player_id].tiles.void.addCard(tileCard);
     },
 
     notif_discardTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks.tiles.board.removeCard(tileCard);
+      this.goi.stocks.tiles.void.addCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
@@ -3320,13 +3352,18 @@ define([
     notif_replaceRelic: function (notif) {
       const relicCard = notif.args.relicCard;
       const relicsDeckTop = notif.args.relicsDeckTop;
+      const relicsDeckCount = notif.args.relicsDeckCount;
 
       this.goi.stocks.relics.market.addCard(relicCard, {
         fromStock: this.goi.stocks.relics.deck,
       });
 
       this.goi.stocks.relics.deck.removeCard({ id: "fake" });
-      this.goi.stocks.relics.deck.addCard(relicsDeckTop);
+      this.goi.stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
+
+      if (relicsDeckTop) {
+        this.goi.stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
     },
 
     notif_reshuffleItemsDeck: function (notif) {
@@ -3390,6 +3427,7 @@ define([
       const player_id = notif.args.player_id;
       const relicCard = notif.args.relicCard;
       const itemCard = notif.args.itemCard;
+      const relicsDeckCount = notif.args.relicsDeckCount;
       const relicsDeckTop = notif.args.relicsDeckTop;
 
       this.goi.stocks[player_id].items.book.addCard(itemCard);
@@ -3401,8 +3439,12 @@ define([
       });
 
       this.goi.stocks.relics.deck.shuffle({ animatedCardsMax: 5 });
-      this.goi.stocks.relics.deck.addCard(relicsDeckTop);
-      this.goi.stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+
+      this.goi.stocks.relics.deck.setCardNumber(relicsDeckCount, relicsDeckTop);
+
+      if (relicsDeckTop) {
+        this.goi.stocks.relics.deck.setCardVisible(relicsDeckTop, false);
+      }
     },
 
     notif_swappingStones: function (notif) {

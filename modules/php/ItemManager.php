@@ -44,11 +44,11 @@ class ItemManager
     public function isBuyable(int $player_id): bool
     {
         if ($this->id === 2) {
-           $hasBook = $this->game->item_cards->countCardsInLocation("book", $player_id) > 0;
+            $hasBook = $this->game->item_cards->countCardsInLocation("book", $player_id) > 0;
 
-           if ($hasBook) {
+            if ($hasBook) {
                 return false;
-           }
+            }
         }
 
         if ($this->id === 4) {
@@ -280,7 +280,7 @@ class ItemManager
             $this->game->checkCardLocation($gemCard, "hand", $player_id);
 
             $gem_id = (int) $gemCard["type_arg"];
-            $this->game->decGem(1, $gem_id, [$gemCard_id => $gemCard], $player_id, false, true);
+            $this->game->decGem($gem_id, [$gemCard], $player_id, false, true);
         }
 
         $this->game->incGem(1, $newGem_id, $player_id);
@@ -292,7 +292,7 @@ class ItemManager
         $queryResult = $this->game->getCollectionFromDB("$deckSelectQuery from relic WHERE card_type_arg=$relic_id");
         $relicCard = array_shift($queryResult);
 
-        if ($relicCard["location"] === "hand" || $relicCard["location"] === "book") {
+        if ($relicCard["location"] !== "deck" && $relicCard["location"] !== "market") {
             throw new \BgaVisibleSystemException("You can't use the Regal Reference Book with this Relic: $relic_id");
         }
 
@@ -311,13 +311,16 @@ class ItemManager
                 "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
                 "relicCard" => $relicCard,
+                "relicsDeckCount" => $this->game->relic_cards->countCardsInLocation("deck"),
                 "relicsDeckTop" => $relicsDeckTop,
                 "itemCard" => $this->card,
                 "preserve" => ["relicCard"],
             ]
         );
 
-        $this->game->replaceRelic();
+        if ($relicCard["location"] === "market") {
+            $this->game->replaceRelic();
+        }
     }
 
     public function marvelousCart(): void

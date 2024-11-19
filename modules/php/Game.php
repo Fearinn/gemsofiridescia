@@ -520,13 +520,13 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("You can't transfer more Gems than your excedent");
         }
 
-        $availableCargos = $this->availableCargos($player_id);
+        $availableCargos = $this->availableCargos($player_id, $transferredGemsCount);
 
         if ($opponent_id) {
             $this->checkPlayer($opponent_id);
 
             if (!in_array($opponent_id, $availableCargos)) {
-                throw new \BgaVisibleSystemException("You can't transfer a gem to this player now: actTransferGem, $opponent_id");
+                throw new \BgaVisibleSystemException("You can't that many gems to this player now: actTransferGem, $opponent_id, $transferredGemsCount");
             }
         }
 
@@ -545,8 +545,6 @@ class Game extends \Table
 
             $gemCardsByType[$gem_id][] = $gemCard;
         }
-
-        $availableCargos = $this->availableCargos($player_id);
 
         foreach ($gemCardsByType as $gemCards) {
             if (!$availableCargos) {
@@ -818,7 +816,7 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $excedentGems = $this->getTotalGemsCount($player_id) - 7;
-        $availableCargos = $this->availableCargos($player_id);
+        $availableCargos = $this->availableCargos($player_id, 0);
 
         return [
             "excedentGems" => $excedentGems,
@@ -1886,13 +1884,14 @@ class Game extends \Table
         return $minedGemsCount;
     }
 
-    public function availableCargos(int $excludedPlayer_id = null): array
+    public function availableCargos(int $current_player_id = null, ?int $excendent): array
     {
         $players = $this->loadPlayersNoZombie();
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemsCount($player_id) < 7 && $player_id !== $excludedPlayer_id) {
+            $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
+            if (/* !$hasReachedCastle &&  */$this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -1903,6 +1902,7 @@ class Game extends \Table
     public function transferGems(array $gemCards, int $opponent_id, int $player_id): void
     {
         $gemCardsByType = [];
+
         foreach ($gemCards as $gemCard) {
             $gemCard_id = (int) $gemCard["id"];
             $gemCard = $this->gem_cards->getCard($gemCard_id);
@@ -2272,9 +2272,14 @@ class Game extends \Table
         );
     }
 
-    public function getRelicsDeck(bool $onlyTop = false): array
+    public function getRelicsDeck(bool $onlyTop = false): ?array
     {
         $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+
+        if ($relicsDeckTop === null) {
+            return null;
+        }
+
         $relicsDeckTop_id = $relicsDeckTop["id"];
 
         if ($onlyTop) {
@@ -2451,7 +2456,7 @@ class Game extends \Table
 
         $relic_id = $relicCard["type_arg"];
 
-        $relicsDeckTop = $this->relic_cards->getCardOnTop("deck");
+        $relicsDeckTop = $this->getRelicsDeck(true);
         $relic_info = $this->relics_info[$relic_id];
 
         $this->notifyAllPlayers(
@@ -2459,7 +2464,8 @@ class Game extends \Table
             clienttranslate('A new Relic is revealed: the ${relic_name}'),
             [
                 "relic_name" => $relic_info["tr_name"],
-                "relicsDeckTop" => $this->hideCard($relicsDeckTop, true, "fake"),
+                "relicsDeckCount" => $this->relic_cards->countCardsInLocation("deck"),
+                "relicsDeckTop" => $relicsDeckTop,
                 "relicCard" => $relicCard,
                 "i18n" => ["relic_name"],
                 "preserve" => ["relicCard"],
@@ -3069,6 +3075,10 @@ class Game extends \Table
     }
 
     /*  DEBUG */
+
+    public function debug_rollDie(int $player_id): void {
+        $this->rollDie(1, $player_id, "gem");
+    }
 
     public function debug_stat(int $player_id): void
     {
