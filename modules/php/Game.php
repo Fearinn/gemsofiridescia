@@ -2942,6 +2942,10 @@ class Game extends \Table
         );
     }
 
+    public function debug_rollDie(int $player_id): void {
+        $this->rollDie(1, $player_id, "gem");
+    }
+
     public function debug_stat(int $player_id): void
     {
         $stat = $this->getStat("miningAttempts", $player_id);

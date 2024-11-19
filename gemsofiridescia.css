@@ -858,7 +858,7 @@ body > .card {
   right: 0;
   bottom: 0;
   transform-style: preserve-3d;
-  -webkit-backface-visibility: hidden; /* Safari */
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform-origin: center center;
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
@@ -1086,7 +1086,7 @@ body > .bga-dice_die {
   transform-style: preserve-3d;
   position: relative;
   display: inline-block;
-  transform: rotate3d(1, 1, 1, -720deg);
+  transform: rotate(0deg);
   transition: transform var(--roll-duration) ease-out;
   display: grid;
   grid-template-columns: 1fr;
@@ -1105,117 +1105,49 @@ body > .bga-dice_die {
   grid-row: 1;
 }
 
-.bga-dice_die4 {
-  --third-size: calc(var(--size) / 3 * 0.6);
-  transform: translateZ(var(--third-size));
-}
-.bga-dice_die4 .bga-dice_die-faces[data-visible-face="1"] {
-  transform: rotateZ(0deg) rotateX(0deg);
-}
-.bga-dice_die4 .bga-dice_die-faces[data-visible-face="2"] {
-  transform: rotate3d(0, 1, 0, 180deg) rotateZ(0deg) rotateX(70.528779deg);
-}
-.bga-dice_die4 .bga-dice_die-faces[data-visible-face="3"] {
-  transform: rotateZ(180deg) rotateX(250deg) rotateZ(-120deg);
-}
-.bga-dice_die4 .bga-dice_die-faces[data-visible-face="4"] {
-  transform: rotateX(120deg) rotateZ(-60deg);
-}
-.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face {
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  height: 86.6%;
-  transform-origin: 50% 66.66667%;
-  margin-left: calc(var-(--size) * -0.5);
-  margin-top: calc(var-(--size) * -0.5);
-}
-.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="1"] {
-  transform: rotate3d(0, 1, 0, 180deg) translateZ(var(--third-size));
-}
-.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="2"] {
-  transform: rotateZ(0deg) rotateX(-70.528779deg) translateZ(var(--third-size));
-}
-.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="3"] {
-  transform: rotateZ(120deg) rotateX(-70.528779deg)
-    translateZ(var(--third-size));
-}
-.bga-dice_die4 .bga-dice_die-faces .bga-dice_die-face[data-face="4"] {
-  transform: rotateZ(240deg) rotateX(-70.528779deg)
-    translateZ(var(--third-size));
-}
-.bga-dice_die4
-  .bga-dice_die-faces
-  .bga-dice_die-face
-  .bga-dice_die-face-number {
-  transform-origin: center 66.66667%;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  text-align: center;
-  display: block;
-}
-.bga-dice_die4
-  .bga-dice_die-faces
-  .bga-dice_die-face
-  .bga-dice_die-face-number:nth-child(1) {
-  transform: rotateZ(0deg);
-}
-.bga-dice_die4
-  .bga-dice_die-faces
-  .bga-dice_die-face
-  .bga-dice_die-face-number:nth-child(2) {
-  transform: rotateZ(120deg);
-}
-.bga-dice_die4
-  .bga-dice_die-faces
-  .bga-dice_die-face
-  .bga-dice_die-face-number:nth-child(3) {
-  transform: rotateZ(240deg);
-}
-
 .bga-dice_die6 {
   --half-size: calc(var(--size) / 2);
   transform: translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="1"] {
-  transform: rotate3d(0, 0, 0, 0deg);
+  transform: rotate(0deg); /* No rotation */
 }
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="2"] {
-  transform: rotate3d(1, 0, 0, 90deg);
+  transform: rotateX(90deg); /* Rotation around X-axis */
 }
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="3"] {
-  transform: rotate3d(0, -1, 0, 90deg);
+  transform: rotateY(-90deg); /* Rotation around Y-axis (negative) */
 }
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="4"] {
-  transform: rotate3d(0, 1, 0, 90deg);
+  transform: rotateY(90deg); /* Rotation around Y-axis */
 }
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="5"] {
-  transform: rotate3d(-1, 0, 0, 90deg);
+  transform: rotateX(-90deg); /* Rotation around X-axis (negative) */
 }
+
 .bga-dice_die6 .bga-dice_die-faces[data-visible-face="6"] {
-  transform: rotate3d(0, 1, 0, 180deg);
+  transform: rotateY(180deg);
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face {
   border-radius: var(--bga-dice_border-radius);
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="1"] {
-  transform: rotate3d(0, 0, 0, 0deg) translateZ(var(--half-size));
+  transform: translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="2"] {
-  transform: rotate3d(-1, 0, 0, 90deg) translateZ(var(--half-size));
+  transform: rotateX(-90deg) translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="3"] {
-  transform: rotate3d(0, 1, 0, 90deg) translateZ(var(--half-size));
+  transform: rotateY(90deg) translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="4"] {
-  transform: rotate3d(0, -1, 0, 90deg) translateZ(var(--half-size));
+  transform: rotateY(-90deg) translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="5"] {
-  transform: rotate3d(1, 0, 0, 90deg) translateZ(var(--half-size));
+  transform: rotateX(90deg) translateZ(var(--half-size));
 }
 .bga-dice_die6 .bga-dice_die-faces .bga-dice_die-face[data-face="6"] {
-  transform: rotate3d(0, 1, 0, 180deg) translateZ(var(--half-size));
+  transform: rotateY(180deg) translateZ(var(--half-size));
 }
 
 .bga-dice_die-stock {
