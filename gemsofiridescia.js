@@ -2949,7 +2949,7 @@ define([
     notif_discardTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks.tiles.board.addCard(tileCard);
+      this.goi.stocks.tiles.void.addCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {
