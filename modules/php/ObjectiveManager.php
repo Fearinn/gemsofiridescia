@@ -156,13 +156,13 @@ class ObjectiveManager
 
         if ($this->id === 6) {
             $gemsRelics = [
-                "amethyst" => $this->game->getStat("1:GemRelics"),
-                "citrine" => $this->game->getStat("2:GemRelics"),
-                "emerald" => $this->game->getStat("3:GemRelics"),
-                "sapphire" => $this->game->getStat("4:GemRelics"),
+                "amethyst" => $this->game->getStat("1:GemRelics", $current_player_id),
+                "citrine" => $this->game->getStat("2:GemRelics", $current_player_id),
+                "emerald" => $this->game->getStat("3:GemRelics", $current_player_id),
+                "sapphire" => $this->game->getStat("4:GemRelics", $current_player_id),
             ];
 
-            $iridiaRelics = $this->game->getStat("iridia:Relics");
+            $iridiaRelics = $this->game->getStat("iridia:Relics", $current_player_id);
 
             $differentGems = 0;
             foreach ($gemsRelics as $relicsCount) {
