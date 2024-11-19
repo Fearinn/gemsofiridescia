@@ -539,8 +539,7 @@ define([
 
       this.goi.stocks.gems.void = new VoidStock(
         this.goi.managers.gems,
-        document.getElementById("goi_void"),
-        {}
+        document.getElementById("goi_void")
       );
 
       /* PLAYER PANELS */
@@ -1151,6 +1150,13 @@ define([
           const tileCard = collectedTiles[tileCard_id];
           this.goi.stocks[player_id].tiles.victoryPile.addCard(tileCard);
         }
+
+        this.goi.stocks[player_id].tiles.void = new VoidStock(
+          this.goi.managers.tiles,
+          document.getElementById("goi_void")
+        );
+
+        /* ROYALTY TOKENS */
 
         this.goi.stocks[player_id].gems.iridiaStone = new CardStock(
           this.goi.managers.gems,
@@ -2937,13 +2943,13 @@ define([
       const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks[player_id].tiles.victoryPile.removeCard(tileCard);
+      this.goi.stocks[player_id].tiles.void.addCard(tileCard);
     },
 
     notif_discardTile: function (notif) {
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks.tiles.board.removeCard(tileCard);
+      this.goi.stocks.tiles.board.addCard(tileCard);
     },
 
     notif_moveExplorer: function (notif) {

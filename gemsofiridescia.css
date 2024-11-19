@@ -357,8 +357,8 @@ html {
 
 .goi_void {
   position: absolute !important;
-  bottom: 0;
-  left: 25%;
+  top: 0;
+  left: 70%;
 }
 
 .goi_merchant {
@@ -385,6 +385,7 @@ html {
 }
 
 .goi_itemsZone {
+  position: relative;
   grid-area: e;
   display: flex;
   gap: 4px;
