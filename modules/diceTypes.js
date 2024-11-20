@@ -64,7 +64,7 @@ function calcBackgroundPosition(face, type, type_arg) {
 class Die extends BgaDie6 {
   constructor() {
     super();
-    this.size = 60;
+    this.size = 45;
   }
 
   setupDieDiv(die, element) {

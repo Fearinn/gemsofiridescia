@@ -61,8 +61,8 @@ define([
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        defaultZoom: 0.2,
+        zoomLevels: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        defaultZoom: 0.3,
         smooth: true,
       });
 
@@ -178,7 +178,7 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "306.75px",
+            expandedHeight: "230px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
             unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
@@ -213,8 +213,8 @@ define([
       });
 
       this.goi.managers.tiles = new CardManager(this, {
-        cardHeight: 172.5,
-        cardWidth: 150,
+        cardHeight: 130,
+        cardWidth: 112.5,
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -288,8 +288,8 @@ define([
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 169,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -337,8 +337,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 169,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -403,8 +403,8 @@ define([
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 169,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -501,7 +501,7 @@ define([
         const slotId = Number(slot.dataset.slotId);
 
         if (slotId <= 34) {
-          slot.style.bottom = `${3.75 + slotId * 2.5}%`;
+          slot.style.bottom = `${2.5 + slotId * 2.5}%`;
           slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
@@ -514,7 +514,7 @@ define([
 
         if (slotId >= 75) {
           slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
-          slot.style.right = slotId % 2 === 0 ? "6.5%" : "4.25%";
+          slot.style.right = slotId % 2 === 0 ? "5.5%" : "3.25%";
           return;
         }
       });
@@ -577,7 +577,7 @@ define([
 
         const coins = this.goi.globals.coins[player_id];
 
-        let positionLeft = coins >= 10 ? "24%" : "32%";
+        let positionLeft = coins >= 10 ? "24%" : "30%";
 
         if (coins == 1) {
           positionLeft = "38%";
@@ -1042,7 +1042,7 @@ define([
         this.goi.stocks[player_id].objectives.hand = new AllVisibleDeck(
           this.goi.managers.objectives,
           document.getElementById(`goi_objectives:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "36px" }
+          { horizontalShift: "0px", verticalShift: "24px" }
         );
 
         this.goi.stocks[player_id].objectives.hand.onSelectionChange = (
@@ -1086,7 +1086,7 @@ define([
         this.goi.stocks[player_id].items.hand = new AllVisibleDeck(
           this.goi.managers.items,
           document.getElementById(`goi_items:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          { horizontalShift: "0px", verticalShift: "24px" }
         );
 
         this.goi.stocks[player_id].items.hand.onSelectionChange = (
@@ -1379,7 +1379,7 @@ define([
       this.goi.stocks.items.active = new AllVisibleDeck(
         this.goi.managers.items,
         document.getElementById(`goi_activeItems`),
-        { horizontalShift: "0px", verticalShift: "48px" }
+        { horizontalShift: "0px", verticalShift: "24px" }
       );
 
       this.goi.stocks.items.active.onSelectionChange = (
@@ -1404,7 +1404,7 @@ define([
       this.goi.stocks.items.discard = new AllVisibleDeck(
         this.goi.managers.items,
         document.getElementById(`goi_itemsDiscard`),
-        { horizontalShift: "0px", verticalShift: "48px" }
+        { horizontalShift: "0px", verticalShift: "24px" }
       );
 
       const itemsDiscard = this.goi.globals.itemsDiscard;
@@ -3104,7 +3104,7 @@ define([
       this.goi.counters[player_id].coins.incValue(delta);
 
       const coins = this.goi.counters[player_id].coins.getValue();
-      let positionLeft = coins >= 10 ? "24%" : "32%";
+      let positionLeft = coins >= 10 ? "24%" : "30%";
 
       if (coins == 1) {
         positionLeft = "38%";
@@ -3679,7 +3679,7 @@ define([
 
           if (args.coin) {
             const delta = Math.abs(args.delta_log);
-            let positionLeft = delta >= 10 ? "24%" : "32%";
+            let positionLeft = delta >= 10 ? "24%" : "30%";
 
             if (delta == 1) {
               positionLeft = "38%";
@@ -3697,7 +3697,7 @@ define([
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            const positionLeft = args.points_log >= 10 ? "24%" : "32%";
+            const positionLeft = args.points_log >= 10 ? "24%" : "30%";
 
             args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
               <span class="goi_markerValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
