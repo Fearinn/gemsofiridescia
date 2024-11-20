@@ -577,9 +577,13 @@ define([
 
         const coins = this.goi.globals.coins[player_id];
 
-        let positionLeft = coins >= 10 ? "24%" : "30%";
+        let positionLeft = coins >= 10 ? "24%" : "32%";
 
-        if (coins == 1) {
+        if (coins === 11) {
+          positionLeft = "30%";
+        }
+
+        if (coins === 1) {
           positionLeft = "38%";
         }
 
@@ -3104,7 +3108,11 @@ define([
       this.goi.counters[player_id].coins.incValue(delta);
 
       const coins = this.goi.counters[player_id].coins.getValue();
-      let positionLeft = coins >= 10 ? "24%" : "30%";
+      let positionLeft = coins >= 10 ? "24%" : "32%";
+
+      if (coins === 11) {
+        positionLeft = "30%";
+      }
 
       if (coins == 1) {
         positionLeft = "38%";
@@ -3678,15 +3686,19 @@ define([
           }
 
           if (args.coin) {
-            const delta = Math.abs(args.delta_log);
-            let positionLeft = delta >= 10 ? "24%" : "30%";
+            const coins = Math.abs(args.delta_log);
+            let positionLeft = coins >= 10 ? "24%" : "32%";
 
-            if (delta == 1) {
-              positionLeft = "38%";
+            if (coins === 11) {
+              positionLeft = "30%";
+            }
+
+            if (coins === 1) {
+              positionLeft = "35%";
             }
 
             args.coin = `<span class="goi_logMarker">
-              <span class="goi_markerValue" style="left: ${positionLeft}">${delta}</span>
+              <span class="goi_markerValue" style="left: ${positionLeft}">${coins}</span>
             </span>`;
 
             args.delta_log = "";
@@ -3697,7 +3709,11 @@ define([
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            const positionLeft = args.points_log >= 10 ? "24%" : "30%";
+            let positionLeft = args.points_log >= 10 && args.points_log !== 11 ? "19%" : "28%";
+
+            if (args.points_log === 1) {
+              positionLeft = "35%";
+            }
 
             args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
               <span class="goi_markerValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
