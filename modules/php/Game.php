@@ -2691,7 +2691,11 @@ class Game extends \Table
         $tileCards = $this->tile_cards->getCardsInLocation("hand", $player_id);
         foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
-            $gem_id = $this->tiles_info[$tile_id]["gem"];
+            $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+
+            if ($gem_id === 10) {
+                $gem_id = 0;
+            }
 
             $tilesCountsByGem[$gem_id]++;
         }
