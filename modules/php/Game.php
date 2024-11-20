@@ -1517,7 +1517,7 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("The Iridia Stone has already been found: obtainIridiaStone");
         }
 
-        $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=1000 WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=player_score_aux+1000 WHERE player_id=$player_id");
 
         $this->notifyAllPlayers(
             "obtainIridiaStone",
@@ -1528,6 +1528,7 @@ class Game extends \Table
             ]
         );
 
+        $this->setStat(10, "iridiaPoints", $player_id);
         $this->incRoyaltyPoints(10, $player_id);
     }
 
@@ -1629,7 +1630,7 @@ class Game extends \Table
             ]
         );
 
-        $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=$score_aux WHERE player_id=$player_id");
+        $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=player_score_aux+$score_aux WHERE player_id=$player_id");
         $this->setStat($tokenPoints, "tokenPoints", $player_id);
         $this->incRoyaltyPoints($tokenPoints, $player_id);
     }
