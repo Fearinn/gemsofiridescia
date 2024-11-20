@@ -1612,7 +1612,9 @@ define([
         }
 
         if (stateName === "rainbowTile") {
-          this.generateRainbowOptions();
+          this.generateRainbowOptions(() => {
+            this.actPickRainbowGem();
+          });
           return;
         }
 
@@ -1755,7 +1757,9 @@ define([
         }
 
         if (stateName === "client_cauldronOfFortune2") {
-          this.generateRainbowOptions();
+          this.generateRainbowOptions(() => {
+            this.actUseItem();
+          });
         }
 
         if (stateName === "client_regalReferenceBook") {
@@ -2152,13 +2156,26 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
-    generateRainbowOptions: function () {
+    generateRainbowOptions: function (callback) {
       for (const gemName in this.goi.globals.gemsCounts[this.player_id]) {
-        this.goi.stocks.gems.rainbowOptions.addCard({
-          id: `rainbow-${gemName}`,
-          type: gemName,
-          type_arg: this.goi.info.gemIds[gemName],
-        });
+        const gem_id = this.goi.info.gemIds[gemName];
+        const buttonId = `goi_rainbow-${gem_id}_btn`;
+
+        const backgroundPosition = this.calcBackgroundPosition(gem_id);
+
+        this.addActionButton(
+          buttonId,
+          `<div class="goi_gem card" style="background-position: ${backgroundPosition}"></div>`,
+          () => {
+            this.goi.selections.gem = gem_id;
+            callback();
+          },
+          null,
+          false,
+          "gray"
+        );
+
+        document.getElementById(buttonId).style.border = "none";
       }
 
       const gemCards = this.goi.stocks.gems.rainbowOptions.getCards();
@@ -2610,7 +2627,7 @@ define([
 
     actPickRainbowGem: function () {
       this.performAction("actPickRainbowGem", {
-        gem_id: this.goi.selections.gem.type_arg,
+        gem_id: this.goi.selections.gem,
       });
     },
 
@@ -2732,7 +2749,7 @@ define([
 
         args = {
           oldGemCards_ids: oldGemCards_ids,
-          newGem_id: this.goi.selections.gem.type_arg,
+          newGem_id: this.goi.selections.gem,
         };
       }
 
@@ -3709,7 +3726,8 @@ define([
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            let positionLeft = args.points_log >= 10 && args.points_log !== 11 ? "19%" : "28%";
+            let positionLeft =
+              args.points_log >= 10 && args.points_log !== 11 ? "19%" : "28%";
 
             if (args.points_log === 1) {
               positionLeft = "35%";

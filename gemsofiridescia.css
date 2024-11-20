@@ -43,7 +43,7 @@ html {
   --cardSize: 168.5px;
   --tileHeight: 129.38px;
   --tileSize: 112.5px;
-  --tileSpacing: 2.8px;
+  --tileSpacing: 2.5px;
   --explorerSize: 98.5px;
   --gemSize: 51px;
   --dieSize: 45px;
@@ -613,7 +613,7 @@ html {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -634,7 +634,7 @@ html {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .goi_castlePile {
@@ -744,6 +744,12 @@ html {
 
 .goi_gem .card-side {
   box-shadow: none !important;
+}
+
+.bgabutton .goi_gem {
+  background-size: cover;
+  height: 40px;
+  width: 40px;
 }
 
 .goi_tileContainer:hover > .goi_tile ~ .goi_explorer {
