@@ -591,7 +591,7 @@ define([
           `goi_gemCounters:${player_id}`
         ).innerHTML += `<div class="goi_gemCounter">
         <div class="goi_gemIcon goi_coinIcon"> 
-          <span id="goi_coinCounter:${player_id}" class="goi_markerValue" style="left: ${positionLeft}"></span>
+          <span id="goi_coinCounter:${player_id}" class="goi_iconValue" style="left: ${positionLeft}"></span>
         </div>
       </div>`;
 
@@ -3698,7 +3698,7 @@ define([
             }
 
             args.coin = `<span class="goi_logMarker">
-              <span class="goi_markerValue" style="left: ${positionLeft}">${coins}</span>
+              <span class="goi_iconValue" style="left: ${positionLeft}">${coins}</span>
             </span>`;
 
             args.delta_log = "";
@@ -3716,7 +3716,7 @@ define([
             }
 
             args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
-              <span class="goi_markerValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
+              <span class="goi_iconValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
             </span>`;
           }
         }

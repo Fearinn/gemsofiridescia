@@ -196,7 +196,7 @@ html {
   font-family: "sketchnote-square", sans-serif;
 }
 
-.goi_gemCounter .goi_markerValue {
+.goi_gemCounter .goi_iconValue {
   font-size: 20px;
 }
 
@@ -210,7 +210,7 @@ html {
   width: 20px;
 }
 
-.goi_markerValue {
+.goi_iconValue {
   font-family: "sketchnote-square", sans-serif;
 
   position: absolute;
@@ -219,7 +219,7 @@ html {
   left: 30%;
 }
 
-.goi_markerValue.goi_scoring {
+.goi_iconValue.goi_scoring {
   color: white;
 }
 
@@ -469,8 +469,8 @@ html {
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
   position: absolute;
-  top: 17.5%;
-  left: 17.5%;
+  top: 10%;
+  left: 0;
   color: white;
   transform: rotate(-45deg);
 }
