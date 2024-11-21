@@ -180,7 +180,7 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "230px",
+            expandedHeight: "184px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
             unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
@@ -290,8 +290,8 @@ define([
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 169,
+        cardHeight: 184,
+        cardWidth: 135.2,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -339,8 +339,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 169,
+        cardHeight: 184,
+        cardWidth: 135.2,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -405,8 +405,8 @@ define([
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 169,
+        cardHeight: 184,
+        cardWidth: 135.2,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -442,9 +442,10 @@ define([
           
 
           const divHeight = div.offsetHeight;
-          const contentHeight = cardContent.offsetHeight || divHeight;
+          const contentHeight = cardContent.offsetHeight;
 
-          const fontSize = 7 + ((15 / (contentHeight / divHeight * 100)) - 1) * 2.25;
+          const proportion = (contentHeight / divHeight * 100);
+          const fontSize = 6 + ((15 / proportion) - 1) * proportion / 2.75;
           cardContent.style.fontSize = `${fontSize}px`;
           }
 
@@ -464,8 +465,8 @@ define([
       });
 
       this.goi.managers.scoringMarkers = new CardManager(this, {
-        cardHeight: 50,
-        cardWidth: 50,
+        cardHeight: 40,
+        cardWidth: 40,
         getId: (card) => `scoringMarker-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_scoringMarker");
@@ -504,8 +505,8 @@ define([
 
       scoringTrack.childNodes.forEach((slot) => {
         slot.style.position = "absolute";
-        slot.style.height = "50px";
-        slot.style.width = "50px";
+        slot.style.height = "40px";
+        slot.style.width = "40px";
 
         const slotId = Number(slot.dataset.slotId);
 

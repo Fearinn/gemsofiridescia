@@ -37,18 +37,18 @@
 }
 
 html {
-  --boardSize: 1406px;
-  --playerBoardSize: 337.5px;
-  --cardHeight: 230px;
-  --cardSize: 168.5px;
-  --tileHeight: 129.38px;
-  --tileSize: 112.5px;
-  --tileSpacing: 2px;
-  --explorerSize: 98.5px;
-  --gemSize: 51px;
+  --boardSize: 1128.4px;
+  --playerBoardSize: 270px;
+  --cardHeight: 184px;
+  --cardSize: 135px;
+  --tileHeight: 104px;
+  --tileSize: 90px;
+  --tileSpacing: 1.6px;
+  --explorerSize: 78.4px;
+  --gemSize: 40.8px;
   --dieSize: 45px;
-  --scoringMarkerSize: 28.12px;
-  --royaltyTokenSize: 140.62px;
+  --scoringMarkerSize: 22.5px;
+  --royaltyTokenSize: 112.8px;
 }
 
 .goi_gameArea {
@@ -66,8 +66,8 @@ html {
     "c c c c c c c";
   align-items: flex-start;
   justify-content: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 8px;
+  padding: 8px;
 }
 
 .goi_dialog {
@@ -83,10 +83,6 @@ html {
   background-size: cover !important;
 }
 
-.goi_content_dlg .goi_cardTitle {
-  font-size: 12px;
-}
-
 .goi_card {
   height: var(--cardHeight);
   width: var(--cardSize);
@@ -94,7 +90,7 @@ html {
 
 .goi_card,
 .goi_card .card-side {
-  border-radius: 12px;
+  border-radius: 5.4px;
 }
 
 .goi_cardContent {
@@ -112,7 +108,7 @@ html {
 }
 
 .goi_selectedCard {
-  border: 4px solid red;
+  border: 2px solid red;
   transform: scale(1.01);
   z-index: 1;
 }
@@ -120,13 +116,15 @@ html {
 .goi_cardTitle {
   font-family: "sketchnote-square", sans-serif;
   color: white;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
 
   position: absolute;
   top: 2%;
   left: 0;
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
   z-index: 1;
 }
 
@@ -277,6 +275,10 @@ html {
   pointer-events: none;
 }
 
+.goi_objective {
+  height: calc(var(--cardHeight) - 3px);
+}
+
 .goi_objective .goi_cardContent {
   font-family: "rooney-web", serif;
   font-weight: 400;
@@ -302,7 +304,7 @@ html {
 }
 
 .goi_selectedGem {
-  border: 4px solid red;
+  border: 2px solid red;
 }
 
 .goi_selectedDie {
@@ -320,7 +322,7 @@ html {
   right: 10%;
   display: flex;
   flex-direction: column;
-  gap: 67.5px;
+  gap: 40px;
   width: var(--dieSize);
 }
 
@@ -335,7 +337,7 @@ html {
   right: 14%;
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .goi_sceneDice {
@@ -378,7 +380,7 @@ html {
   display: grid;
   grid-template-columns: repeat(2, var(--cardSize));
   grid-template-rows: repeat(3, var(--cardHeight));
-  gap: 16px;
+  gap: 8px;
   width: 100%;
 }
 
@@ -427,7 +429,7 @@ html {
   font-weight: 400;
   font-style: normal;
   font-size: 7.5px;
-  top: 72.5%;
+  top: 72%;
   text-align: center;
   max-height: 15%;
 }
@@ -589,9 +591,9 @@ html {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
+  gap: 4px;
   flex-grow: 1;
-  border: 8px double white;
+  border: 8px double black;
 }
 
 .goi_selectablePlayerZone {
@@ -612,7 +614,7 @@ html {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
 }
 
@@ -621,7 +623,7 @@ html {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .goi_book .goi_relic {
@@ -864,7 +866,7 @@ body > .card {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   transform-origin: center center;
-  box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0.45px 0.45px 0.9px 0.45px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 /* .card .card-sides .card-side.front > * {
