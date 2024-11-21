@@ -154,7 +154,7 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_helpCardContent"> 
+      <div id="goi_helpCardContent" class="goi_cardContent"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
@@ -369,7 +369,7 @@ define([
 
           const cardContent = document.createElement("span");
           cardContent.textContent = _(objectiveContent);
-          cardContent.classList.add("goi_objectiveContent");
+          cardContent.classList.add("goi_cardContent");
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
@@ -435,7 +435,7 @@ define([
 
           const cardContent = document.createElement("span");
           cardContent.textContent = _(itemContent);
-          cardContent.classList.add("goi_itemContent");
+          cardContent.classList.add("goi_cardContent");
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
@@ -3569,7 +3569,7 @@ define([
 
       const tooltip = `<div class="goi_logImage goi_item goi_card" style="position: relative; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(itemName)}</span>
-        <span class="goi_itemContent">${_(itemContent)}</span>
+        <span class="goi_cardContent">${_(itemContent)}</span>
       </div>`;
 
       return tooltip;
@@ -3589,7 +3589,7 @@ define([
       const tooltip = `<div class="goi_logImage goi_objective goi_card" 
       style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(objectiveName)}</span>
-        <span class="goi_objectiveContent">${_(objectiveContent)}</span>
+        <span class="goi_cardContent">${_(objectiveContent)}</span>
       </div>`;
 
       return tooltip;
