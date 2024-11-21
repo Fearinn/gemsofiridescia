@@ -287,8 +287,7 @@ html {
   top: 70%;
   display: flex;
   text-align: center;
-  height: 12%;
-  overflow-y: auto;
+  max-height: 12%;
 }
 
 .goi_rainbowOptions {
@@ -430,7 +429,7 @@ html {
   font-size: 7.5px;
   top: 72.5%;
   text-align: center;
-  height: 15%;
+  max-height: 15%;
 }
 
 .goi_board {

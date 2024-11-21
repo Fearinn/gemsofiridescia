@@ -439,6 +439,13 @@ define([
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
+          
+
+          const divHeight = div.offsetHeight;
+          const contentHeight = cardContent.offsetHeight || divHeight;
+
+          const fontSize = 7 + ((15 / (contentHeight / divHeight * 100)) - 1) * 2.25;
+          cardContent.style.fontSize = `${fontSize}px`;
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
