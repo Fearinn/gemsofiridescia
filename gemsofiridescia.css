@@ -43,7 +43,7 @@ html {
   --cardSize: 168.5px;
   --tileHeight: 129.38px;
   --tileSize: 112.5px;
-  --tileSpacing: 2.5px;
+  --tileSpacing: 2px;
   --explorerSize: 98.5px;
   --gemSize: 51px;
   --dieSize: 45px;
@@ -476,14 +476,14 @@ html {
 .goi_tilesGrid {
   position: absolute;
   top: 13%;
-  left: 10%;
+  left: 11%;
 }
 
 .goi_tilesRow {
   position: relative;
   display: grid;
   grid-template-columns: repeat(7, var(--tileSize));
-  gap: 10px;
+  gap: calc(var(--tileSpacing) * 3);
 }
 
 .goi_tilesRow:nth-child(odd) {
@@ -510,8 +510,8 @@ html {
   align-items: center;
   justify-content: center;
 
-  margin-bottom: calc((var(--tileSpacing) - var(--tileSize)) * 0.28);
-  height: calc((var(--tileSize) + var(--tileSpacing)) * 1.15);
+  margin-bottom: calc(-1 * (var(--tileHeight) / 4.5));
+  height: calc(var(--tileHeight) + var(--tileSpacing));
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
@@ -524,7 +524,7 @@ html {
   background-color: #343131;
   bottom: 2px;
   left: 2px;
-  height: calc((var(--tileSize) + var(--tileSpacing)) * 1.15);
+  height: calc(var(--tileHeight) + var(--tileSpacing));
   width: calc(var(--tileSize) + var(--tileSpacing));
 }
 
@@ -533,7 +533,8 @@ html {
   opacity: 0.5;
 }
 
-.goi_tile .card-side, .goi_tile.goi_logImage {
+.goi_tile .card-side,
+.goi_tile.goi_logImage {
   box-shadow: none !important;
   height: var(--tileHeight);
   width: var(--tileSize);
