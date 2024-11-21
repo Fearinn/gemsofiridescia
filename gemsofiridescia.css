@@ -137,7 +137,7 @@ html {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 8.5px;
+  font-size: 8px;
 
   position: absolute;
   top: 17%;
@@ -283,10 +283,10 @@ html {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 10.5px;
+  font-size: 8px;
 
   position: absolute;
-  top: 70%;
+  top: 73%;
   display: flex;
   text-align: center;
   max-height: 12%;
@@ -428,8 +428,8 @@ html {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 7.5px;
-  top: 72%;
+  font-size: 5px;
+  top: 71%;
   text-align: center;
   max-height: 15%;
 }

@@ -439,14 +439,16 @@ define([
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
-          
 
-          const divHeight = div.offsetHeight;
-          const contentHeight = cardContent.offsetHeight;
+            const divHeight = div.offsetHeight;
+            const contentHeight = cardContent.offsetHeight;
 
-          const proportion = (contentHeight / divHeight * 100);
-          const fontSize = 6 + ((15 / proportion) - 1) * proportion / 2.75;
-          cardContent.style.fontSize = `${fontSize}px`;
+            const proportion = (contentHeight / divHeight) * 100;
+            const fontSize = 5 + ((15 / proportion - 1) * (proportion / 5));
+            cardContent.style.fontSize = `${fontSize}px`;
+
+            const top = fontSize + 66;
+            cardContent.style.top = `${top}%`;
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
