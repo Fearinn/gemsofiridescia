@@ -55,6 +55,8 @@ define([
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
+      this.goi.version = gamedatas.version;
+
       this.goi.managers.zoom = new ZoomManager({
         element: document.getElementById("goi_gameArea"),
         localStorageZoomKey: "gemsofiridescia-zoom",
@@ -2589,6 +2591,7 @@ define([
     //// Player's action
 
     performAction: function (action, args = {}, options = {}) {
+      args.clientVersion = this.goi.version;
       this.bgaPerformAction(action, args, options);
     },
 

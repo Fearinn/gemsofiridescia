@@ -98,8 +98,9 @@ class Game extends \Table
      * @see action_gemsofiridescia::actMyAction
      */
 
-    public function actRevealTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false, bool $skipTransition = false): void
+    public function actRevealTile(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false, bool $skipTransition = false): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
@@ -137,8 +138,9 @@ class Game extends \Table
         }
     }
 
-    public function actSkipRevealTile()
+    public function actSkipRevealTile(?int $clientVersion): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $explorableTiles = $this->explorableTiles($player_id);
@@ -149,8 +151,9 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
-    public function actUndoSkipRevealTile()
+    public function actUndoSkipRevealTile(?int $clientVersion): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $revealsLimit = (int) $this->globals->get(REVEALS_LIMIT);
@@ -163,8 +166,9 @@ class Game extends \Table
         $this->gamestate->nextState("back");
     }
 
-    public function actDiscardCollectedTile(#[IntParam(min: 1, max: 58)] int $tileCard_id, #[IntParam(min: 1, max: 58)] int $emptyHex): void
+    public function actDiscardCollectedTile(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id, #[IntParam(min: 1, max: 58)] int $emptyHex): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $emptyHexes = $this->emptyHexes($player_id);
@@ -210,8 +214,9 @@ class Game extends \Table
         $this->gamestate->nextState("revealTile");
     }
 
-    public function actDiscardTile(#[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    public function actDiscardTile(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
@@ -245,8 +250,9 @@ class Game extends \Table
         $this->gamestate->nextState("betweenTurns");
     }
 
-    public function actMoveExplorer(#[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false): void
+    public function actMoveExplorer(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
@@ -283,8 +289,9 @@ class Game extends \Table
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
-    public function actPickRainbowGem(#[IntParam(min: 1, max: 4)] int $gem_id): void
+    public function actPickRainbowGem(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->currentTile($player_id);
@@ -303,8 +310,9 @@ class Game extends \Table
         $this->gamestate->nextState("optionalActions");
     }
 
-    public function actDiscardObjective(#[IntParam(min: 1, max: 15)] int $objectiveCard_id): void
+    public function actDiscardObjective(?int $clientVersion, #[IntParam(min: 1, max: 15)] int $objectiveCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $objectiveCard = $this->objective_cards->getCard($objectiveCard_id);
@@ -344,12 +352,13 @@ class Game extends \Table
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
-    public function actMine(#[JsonParam(alphanum: false)] array $stoneDice): void
+    public function actMine(?int $clientVersion, #[JsonParam(alphanum: false)] array $stoneDice): void
     {
+        $this->checkVersion($clientVersion);
+        $player_id = (int) $this->getActivePlayerId();
+
         $this->globals->set(HAS_MINED, true);
         $this->globals->set(ROLLED_DICE, []);
-
-        $player_id = (int) $this->getActivePlayerId();
 
         $stoneDiceCount = count($stoneDice);
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
@@ -428,8 +437,9 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSellGems(#[IntParam(min: 1, max: 4)] int $gem_id, #[JsonParam(alphanum: false)] array $selectedGems): void
+    public function actSellGems(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id, #[JsonParam(alphanum: false)] array $selectedGems): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         if ($this->globals->get(HAS_SOLD_GEMS)) {
@@ -456,8 +466,9 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actBuyItem(#[IntParam(min: 1, max: 33)] int $itemCard_id)
+    public function actBuyItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id)
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $item = new ItemManager($itemCard_id, $this);
@@ -468,8 +479,9 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUseItem(#[IntParam(min: 1, max: 33)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
+    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $item = new ItemManager($itemCard_id, $this);
@@ -485,8 +497,9 @@ class Game extends \Table
     }
 
     #[CheckAction(false)]
-    public function actUseEpicElixir(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUseEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $current_player_id = (int) $this->getCurrentPlayerId();
         $player_id = (int) $this->getActivePlayerId();
 
@@ -502,8 +515,9 @@ class Game extends \Table
     }
 
     #[CheckAction(false)]
-    public function actUndoEpicElixir(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUndoEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $current_player_id = (int) $this->getActivePlayerId();
         $player_id = (int) $this->getActivePlayerId();
 
@@ -518,8 +532,9 @@ class Game extends \Table
         $this->gamestate->jumpToState($state_id);
     }
 
-    public function actUndoItem(#[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $item = new ItemManager($itemCard_id, $this);
@@ -529,8 +544,9 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actTransferGem(#[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
+    public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $excedentGems = $this->getTotalGemsCount($player_id) - 7;
@@ -577,18 +593,21 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSkipOptionalActions(): void
+    public function actSkipOptionalActions(?int $clientVersion): void
     {
+        $this->checkVersion($clientVersion);
         $this->gamestate->nextState("skip");
     }
 
-    public function actUndoSkipOptionalActions(): void
+    public function actUndoSkipOptionalActions(?int $clientVersion): void
     {
+        $this->checkVersion($clientVersion);
         $this->gamestate->nextState("back");
     }
 
-    public function actRestoreRelic(#[IntParam(min: 1, max: 24)] int $relicCard_id): void
+    public function actRestoreRelic(?int $clientVersion, #[IntParam(min: 1, max: 24)] int $relicCard_id): void
     {
+        $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
         $restorableRelics = $this->restorableRelics($player_id, true);
@@ -604,8 +623,9 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSkipRestoreRelic(): void
+    public function actSkipRestoreRelic(?int $clientVersion): void
     {
+        $this->checkVersion($clientVersion);
         $this->gamestate->nextState("skip");
     }
 
@@ -682,7 +702,7 @@ class Game extends \Table
                 $tileCard = array_shift($revealableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
-                $this->actRevealTile($tileCard_id);
+                $this->actRevealTile(null, $tileCard_id);
                 return;
             }
 
@@ -732,7 +752,7 @@ class Game extends \Table
 
             $emptyHex = (int) array_shift($emptyHexes);
 
-            $this->actDiscardCollectedTile($tileCard_id, $emptyHex);
+            $this->actDiscardCollectedTile(null, $tileCard_id, $emptyHex);
             return;
         }
     }
@@ -767,7 +787,7 @@ class Game extends \Table
                 $tileCard = array_shift($explorableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
-                $this->actMoveExplorer($tileCard_id);
+                $this->actMoveExplorer(null, $tileCard_id);
                 return;
             }
 
@@ -1027,6 +1047,17 @@ class Game extends \Table
     }
 
     /*   Utility functions */
+
+    public function checkVersion(?int $clientVersion): void {
+        if ($clientVersion === null) {
+            return;
+        }
+
+        $serverVersion = (int) $this->gamestate->table_globals[300];
+        if ($clientVersion != $serverVersion) {
+            throw new \BgaVisibleSystemException($this->_("A new version of this game is now available. Please reload the page (F5)."));
+        }
+    }
 
     public function isZombie(int $player_id): bool
     {
@@ -1311,14 +1342,14 @@ class Game extends \Table
 
     public function expandedCatapultableHexes(int $player_id, array $adjacentHexes, bool $catapult = false): array
     {
-        $result = [];
+        $expandedCatapultableHexes = [];
 
         foreach ($adjacentHexes as $hex) {
             $expandedHexes = $this->adjacentTiles($player_id, $hex, true);
-            $result = array_merge($result, $expandedHexes);
+            $expandedCatapultableHexes = array_merge($expandedCatapultableHexes, $expandedHexes);
         }
 
-        return $result;
+        return $expandedCatapultableHexes;
     }
 
     public function catapultableTiles(int $player_id, bool $associative = false): array
@@ -3098,6 +3129,7 @@ class Game extends \Table
     protected function getAllDatas()
     {
         $result = [];
+        $result["version"] = (int) $this->gamestate->table_globals[300];
 
         // WARNING: We must only return information visible by the current player.
         $current_player_id = (int) $this->getCurrentPlayerId();
