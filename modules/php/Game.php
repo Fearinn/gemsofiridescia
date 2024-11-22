@@ -699,7 +699,7 @@ class Game extends \Table
             if ($args["auto"]) {
                 $revealableTiles = (array) $args["revealableTiles"];
 
-                $tileCard = array_shift($revealableTiles);
+                $tileCard = reset($revealableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
                 $this->actRevealTile(null, $tileCard_id);
@@ -725,7 +725,7 @@ class Game extends \Table
 
         $emptyHexes = $this->emptyHexes($player_id);
 
-        $singleCollectedTile = count($collectedTiles) === 1 ? array_shift($collectedTiles) : null;
+        $singleCollectedTile = count($collectedTiles) === 1 ? reset($collectedTiles) : null;
         $auto = $singleCollectedTile && !$usableItems && count($emptyHexes) === 1;
 
         return [
@@ -747,10 +747,10 @@ class Game extends \Table
             $collectedTiles = $args["collectedTiles"];
             $emptyHexes = $args["emptyHexes"];
 
-            $tileCard = array_shift($collectedTiles);
+            $tileCard = reset($collectedTiles);
             $tileCard_id = (int) $tileCard["id"];
 
-            $emptyHex = (int) array_shift($emptyHexes);
+            $emptyHex = (int) reset($emptyHexes);
 
             $this->actDiscardCollectedTile(null, $tileCard_id, $emptyHex);
             return;
@@ -784,7 +784,7 @@ class Game extends \Table
         if ($args["_no_notify"]) {
             if ($args["auto"]) {
                 $explorableTiles = $args["explorableTiles"];
-                $tileCard = array_shift($explorableTiles);
+                $tileCard = reset($explorableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
                 $this->actMoveExplorer(null, $tileCard_id);
@@ -846,7 +846,7 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $excedentGems = $this->getTotalGemsCount($player_id) - 7;
-        $availableCargos = $this->availableCargos($player_id, 0);
+        $availableCargos = $this->availableCargos($player_id, 1);
 
         return [
             "excedentGems" => $excedentGems,
@@ -892,7 +892,7 @@ class Game extends \Table
             }
 
             if (count($availableCargos) === 1) {
-                $opponent_id = array_shift($availableCargos);
+                $opponent_id = reset($availableCargos);
 
                 $this->transferGems([$gemCard], $opponent_id, $player_id);
                 $this->gamestate->nextState("repeat");
@@ -1805,14 +1805,14 @@ class Game extends \Table
         return $minedGemsCount;
     }
 
-    public function availableCargos(int $current_player_id = null, ?int $excendent): array
+    public function availableCargos(int $current_player_id = null, int $excendent = 1): array
     {
         $players = $this->loadPlayersNoZombie();
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
             $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
-            if (/* !$hasReachedCastle &&  */$this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
+            if (!$hasReachedCastle && $this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -1877,7 +1877,7 @@ class Game extends \Table
         }
 
         if (!$gem_id) {
-            $gemCard = array_shift($gemCards);
+            $gemCard = reset($gemCards);
             $gem_id = (int) $gemCard["type_arg"];
         }
 
@@ -2866,7 +2866,7 @@ class Game extends \Table
     public function computeObjectivePoints(int $player_id): int
     {
         $handObjectives = $this->objective_cards->getCardsInLocation("hand", $player_id);
-        $objectiveCard = array_shift($handObjectives);
+        $objectiveCard = reset($handObjectives);
         $objective_id = (int) $objectiveCard["type_arg"];
 
         $objective = new ObjectiveManager($objective_id, $this);

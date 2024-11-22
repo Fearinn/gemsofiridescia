@@ -444,7 +444,7 @@ define([
             const contentHeight = cardContent.offsetHeight;
 
             const proportion = (contentHeight / divHeight) * 100;
-            const fontSize = 5 + ((15 / proportion - 1) * (proportion / 5));
+            const fontSize = 5 + (15 / proportion - 1) * (proportion / 5);
             cardContent.style.fontSize = `${fontSize}px`;
 
             const top = fontSize + 66;
@@ -1897,7 +1897,8 @@ define([
                 "The cargos of all players are full. ${you} must pick ${excedentGems} Gem to discard"
               ),
               {
-                excedentGems,
+                you: _("${you}"),
+                excedentGems: excedentGems,
               }
             );
             this.updatePageTitle();
@@ -2520,6 +2521,8 @@ define([
         if (this.goi.selections.gems.length > 0) {
           this.addActionButton(elementId, message, () => {
             const availableCargos = this.goi.globals.availableCargos;
+            console.log(availableCargos, "availableCargos");
+
             if (availableCargos.length === 0) {
               this.actTransferGem();
               return;
