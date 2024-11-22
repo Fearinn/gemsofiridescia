@@ -68,6 +68,7 @@ html {
   justify-content: center;
   gap: 8px;
   padding: 8px;
+  overflow-x: auto;
 }
 
 .goi_dialog {
