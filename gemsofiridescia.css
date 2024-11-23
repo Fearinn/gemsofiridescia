@@ -67,7 +67,7 @@ html {
   align-items: flex-start;
   justify-content: center;
   gap: 8px;
-  padding: 8px;
+  padding: 12px;
   overflow-x: auto;
 }
 
@@ -655,7 +655,6 @@ html {
   background-image: url("img/royaltyTokens.png");
   height: var(--royaltyTokenSize);
   width: var(--royaltyTokenSize);
-  margin: 0 -48px;
 }
 
 .goi_royaltyToken .card-side {
