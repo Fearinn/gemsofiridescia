@@ -425,6 +425,12 @@ html {
   background-image: url("img/items.png");
 }
 
+.goi_item.goi_logImage .goi_cardContent {
+  top: 72%;
+  font-size: 5px;
+  overflow-y: auto;
+}
+
 .goi_item .goi_cardContent {
   font-family: "rooney-web", serif;
   font-weight: 400;
