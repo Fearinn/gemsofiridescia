@@ -41,6 +41,7 @@ $machinestates = [
             "repeat" => 2,
             "discardCollectedTile" => 20,
             "discardTile" => 21,
+            "confirmAutoMove" => 22,
             "skip" => 3,
             "moveExplorer" => 3,
             "optionalActions" => 4,
@@ -67,15 +68,31 @@ $machinestates = [
         "transitions" => ["betweenTurns" => 6],
     ],
 
+    22 => [
+        "name" => "confirmAutoMove",
+        "description" => clienttranslate('${actplayer} must reveal a tile'),
+        "descriptionmyturn" => clienttranslate('${you} have a single possible move. Confirm it'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actConfirmAutoMove"],
+        "transitions" => [
+            "moveExplorer" => 3,
+        ],
+    ],
+
     3 => [
         "name" => "moveExplorer",
-        "description" => clienttranslate('${actplayer} must move his explorer to a revealed tile'),
-        "descriptionmyturn" => clienttranslate('${you} must move your explorer to a revealed tile'),
+        "description" => clienttranslate('${actplayer} must move his explorer onto a revealed tile'),
+        "descriptionmyturn" => clienttranslate('${you} must move your explorer onto a revealed tile'),
         "type" => "activeplayer",
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "rainbowTile" => 30, "discardObjective" => 32, "optionalActions" => 4]
+        "transitions" => [
+            "back" => 2,
+            "rainbowTile" => 30,
+            "discardObjective" => 32,
+            "optionalActions" => 4
+        ]
     ],
 
     30 => [

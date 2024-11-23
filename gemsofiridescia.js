@@ -1644,6 +1644,14 @@ define([
           return;
         }
 
+        if (stateName === "confirmAutoMove") {
+          this.addActionButton(
+            "goi_confirm_btn",
+            _("Confirm"),
+            "actConfirmAutoMove"
+          );
+        }
+
         if (stateName === "rainbowTile") {
           this.generateRainbowOptions(() => {
             this.actPickRainbowGem();
@@ -2660,6 +2668,10 @@ define([
       this.performAction("actMoveExplorer", {
         tileCard_id: this.goi.selections.tile.id,
       });
+    },
+
+    actConfirmAutoMove: function () {
+      this.performAction("actConfirmAutoMove");
     },
 
     actPickRainbowGem: function () {

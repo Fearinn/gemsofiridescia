@@ -138,6 +138,12 @@ class Game extends \Table
         }
     }
 
+    public function actConfirmAutoMove(?int $clientVersion): void {
+        $tileCard_id = $this->globals->get(CURRENT_TILE);
+        $this->actRevealTile($clientVersion, $tileCard_id, false, true);
+        $this->gamestate->nextState("moveExplorer");
+    }
+
     public function actSkipRevealTile(?int $clientVersion): void
     {
         $this->checkVersion($clientVersion);
@@ -698,11 +704,11 @@ class Game extends \Table
 
             if ($args["auto"]) {
                 $revealableTiles = (array) $args["revealableTiles"];
-
                 $tileCard = reset($revealableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
-                $this->actRevealTile(null, $tileCard_id);
+                $this->globals->set(CURRENT_TILE, $tileCard_id);
+                $this->gamestate->nextState("confirmAutoMove");
                 return;
             }
 
