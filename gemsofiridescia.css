@@ -259,7 +259,6 @@ html {
 
 .goi_gemIcon {
   background-image: url("img/gems.png");
-  background-size: cover;
   height: 40px;
   width: 40px;
 }
@@ -268,8 +267,9 @@ html {
   position: relative;
   top: 5px;
   display: inline-block;
+  background-size: cover;
   height: 20px;
-  width: 20px;
+  width: 19.9px;
 }
 
 .goi_opponentObjectives {
