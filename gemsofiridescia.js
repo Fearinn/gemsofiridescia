@@ -201,7 +201,7 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "184px",
+            expandedHeight: "230px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
             unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
@@ -311,8 +311,8 @@ define([
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 184,
-        cardWidth: 135.2,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -360,8 +360,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 184,
-        cardWidth: 135.2,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -426,8 +426,8 @@ define([
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 184,
-        cardWidth: 135.2,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -465,10 +465,10 @@ define([
             const contentHeight = cardContent.offsetHeight;
 
             const proportion = (contentHeight / divHeight) * 100;
-            const fontSize = 5 + (15 / proportion - 1) * (proportion / 5);
+            const fontSize = 7 + (15 / proportion - 1) * (proportion / 5);
             cardContent.style.fontSize = `${fontSize}px`;
 
-            const top = fontSize + 66;
+            const top = fontSize + 64;
             cardContent.style.top = `${top}%`;
           }
 
@@ -612,7 +612,7 @@ define([
 
         let positionLeft = coins >= 10 ? "24%" : "32%";
 
-        if (coins === 11) {
+        if (coins === 11 || coins === 4) {
           positionLeft = "30%";
         }
 
@@ -3176,11 +3176,11 @@ define([
       const coins = this.goi.counters[player_id].coins.getValue();
       let positionLeft = coins >= 10 ? "24%" : "32%";
 
-      if (coins === 11) {
+      if (coins === 11 || coins === 4) {
         positionLeft = "30%";
       }
 
-      if (coins == 1) {
+      if (coins === 1) {
         positionLeft = "38%";
       }
 
@@ -3755,7 +3755,7 @@ define([
             const coins = Math.abs(args.delta_log);
             let positionLeft = coins >= 10 ? "24%" : "32%";
 
-            if (coins === 11) {
+            if (coins === 11 || coins === 4) {
               positionLeft = "30%";
             }
 
