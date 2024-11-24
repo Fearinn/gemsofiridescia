@@ -1125,6 +1125,8 @@ class Game extends \Table
     {
         $face = bga_rand(1, 6);
 
+        $this->incStat(1, "$face:Rolled", $player_id);
+
         $this->notifyAllPlayers(
             'rollDie',
             clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
@@ -3262,6 +3264,10 @@ class Game extends \Table
         $players = $this->loadPlayersBasicInfos();
 
         foreach ($players as $player_id => $player) {
+            for ($face = 1; $face <= 6; $face++) {
+                $this->initStat("player", "$face:Rolled", 0, $player_id);
+            }
+
             $this->initStat("player", "coinsObtained", 0, $player_id);
             $this->initStat("player", "miningAttempts", 0, $player_id);
             $this->initStat("player", "failedMiningAttempts", 0, $player_id);
