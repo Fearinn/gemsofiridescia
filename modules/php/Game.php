@@ -30,7 +30,7 @@ use BgaSystemException;
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
 const HAS_MOVED_EXPLORER = "hasMovedExplorer";
-const HAS_SOLD_GEMS = "hasSoldGems";
+const SOLD_GEM = "soldGem";
 const HAS_MINED = "hasMined";
 const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
@@ -41,6 +41,7 @@ const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
 const HAS_BOUGHT_ITEM = "hasBoughtItem";
+const ACTION_AFTER_SELL = "actionAfterSell";
 
 const MARVELOUS_CART = "marvelousCart";
 const EPIC_ELIXIR = "epicElixir";
@@ -138,7 +139,8 @@ class Game extends \Table
         }
     }
 
-    public function actConfirmAutoMove(?int $clientVersion): void {
+    public function actConfirmAutoMove(?int $clientVersion): void
+    {
         $tileCard_id = $this->globals->get(CURRENT_TILE);
         $this->actRevealTile($clientVersion, $tileCard_id, false, true);
         $this->gamestate->nextState("moveExplorer");
@@ -360,6 +362,8 @@ class Game extends \Table
 
     public function actMine(?int $clientVersion, #[JsonParam(alphanum: false)] array $stoneDice): void
     {
+        $this->actionAfterSell();
+
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
@@ -443,13 +447,16 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSellGems(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id, #[JsonParam(alphanum: false)] array $selectedGems): void
+    public function actSellGems(?int $clientVersion, #[JsonParam(alphanum: false)] array $selectedGems): void
     {
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
-        if ($this->globals->get(HAS_SOLD_GEMS)) {
-            throw new \BgaVisibleSystemException("You can only sell gems once per turn: actSellGems");
+        $gem_id = null;
+        $soldGem = (int) $this->globals->get(SOLD_GEM);
+
+        if ($soldGem) {
+            $gem_id = $soldGem;
         }
 
         $gemCards = [];
@@ -459,6 +466,11 @@ class Game extends \Table
             $gemCard = $this->gem_cards->getCard($gemCard_id);
             $gemCards[$gemCard_id] = $gemCard;
 
+            if ($gem_id === null) {
+                $gem_id = (int) $gemCard["type_arg"];
+                continue;
+            }
+
             if ($gem_id !== (int) $gemCard["type_arg"]) {
                 throw new \BgaVisibleSystemException("You must sell gems of the same type: actSellGems, $gem_id");
             }
@@ -466,14 +478,16 @@ class Game extends \Table
 
         $delta = count($gemCards);
 
-        $this->sellGem($delta, $gem_id, $gemCards, $player_id);
-        $this->globals->set(HAS_SOLD_GEMS, true);
+        $this->sellGems($delta, $gem_id, $gemCards, $player_id);
+        $this->globals->set(SOLD_GEM, $gem_id);
 
         $this->gamestate->nextState("repeat");
     }
 
     public function actBuyItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id)
     {
+        $this->actionAfterSell();
+
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
@@ -487,6 +501,8 @@ class Game extends \Table
 
     public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
     {
+        $this->actionAfterSell();
+
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
@@ -806,7 +822,18 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $canMine = $this->hasEnoughCoins(3, $player_id);
-        $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(HAS_SOLD_GEMS);
+        $canSellGems = $this->getTotalGemsCount($player_id) > 0 && !$this->globals->get(SOLD_GEM);
+
+        $soldGem = $this->globals->get(SOLD_GEM);
+        $canSellMoreGems = false;
+
+        if (!$canSellGems) {
+            $gem_id = $soldGem;
+            $gemCount = $this->getGemsCounts($player_id, true)[$gem_id];
+            $hasPerformedOtherAction = $this->globals->get(ACTION_AFTER_SELL);
+
+            $canSellMoreGems = $gem_id && $gemCount > 0 && !$hasPerformedOtherAction;
+        }
 
         $buyableItems = $this->buyableItems($player_id);
         $canBuyItem = !!$buyableItems;
@@ -827,6 +854,8 @@ class Game extends \Table
             "activableStoneDiceCount" => $activableStoneDiceCount,
             "explorableTiles" => $explorableTiles,
             "canSellGems" => $canSellGems,
+            "canSellMoreGems" => $canSellMoreGems,
+            "soldGem" => $soldGem,
             "canBuyItem" => $canBuyItem,
             "buyableItems" => $buyableItems,
             "canUseItem" => $canUseItem,
@@ -834,7 +863,7 @@ class Game extends \Table
             "cancellableItems" => $this->cancellableItems($player_id),
             "rolledDice" => $this->globals->get(ROLLED_DICE, []),
             "bookableRelics" => $bookableRelics,
-            "_no_notify" => !$canMine && !$canSellGems && !$canBuyItem && !$canUseItem,
+            "_no_notify" => !$canMine && !$canSellGems && !$canSellMoreGems && !$canBuyItem && !$canUseItem,
         ];
     }
 
@@ -953,11 +982,12 @@ class Game extends \Table
         }
 
         $this->globals->set(REVEALS_LIMIT, 0);
-        $this->globals->set(HAS_SOLD_GEMS, false);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
         $this->globals->set(HAS_MINED, false);
         $this->globals->set(HAS_EXPANDED_TILES, false);
         $this->globals->set(HAS_BOUGHT_ITEM, false);
+        $this->globals->set(ACTION_AFTER_SELL, false);
+        $this->globals->set(SOLD_GEM, null);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(ROLLED_DICE, []);
         $this->globals->set(RAINBOW_GEM, null);
@@ -1054,7 +1084,8 @@ class Game extends \Table
 
     /*   Utility functions */
 
-    public function checkVersion(?int $clientVersion): void {
+    public function checkVersion(?int $clientVersion): void
+    {
         if ($clientVersion === null) {
             return;
         }
@@ -1727,14 +1758,20 @@ class Game extends \Table
         return $gems;
     }
 
-    public function getGemsCounts(?int $player_id): array
+    public function getGemsCounts(?int $player_id, bool $useId = false): array
     {
         $gemsCounts = [];
 
         if ($player_id) {
-            foreach ($this->gems_info as $gem_info) {
+            foreach ($this->gems_info as $gem_id => $gem_info) {
                 $gemName = $gem_info["name"];
                 $handGems = $this->gem_cards->getCardsOfTypeInLocation($gemName, null, "hand", $player_id);
+
+                if ($useId) {
+                    $gemsCounts[$gem_id] = count($handGems);
+                    continue;
+                }
+
                 $gemsCounts[$gemName] = count($handGems);
             }
 
@@ -1990,7 +2027,8 @@ class Game extends \Table
         );
     }
 
-    public function sellGem(int $delta, int $gem_id, array $gemCards, int $player_id): void
+
+    public function sellGems(int $delta, int $gem_id, array $gemCards, int $player_id): void
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
@@ -2005,6 +2043,12 @@ class Game extends \Table
         $earnedCoins = $marketValue * $delta;
 
         $this->incCoin($earnedCoins, $player_id);
+    }
+
+    public function actionAfterSell(): void {
+        if ($this->globals->get(SOLD_GEM) !== null) {
+            $this->globals->set(ACTION_AFTER_SELL, true);
+        }
     }
 
     public function updateMarketValue(int $delta, int $gem_id, bool $silent = false): int
@@ -2984,7 +3028,8 @@ class Game extends \Table
         );
     }
 
-    public function debug_rollDie(int $player_id): void {
+    public function debug_rollDie(int $player_id): void
+    {
         $this->rollDie(1, $player_id, "gem");
     }
 

@@ -1664,6 +1664,8 @@ define([
           const activeStoneDiceCount = args.args.activeStoneDiceCount;
           const activableStoneDiceCount = args.args.activableStoneDiceCount;
           const canSellGems = args.args.canSellGems;
+          const canSellMoreGems = args.args.canSellMoreGems;
+          const soldGem = args.args.soldGem;
           const canBuyItem = args.args.canBuyItem;
           const buyableItems = args.args.buyableItems;
           const canUseItem = args.args.canUseItem;
@@ -1707,15 +1709,22 @@ define([
             document.getElementById("goi_mine_btn").classList.add("disabled");
           }
 
-          this.addActionButton("goi_sellGems_btn", _("Sell Gem(s)"), () => {
+          const sellGemsText = canSellMoreGems
+            ? _("Sell more Gem(s)")
+            : _("Sell Gem(s)");
+
+          console.log(canSellGems, canSellMoreGems, "sell");
+
+          this.addActionButton("goi_sellGems_btn", sellGemsText, () => {
             this.setClientState("client_sellGems", {
               descriptionmyturn: _(
                 "${you} must select Gem(s) to sell (all from the same type)"
               ),
+              client_args: { soldGem: canSellMoreGems ? soldGem : null },
             });
           });
 
-          if (!canSellGems) {
+          if (!canSellGems && !canSellMoreGems) {
             document
               .getElementById("goi_sellGems_btn")
               .classList.add("disabled");
@@ -1751,9 +1760,19 @@ define([
         }
 
         if (stateName === "client_sellGems") {
+          const soldGem = args.client_args.soldGem;
+          let selectableGems =
+            this.goi.stocks[this.player_id].gems.cargo.getCards();
+
+          if (soldGem) {
+            selectableGems = selectableGems.filter((gemCard) => {
+              return soldGem == gemCard.type_arg;
+            });
+          }
+
           this.goi.stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple",
-            this.goi.stocks[this.player_id].gems.cargo.getCards()
+            selectableGems
           );
         }
 
