@@ -1888,10 +1888,12 @@ define([
         }
 
         if (stateName === "client_prosperousPickaxe") {
-          const explorableTiles = args.args.explorableTiles;
+          const prosperousTiles = args.args.prosperousTiles;
+          console.log(prosperousTiles);
+          
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",
-            explorableTiles
+            prosperousTiles
           );
         }
 

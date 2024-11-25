@@ -889,13 +889,13 @@ $this->items_info = [
     6 => [
         "name" => "Jolty Jackhammer",
         "tr_name" => clienttranslate("Jolty Jackhammer"),
-        "content" => clienttranslate("Modify any one die by +/-1. This can either be a die that you've rolled or a gem market dice."),
+        "content" => clienttranslate("Modify any one die by +/-1. This can either be a die that you've rolled or a gem market die."),
         "cost" => 2,
     ],
     7 => [
         "name" => "Dazzling Dynamite",
         "tr_name" => clienttranslate("Dazzling Dynamite"),
-        "content" => clienttranslate("Modify any one die by up to +/-2. This can either be a die that you've rolled or a gem market dice."),
+        "content" => clienttranslate("Modify any one die by up to +/-2. This can either be a die that you've rolled or a gem market die."),
         "cost" => 3,
     ],
     8 => [

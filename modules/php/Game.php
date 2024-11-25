@@ -845,6 +845,7 @@ class Game extends \Table
         $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
 
         $explorableTiles = $this->explorableTiles($player_id);
+        $prosperousTiles = $this->prosperousTiles($player_id);
 
         $bookableRelics = $this->bookableRelics();
 
@@ -853,6 +854,7 @@ class Game extends \Table
             "activeStoneDiceCount" => $activeStoneDiceCount,
             "activableStoneDiceCount" => $activableStoneDiceCount,
             "explorableTiles" => $explorableTiles,
+            "prosperousTiles" => $prosperousTiles,
             "canSellGems" => $canSellGems,
             "canSellMoreGems" => $canSellMoreGems,
             "soldGem" => $soldGem,
@@ -1304,6 +1306,42 @@ class Game extends \Table
         }
 
         return $adjacentTiles;
+    }
+
+    public function prosperousTiles(int $player_id, bool $associative = false): array
+    {
+        $explorableTiles = $this->explorableTiles($player_id, true);
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+        $hex = (int) $explorerCard["location_arg"];
+        $leftBack = $hex - 7;
+        $rightBack = $hex - 6;
+        $hexesBehind = [
+            $leftBack,
+            $rightBack,
+        ];
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        $tilesBehind = [];
+        foreach ($hexesBehind as $hex) {
+            $tileCard = $this->getObjectFromDB("$this->deckSelectQuery from tile WHERE card_location='board' AND card_location_arg=$hex");
+
+            if ($tileCard) {
+                $tileCard_id = (int) $tileCard["id"];
+
+                if (array_key_exists($tileCard_id, $revealedTiles)) {
+                    if ($associative) {
+                    $tilesBehind[$tileCard_id] = $tileCard;
+                    continue;
+                    }
+
+                    $tilesBehind[] = $tileCard;
+                }
+            }
+        }
+
+        $prosperousTiles = $explorableTiles + $tilesBehind;
+        return $prosperousTiles;
     }
 
     public function revealableTiles(int $player_id, bool $associative = false): array

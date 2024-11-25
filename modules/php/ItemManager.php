@@ -159,8 +159,8 @@ class ItemManager
         }
 
         if ($this->id === 9) {
-            $explorableTiles = $this->game->explorableTiles($player_id);
-            return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$explorableTiles;
+            $prosperousTiles = $this->game->prosperousTiles($player_id);
+            return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$prosperousTiles;
         }
 
         return false;
@@ -525,13 +525,30 @@ class ItemManager
 
     public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
     {
-        $explorableTiles = $this->game->explorableTiles($player_id, true);
-        if (!array_key_exists($tileCard_id, $explorableTiles)) {
+        $prosperousTiles = $this->game->prosperousTiles($player_id, true);
+
+        if (!array_key_exists($tileCard_id, $prosperousTiles)) {
             throw new \BgaVisibleSystemException("You can't pick this tile for the Prosperous Pickaxe: $tileCard_id");
         }
 
         $tileCard = $this->game->tile_cards->getCard($tileCard_id);
         $this->game->globals->set(PROSPEROUS_PICKAXE, $tileCard);
+
+        $this->game->notifyAllPlayers(
+            "prosperousPickaxe",
+            clienttranslate('${player_name} picks a ${tile} (hex ${hex}) for the ${item_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "item_id" => $this->id,
+                "item_name" => clienttranslate("Prosperous Pickaxe"),
+                "hex" => $tileCard["location_arg"],
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard", "item_id"],
+                "i18n" => ["tile", "item_name"],
+                "tile" => clienttranslate("tile"),
+            ],
+        );
     }
 
     public function swappingStones(int $player_id, int $opponent_id): void
