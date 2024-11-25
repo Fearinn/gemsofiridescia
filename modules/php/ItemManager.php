@@ -597,10 +597,10 @@ class ItemManager
         }
 
         if (!array_key_exists($tileCard_id, $revealedTiles)) {
-            $this->game->actRevealTile($tileCard_id, true, true);
+            $this->game->actRevealTile(null, $tileCard_id, true, true);
         }
 
-        $this->game->actMoveExplorer($tileCard_id, true);
+        $this->game->actMoveExplorer(null, $tileCard_id, true);
     }
 
     public function isCancellable($player_id): bool
