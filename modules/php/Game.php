@@ -1653,33 +1653,28 @@ class Game extends \Table
         $castlePlayersCount = (int) $this->castlePlayersCount();
         $playersNumber = (int) $this->getPlayersNumberNoZombie();
 
+        if ($playersNumber > 1 && $playersNumber === $castlePlayersCount) {
+            return;
+        }
+
         if ($castlePlayersCount === 1) {
             $score_aux = 100;
+            $token_id = 3;
 
-            $token_id = $playersNumber > 2 ? 3 : 2;
+            if ($playersNumber <= 2) {
+                $score_aux = 1;
+                $token_id = 1;
+            } 
         }
 
         if ($castlePlayersCount === 2) {
             $score_aux = 10;
-
-            if ($playersNumber === 2) {
-                return;
-            }
-
             $token_id = 2;
         }
 
         if ($castlePlayersCount === 3) {
             $score_aux = 1;
             $token_id = 1;
-        }
-
-        if ($castlePlayersCount >= 4) {
-            return;
-        }
-
-        if ($this->getPlayersNumber() === 2) {
-            $token_id--;
         }
 
         $token_info = $this->royaltyTokens_info[$token_id];
