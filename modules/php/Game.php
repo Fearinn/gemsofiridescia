@@ -925,6 +925,7 @@ class Game extends \Table
 
             if (!$availableCargos) {
                 $this->discardGems($player_id, [$gemCard], null);
+                $this->gamestate->nextState("repeat");
                 return;
             }
 
