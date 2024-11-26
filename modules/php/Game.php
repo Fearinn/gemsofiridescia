@@ -1311,7 +1311,7 @@ class Game extends \Table
 
     public function prosperousTiles(int $player_id, bool $associative = false): array
     {
-        $explorableTiles = $this->explorableTiles($player_id, true);
+        $explorableTiles = $this->explorableTiles($player_id, $associative);
         $explorerCard = $this->getExplorerByPlayerId($player_id);
 
         $hex = (int) $explorerCard["location_arg"];

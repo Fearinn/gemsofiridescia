@@ -1954,6 +1954,7 @@ define([
               ),
               {
                 excedentGems: excedentGems,
+                you: _("${you}"),
               }
             );
             this.updatePageTitle();
@@ -2056,7 +2057,8 @@ define([
               "The cargos of all players are full. ${actplayer} must pick ${excedentGems} Gem(s) to discard"
             ),
             {
-              excedentGems,
+              actplayer: _("${actplayer}"),
+              excedentGems: excedentGems,
             }
           );
           this.updatePageTitle();
