@@ -1948,12 +1948,11 @@ define([
           this.goi.globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
-            this.gamedatas.gamestate.descriptionmyturn = this.format_string(
+            this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
               _(
-                "The cargos of all players are full. ${you} must pick ${excedentGems} Gem to discard"
+                "The cargos of all players are full. ${you} must pick ${excedentGems} Gem(s) to discard"
               ),
               {
-                you: _("${you}"),
                 excedentGems: excedentGems,
               }
             );
@@ -2052,9 +2051,9 @@ define([
         const availableCargos = args.args.availableCargos;
 
         if (availableCargos.length === 0) {
-          this.gamedatas.gamestate.descriptionmyturn = this.format_string(
+          this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
             _(
-              "The cargos of all players are full. ${actplayer} must pick ${excedentGems} Gem to discard"
+              "The cargos of all players are full. ${actplayer} must pick ${excedentGems} Gem(s) to discard"
             ),
             {
               excedentGems,
