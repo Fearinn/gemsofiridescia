@@ -280,7 +280,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to a new ${tile} (hex ${hex}) '),
+            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
@@ -429,7 +429,7 @@ class Game extends \Table
 
             if ($tileCard) {
                 $tile_id = (int) $tileCard["type_arg"];
-                $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+                $gem_id = (int) $tileCard["gem"];
 
                 if (!$this->incGem($minedGemsCount, $gem_id, $player_id, $tileCard, true)) {
                     $fullCargo = true;
@@ -3227,6 +3227,7 @@ class Game extends \Table
         $result["playersNoZombie"] = $this->loadPlayersNoZombie();
         $result["tilesBoard"] = $this->getTilesBoard();
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
+        $result["tilesInfo"] = $this->tiles_info;
         $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
         $result["collectedTiles"] = $this->getCollectedTiles(null);
         $result["iridiaStoneOwner"] = $this->getIridiaStoneOwner();

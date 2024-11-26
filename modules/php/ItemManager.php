@@ -253,7 +253,8 @@ class ItemManager
 
         if ($this->id === 9) {
             $tileCard_id = (int) $args["tileCard_id"];
-            $this->prosperousPickaxe($tileCard_id, $player_id);
+            $rainbowGem = (int) $args["rainbowGem"];
+            $this->prosperousPickaxe($tileCard_id, $player_id, $rainbowGem);
         }
 
         if ($this->id === 10) {
@@ -523,7 +524,7 @@ class ItemManager
         return !$fullCargo;
     }
 
-    public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
+    public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id, ?int $rainbowGem = null): void
     {
         $prosperousTiles = $this->game->prosperousTiles($player_id, true);
 
@@ -532,6 +533,14 @@ class ItemManager
         }
 
         $tileCard = $this->game->tile_cards->getCard($tileCard_id);
+        $tile_id = (int) $tileCard["type_arg"];
+        $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
+
+        if ($gem_id === 0 || $gem_id === 10) {
+            $gem_id = $rainbowGem;
+        }
+
+        $tileCard["gem"] = $gem_id;
         $this->game->globals->set(PROSPEROUS_PICKAXE, $tileCard);
 
         $this->game->notifyAllPlayers(
@@ -722,8 +731,7 @@ class ItemManager
             return true;
         }
 
-        $tile_id = (int) $tileCard["type_arg"];
-        $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
+        $gem_id = (int) $tileCard["gem"];
 
         if ($delta < 0) {
             $this->game->discardGems($player_id, null, $gem_id, abs($delta));

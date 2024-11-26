@@ -89,6 +89,7 @@ define([
         gameArea.style.justifyContent = "center";
       }
 
+      this.goi.info.tiles = gamedatas.tilesInfo;
       this.goi.info.relics = gamedatas.relicsInfo;
       this.goi.info.objectives = gamedatas.objectivesInfo;
       this.goi.info.items = gamedatas.itemsInfo;
@@ -1889,12 +1890,17 @@ define([
 
         if (stateName === "client_prosperousPickaxe") {
           const prosperousTiles = args.args.prosperousTiles;
-          console.log(prosperousTiles);
           
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",
             prosperousTiles
           );
+        }
+
+        if (stateName === "client_prosperousPickaxe2") {
+          this.generateRainbowOptions(() => {
+            this.actUseItem();
+          });
         }
 
         if (stateName === "client_swappingStones") {
@@ -2066,6 +2072,7 @@ define([
       console.log("Leaving state: " + stateName);
 
       this.goi.selections = this.goi.info.defaultSelections;
+      console.log(this.goi.selections);
 
       if (!this.goi.globals.player) {
         return;
@@ -2562,8 +2569,21 @@ define([
       }
 
       if (stateName === "client_prosperousPickaxe") {
-        if (this.goi.selections.tile) {
-          this.addActionButton(elementId, message, "actUseItem");
+        const selectedTile = this.goi.selections.tile;
+        if (selectedTile) {
+          const tile_id = selectedTile.type_arg;
+          const gem_id = this.goi.info.tiles[tile_id].gem;
+
+          this.addActionButton(elementId, message, () => {
+            if (gem_id == 0 || gem_id == 10) {
+              this.setClientState("client_prosperousPickaxe2", {
+                descriptionmyturn: _("${you} must pick the Gem to mine from the Rainbow")
+              });
+              return;
+            }
+
+            this.actUseItem();
+          });
         }
       }
 
@@ -2571,7 +2591,6 @@ define([
         if (this.goi.selections.gems.length > 0) {
           this.addActionButton(elementId, message, () => {
             const availableCargos = this.goi.globals.availableCargos;
-            console.log(availableCargos, "availableCargos");
 
             if (availableCargos.length === 0) {
               this.actTransferGem();
@@ -2871,6 +2890,7 @@ define([
       if (item_id === 9) {
         args = {
           tileCard_id: this.goi.selections.tile.id,
+          rainbowGem: this.goi.selections.gem,
         };
       }
 

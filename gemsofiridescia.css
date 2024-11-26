@@ -46,6 +46,7 @@ html {
   --tileSpacing: 1.6px;
   --explorerSize: 78.4px;
   --gemSize: 40.8px;
+  --gemIconSize: 39.8px;
   --dieSize: 45px;
   --scoringMarkerSize: 22.5px;
   --royaltyTokenSize: 112.8px;
@@ -254,13 +255,13 @@ html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: var(--gemIconSize);
 }
 
 .goi_gemIcon {
   background-image: url("img/gems.png");
-  height: 40px;
-  width: 40px;
+  height: var(--gemIconSize);
+  width: var(--gemIconSize);
 }
 
 .goi_gemIcon.goi_log {
@@ -268,8 +269,8 @@ html {
   top: 5px;
   display: inline-block;
   background-size: cover;
-  height: 20px;
-  width: 19.9px;
+  height: calc(var(--gemIconSize) / 2);
+  width: calc(var(--gemIconSize) / 2);
 }
 
 .goi_opponentObjectives {
@@ -754,9 +755,8 @@ html {
 }
 
 .bgabutton .goi_gem {
-  background-size: cover;
-  height: 40px;
-  width: 40px;
+  height: var(--gemSize);
+  width: var(--gemSize);
 }
 
 .goi_tileContainer:hover > .goi_tile ~ .goi_explorer {
