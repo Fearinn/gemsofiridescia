@@ -1489,6 +1489,10 @@ define([
           usableEpicElixir
         );
 
+        if (!stateName.includes("client_")) {
+          this.goi.selections = this.goi.info.defaultSelections;
+        }
+
         if (
           stateName.includes("client_") &&
           stateName !== "client_regalReferenceBook"
@@ -1713,8 +1717,6 @@ define([
           const sellGemsText = canSellMoreGems
             ? _("Sell more Gem(s)")
             : _("Sell Gem(s)");
-
-          console.log(canSellGems, canSellMoreGems, "sell");
 
           this.addActionButton("goi_sellGems_btn", sellGemsText, () => {
             this.setClientState("client_sellGems", {
@@ -1950,7 +1952,7 @@ define([
           if (availableCargos.length === 0) {
             this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
               _(
-                "The cargos of all players are full. ${you} must pick ${excedentGems} Gem(s) to discard"
+                "The cargos of all players are full. ${you} must pick up to ${excedentGems} Gem(s) to discard"
               ),
               {
                 excedentGems: excedentGems,
@@ -2054,7 +2056,7 @@ define([
         if (availableCargos.length === 0) {
           this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
             _(
-              "The cargos of all players are full. ${actplayer} must pick ${excedentGems} Gem(s) to discard"
+              "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} Gem(s) to discard"
             ),
             {
               actplayer: _("${actplayer}"),
@@ -2071,9 +2073,6 @@ define([
     //
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
-
-      this.goi.selections = this.goi.info.defaultSelections;
-      console.log(this.goi.selections);
 
       if (!this.goi.globals.player) {
         return;
@@ -2175,6 +2174,8 @@ define([
 
       if (stateName === "client_transferGem") {
         this.goi.stocks[this.player_id].gems.cargo.setSelectionMode("none");
+        this.goi.selections.gems = [];
+        this.goi.selections.opponent = null;
 
         for (const player_id in this.goi.globals.players) {
           const zoneElement = document.getElementById(
@@ -2987,7 +2988,7 @@ define([
         { event: "incGem" },
         { event: "decGem" },
         { event: "transferGem" },
-        { event: "discardGem" },
+        { event: "discardGems" },
         { event: "obtainIridiaStone" },
         { event: "obtainRoyaltyToken" },
         { event: "restoreRelic" },
@@ -3161,7 +3162,7 @@ define([
       this.goi.counters[opponent_id].gems[gemName].incValue(delta);
     },
 
-    notif_discardGem: function (notif) {
+    notif_discardGems: function (notif) {
       const player_id = notif.args.player_id;
       const delta = notif.args.delta;
 

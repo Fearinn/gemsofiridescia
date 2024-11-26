@@ -584,7 +584,7 @@ class Game extends \Table
             $this->checkPlayer($opponent_id);
 
             if (!in_array($opponent_id, $availableCargos)) {
-                throw new \BgaVisibleSystemException("You can't that many gems to this player now: actTransferGem, $opponent_id, $transferredGemsCount");
+                throw new \BgaVisibleSystemException("You can't transfer that many gems to this player now: actTransferGem, $opponent_id, $transferredGemsCount");
             }
         }
 
@@ -595,7 +595,7 @@ class Game extends \Table
 
             $this->checkCardLocation($gemCard, "hand", $player_id);
 
-            $gem_id = (int) $gemCard["type"];
+            $gem_id = (int) $gemCard["type_arg"];
 
             if (!array_key_exists($gem_id, $gemCardsByType)) {
                 $gemCardsByType[$gem_id] = [];
@@ -604,11 +604,11 @@ class Game extends \Table
             $gemCardsByType[$gem_id][] = $gemCard;
         }
 
-        foreach ($gemCardsByType as $gemCards) {
+        foreach ($gemCardsByType as $gemTypeCards) {
             if (!$availableCargos) {
-                $this->discardGems($player_id, $gemCards, null);
+                $this->discardGems($player_id, $gemTypeCards, null);
             } else {
-                $this->transferGems($gemCards, $opponent_id, $player_id);
+                $this->transferGems($gemTypeCards, $opponent_id, $player_id);
             }
         }
 
@@ -1332,8 +1332,8 @@ class Game extends \Table
 
                 if (array_key_exists($tileCard_id, $revealedTiles)) {
                     if ($associative) {
-                    $tilesBehind[$tileCard_id] = $tileCard;
-                    continue;
+                        $tilesBehind[$tileCard_id] = $tileCard;
+                        continue;
                     }
 
                     $tilesBehind[] = $tileCard;
@@ -1703,7 +1703,7 @@ class Game extends \Table
             if ($playersNumber <= 2) {
                 $score_aux = 1;
                 $token_id = 1;
-            } 
+            }
         }
 
         if ($castlePlayersCount === 2) {
@@ -1890,8 +1890,7 @@ class Game extends \Table
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
-            if (!$hasReachedCastle && $this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
+            if ($this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -1945,15 +1944,16 @@ class Game extends \Table
         }
     }
 
-    public function discardGems(int $player_id, ?array $gemCards, ?int $gem_id, int $delta = 1): void
+    public function discardGems(int $player_id, ?array $gemCards, ?int $gem_id, ?int $delta = 1): void
     {
         if (!$gemCards) {
             if (!$gem_id) {
                 throw new \BgaVisibleSystemException("One of the args 'gemCards' and 'gem_id' is mandatory: discardGem");
             }
 
-            $gemCards = $this->getCollectionFromDB("$this->deckSelectQuery from gem WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT 1");
-        }
+            $gemCards = $this->getCollectionFromDB("$this->deckSelectQuery from gem 
+            WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT $delta");
+        } 
 
         if (!$gem_id) {
             $gemCard = reset($gemCards);
@@ -1968,7 +1968,7 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "delta" => $delta,
+                "delta" => count($gemCards),
                 "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "i18n" => ["gem_label"],
@@ -2081,7 +2081,8 @@ class Game extends \Table
         $this->incCoin($earnedCoins, $player_id);
     }
 
-    public function actionAfterSell(): void {
+    public function actionAfterSell(): void
+    {
         if ($this->globals->get(SOLD_GEM) !== null) {
             $this->globals->set(ACTION_AFTER_SELL, true);
         }
