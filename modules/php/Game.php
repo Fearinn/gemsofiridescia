@@ -1019,7 +1019,7 @@ class Game extends \Table
                     "player_name" => $this->getPlayerNameById($player_id),
                     "item_name" => clienttranslate("Epic Elixir"),
                     "i18n" => ["item_name"],
-                    "preserve" => "item_id",
+                    "preserve" => ["item_id"],
                     "item_id" => 4,
                 ]
             );

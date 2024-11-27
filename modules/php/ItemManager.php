@@ -104,12 +104,12 @@ class ItemManager
 
         if ($state_id !== 4) {
             if ($this->id === 4) {
-                return !$this->game->globals->get(EPIC_ELIXIR);
+                return $this->canUseEpicElixir($player_id);
             }
 
             if ($state_id === 2 || $state_id === 20) {
                 if ($this->id === 10) {
-                    $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
+                    $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumberNoZombie() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
                     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $hasSwapableOpponent && $explorerCard["location"] === "board";
@@ -139,7 +139,7 @@ class ItemManager
         }
 
         if ($this->id === 4) {
-            return !$this->game->globals->get(EPIC_ELIXIR);
+            return $this->canUseEpicElixir($player_id);
         }
 
         if ($this->id === 5) {
@@ -169,7 +169,7 @@ class ItemManager
     public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): bool
     {
         if (!$this->isUsable($player_id)) {
-            throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
+            throw new \BgaUserException($this->game->_("You can't use this item now"));
         }
 
         $eventKey = "message";
@@ -739,5 +739,30 @@ class ItemManager
         }
 
         return $this->game->incGem($delta, $gem_id, $player_id, $tileCard, true);
+    }
+
+    public function canUseEpicElixir(int $player_id): bool
+    {
+        $isLastPlayer = $this->game->castlePlayersCount() === $this->game->getPlayersNumberNoZombie() - 1;
+
+        $canOnlyMoveToCastle = true;
+        if ($isLastPlayer) {
+            $revealableTiles = $this->game->revealableTiles($player_id);
+            $explorableTiles = $this->game->explorableTiles($player_id);
+
+            $adjacentTiles = array_merge($revealableTiles, $explorableTiles);
+
+            foreach ($adjacentTiles as $tileCard) {
+                $region_id = (int) $tileCard["type"];
+
+                if ($region_id !== 5) {
+                    $canOnlyMoveToCastle = false;
+                    break;
+                }
+            }
+        }
+
+        $isLastTurn = $isLastPlayer && $canOnlyMoveToCastle;
+        return !$this->game->globals->get(EPIC_ELIXIR) && !$isLastTurn;
     }
 }
