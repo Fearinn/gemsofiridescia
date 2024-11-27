@@ -44,6 +44,7 @@ $machinestates = [
             "confirmAutoMove" => 22,
             "skip" => 3,
             "moveExplorer" => 3,
+            "rainbowTile" => 30,
             "optionalActions" => 4,
         ]
     ],
