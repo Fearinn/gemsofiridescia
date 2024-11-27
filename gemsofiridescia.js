@@ -1892,7 +1892,7 @@ define([
 
         if (stateName === "client_prosperousPickaxe") {
           const prosperousTiles = args.args.prosperousTiles;
-          
+
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",
             prosperousTiles
@@ -1950,15 +1950,16 @@ define([
           this.goi.globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
-            this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
-              _(
-                "The cargos of all players are full. ${you} must pick up to ${excedentGems} Gem(s) to discard"
-              ),
-              {
-                excedentGems: excedentGems,
-                you: _("${you}"),
-              }
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "The cargos of all players are full. ${you} must pick up to ${excedentGems} Gem(s) to discard"
+                ),
+                {
+                  excedentGems: excedentGems,
+                  you: _("${you}"),
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -2054,15 +2055,16 @@ define([
         const availableCargos = args.args.availableCargos;
 
         if (availableCargos.length === 0) {
-          this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
-            _(
-              "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} Gem(s) to discard"
-            ),
-            {
-              actplayer: _("${actplayer}"),
-              excedentGems: excedentGems,
-            }
-          );
+          this.gamedatas.gamestate.descriptionmyturn =
+            this.format_string_recursive(
+              _(
+                "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} Gem(s) to discard"
+              ),
+              {
+                actplayer: _("${actplayer}"),
+                excedentGems: excedentGems,
+              }
+            );
           this.updatePageTitle();
         }
       }
@@ -2084,6 +2086,11 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
+      if (stateName === "client_pickEmptyTile") {
+        this.goi.stocks.tiles.empty.setSelectionMode("none");
+        this.goi.stocks.tiles.empty.removeAll();
+      }
+
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi.stocks[this.player_id].tiles.victoryPile.setSelectionMode(
@@ -2091,17 +2098,16 @@ define([
         );
       }
 
-      if (stateName === "client_pickEmptyTile") {
-        this.goi.stocks.tiles.empty.setSelectionMode("none");
-        this.goi.stocks.tiles.empty.removeAll();
-      }
-
-      if (stateName === "moveExplorer") {
+      if (stateName === "discardTile") {
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "rainbowTile") {
         this.goi.stocks.gems.rainbowOptions.removeAll();
+      }
+
+      if (stateName === "moveExplorer") {
+        this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "discardObjective") {
@@ -2579,7 +2585,9 @@ define([
           this.addActionButton(elementId, message, () => {
             if (gem_id == 0 || gem_id == 10) {
               this.setClientState("client_prosperousPickaxe2", {
-                descriptionmyturn: _("${you} must pick the Gem to mine from the Rainbow")
+                descriptionmyturn: _(
+                  "${you} must pick the Gem to mine from the Rainbow"
+                ),
               });
               return;
             }
