@@ -780,7 +780,7 @@ define([
         const stateName = this.getStateName();
 
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("none");
-        this.goi.stocks[this.player_id].dice.scene.setSelectionMode("single");
+        this.goi.stocks[this.player_id].dice.scene.setSelectionMode("multiple");
 
         if (stateName === "client_luckyLibation") {
           this.goi.selections.dice = selection;
@@ -920,10 +920,9 @@ define([
           }
 
           if (selection.length > 0) {
-            this.goi.selections.die = lastChange;
-            this.goi.selections.dice = [];
+            this.goi.selections.dice = selection;
           } else {
-            this.goi.selections.die = null;
+            this.goi.selections.dice = [];
           }
 
           this.handleSelection();
@@ -1851,7 +1850,7 @@ define([
 
           this.goi.stocks.dice.market.setSelectionMode("multiple");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
-            "single",
+            "multiple",
             rolledDice
           );
         }
@@ -2499,7 +2498,7 @@ define([
       }
 
       if (stateName === "client_luckyLibation") {
-        if (this.goi.selections.dice.length > 0 || this.goi.selections.die) {
+        if (this.goi.selections.dice.length > 0) {
           this.addActionButton(elementId, message, "actUseItem");
         }
       }
@@ -2776,7 +2775,7 @@ define([
       if (item_id === 5) {
         this.setClientState("client_luckyLibation", {
           descriptionmyturn: _(
-            "${you} must select a die from a mining atempt or a Gem Market Die to re-roll"
+            "${you} must select any dice from a mining atempt or a Gem Market Die to re-roll"
           ),
         });
       }
@@ -2859,20 +2858,10 @@ define([
       }
 
       if (item_id === 5) {
-        const selecedDice = this.goi.selections.dice;
-        if (selecedDice.length > 0) {
-          args = {
-            die_id: null,
-            dieType: "gem",
-            gemDice: this.goi.selections.dice,
-          };
-        } else {
-          args = {
-            die_id: this.goi.selections.die.id,
-            dieType: this.goi.selections.die.type,
-            gemDice: null,
-          };
-        }
+        args = {
+          diceType: this.goi.selections.dice[0].type,
+          dice: this.goi.selections.dice,
+        };
       }
 
       if (item_id === 6) {
@@ -3341,7 +3330,14 @@ define([
         type: type,
       };
 
-      this.goi.stocks[player_id].dice.scene.rollDie(die);
+      if (type === "gem") {
+        this.goi.stocks.dice.market.getDieElement(die).classList.remove("goi_selectedDie");
+        this.goi.stocks.dice.market.rollDie(die);
+      } else {
+        this.goi.stocks[player_id].dice.scene.getDieElement(die).classList.remove("goi_selectedDie");
+        this.goi.stocks[player_id].dice.scene.rollDie(die);
+      }
+
       this.goi.globals.rolledDice[die_id] = die;
 
       this.playSound("dice");

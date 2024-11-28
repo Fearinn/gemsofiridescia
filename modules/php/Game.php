@@ -1953,7 +1953,7 @@ class Game extends \Table
 
             $gemCards = $this->getCollectionFromDB("$this->deckSelectQuery from gem 
             WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=$gem_id LIMIT $delta");
-        } 
+        }
 
         if (!$gem_id) {
             $gemCard = reset($gemCards);
@@ -3078,8 +3078,8 @@ class Game extends \Table
 
     public function debug_fillCargo(int $player_id): void
     {
-        $this->incGem(4, 2, $player_id);
-        $this->incGem(3, 1, $player_id);
+        $totalGemsCount = $this->getTotalGemsCount($player_id);
+        $this->incGem(7 - $totalGemsCount, 2, $player_id);
     }
 
     public function debug_overflowCargo(int $player_id): void
