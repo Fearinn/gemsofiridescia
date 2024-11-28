@@ -323,7 +323,7 @@ define([
         },
         setupFrontDiv: (card, div) => {
           if (!card.type_arg || card.id === "fake") {
-            div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+            div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
             const backgroundPosition = this.calcBackgroundPosition(card.type);
 
             div.style.backgroundPosition = backgroundPosition;
@@ -331,7 +331,7 @@ define([
           }
 
           const backgroundCode = Math.ceil(card.type_arg / 12);
-          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
 
           const spritePosition =
             backgroundCode === 1 ? card.type_arg - 1 : card.type_arg - 13;
@@ -353,7 +353,7 @@ define([
           }
         },
         setupBackDiv: (card, div) => {
-          div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+          div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
           const backgroundPosition = this.calcBackgroundPosition(card.type);
 
           div.style.backgroundPosition = backgroundPosition;
@@ -3641,7 +3641,7 @@ define([
 
     getRelicTooltip: function (relic_id) {
       const backgroundCode = Math.ceil(relic_id / 12);
-      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
 
       const spritePosition =
         backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
