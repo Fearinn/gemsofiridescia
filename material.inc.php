@@ -455,8 +455,8 @@ $this->relics_info = [
         "cost" => [
             1 => 0,
             2 => 2,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     3 => [
@@ -570,9 +570,9 @@ $this->relics_info = [
         "type" => 2,
         "points" => 5,
         "cost" => [
-            1 => 1,
+            1 => 0,
             2 => 2,
-            3 => 0,
+            3 => 1,
             4 => 0
         ]
     ],
@@ -585,8 +585,8 @@ $this->relics_info = [
         "cost" => [
             1 => 2,
             2 => 0,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     13 => [
@@ -607,12 +607,12 @@ $this->relics_info = [
         "tr_name" => clienttranslate("Amethyst Power Core"),
         "leadGem" => 1,
         "type" => 2,
-        "points" => 9,
+        "points" => 7,
         "cost" => [
             1 => 2,
             2 => 0,
-            3 => 1,
-            4 => 1
+            3 => 2,
+            4 => 0
         ]
     ],
     15 => [
@@ -633,11 +633,11 @@ $this->relics_info = [
         "tr_name" => clienttranslate("Amethyst Vase"),
         "leadGem" => 1,
         "type" => 3,
-        "points" => 5,
+        "points" => 6,
         "cost" => [
-            1 => 2,
+            1 => 1,
             2 => 1,
-            3 => 0,
+            3 => 1,
             4 => 0
         ]
     ],
@@ -649,9 +649,9 @@ $this->relics_info = [
         "points" => 6,
         "cost" => [
             1 => 1,
-            2 => 0,
+            2 => 1,
             3 => 1,
-            4 => 1
+            4 => 0
         ]
     ],
     18 => [
@@ -661,9 +661,9 @@ $this->relics_info = [
         "type" => 3,
         "points" => 6,
         "cost" => [
-            1 => 0,
+            1 => 1,
             2 => 1,
-            3 => 1,
+            3 => 0,
             4 => 1
         ]
     ],
@@ -676,8 +676,8 @@ $this->relics_info = [
         "cost" => [
             1 => 1,
             2 => 2,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     20 => [
@@ -687,8 +687,8 @@ $this->relics_info = [
         "type" => 3,
         "points" => 9,
         "cost" => [
-            1 => 0,
-            2 => 1,
+            1 => 1,
+            2 => 0,
             3 => 2,
             4 => 1
         ]
