@@ -57,7 +57,11 @@ $machinestates = [
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
         "possibleactions" => ["actDiscardCollectedTile", "actUseItem"],
-        "transitions" => ["repeat" => 2, "revealTile" => 2]
+        "transitions" => [
+            "repeat" => 2,
+            "revealTile" => 2,
+            "optionalActions" => 4
+        ],
     ],
 
     21 => [
