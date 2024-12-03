@@ -1210,7 +1210,8 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function hexRow(int $hex): int {
+    public function hexRow(int $hex): int
+    {
         $remainingHexes = $hex;
 
         for ($row = 1; $remainingHexes >= 0; $row++) {
@@ -3201,21 +3202,10 @@ class Game extends \Table
      */
     public function upgradeTableDb($from_version)
     {
-        //       if ($from_version <= 1404301345)
-        //       {
-        //            // ! important ! Use DBPREFIX_<table_name> for all tables
-        //
-        //            $sql = "ALTER TABLE DBPREFIX_xxxxxxx ....";
-        //            $this->applyDbUpgradeToAllDB( $sql );
-        //       }
-        //
-        //       if ($from_version <= 1405061421)
-        //       {
-        //            // ! important ! Use DBPREFIX_<table_name> for all tables
-        //
-        //            $sql = "CREATE TABLE DBPREFIX_xxxxxxx ....";
-        //            $this->applyDbUpgradeToAllDB( $sql );
-        //       }
+        if ($from_version <= 2412030111) {
+            $sql = "ALTER TABLE DBPREFIX_player RENAME septor TO scepter";
+            $this->applyDbUpgradeToAllDB($sql);
+        }
     }
 
     /*
