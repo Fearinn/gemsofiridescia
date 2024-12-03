@@ -3200,13 +3200,7 @@ class Game extends \Table
      * @param int $from_version
      * @return void
      */
-    public function upgradeTableDb($from_version)
-    {
-        if ($from_version <= 2412030111) {
-            $sql = "ALTER TABLE DBPREFIX_player RENAME septor TO scepter";
-            $this->applyDbUpgradeToAllDB($sql);
-        }
-    }
+    public function upgradeTableDb($from_version) {}
 
     /*
      * Gather all information about current game situation (visible by the current player).
