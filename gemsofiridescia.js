@@ -919,10 +919,12 @@ define([
             this.goi.stocks.dice.market.setSelectionMode("single");
           }
 
-          if (selection.length > 0) {
+          if (stateName === "client_luckyLibation") {
             this.goi.selections.dice = selection;
+          } else if (selection.length > 0) {
+            this.goi.selections.die = lastChange;
           } else {
-            this.goi.selections.dice = [];
+            this.goi.selections.die = null;
           }
 
           this.handleSelection();
@@ -3331,10 +3333,14 @@ define([
       };
 
       if (type === "gem") {
-        this.goi.stocks.dice.market.getDieElement(die).classList.remove("goi_selectedDie");
+        this.goi.stocks.dice.market
+          .getDieElement(die)
+          .classList.remove("goi_selectedDie");
         this.goi.stocks.dice.market.rollDie(die);
       } else {
-        this.goi.stocks[player_id].dice.scene.getDieElement(die).classList.remove("goi_selectedDie");
+        this.goi.stocks[player_id].dice.scene
+          .getDieElement(die)
+          .classList.remove("goi_selectedDie");
         this.goi.stocks[player_id].dice.scene.rollDie(die);
       }
 
