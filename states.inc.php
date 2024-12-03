@@ -167,8 +167,8 @@ $machinestates = [
 
     80 => [
         "name" => "startSolo",
-        "description" => clienttranslate('${actplayer} must click the button to start the solo journey'),
-        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo journey'),
+        "description" => clienttranslate('${actplayer} must click the button to start the solo expedition'),
+        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo expedition'),
         "type" => "activeplayer",
         "possibleactions" => ["actStartSolo"],
         "transitions" => ["rhomFirstTurn" => 81],

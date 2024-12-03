@@ -1211,8 +1211,10 @@ class Game extends \Table
     {
         $face = bga_rand(1, 6);
 
-        $this->incStat(1, "$face:Rolled", $player_id);
-
+        if ($player_id !== 1) {
+            $this->incStat(1, "$face:Rolled", $player_id);
+        }
+        
         $this->notifyAllPlayers(
             'rollDie',
             clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
@@ -3191,7 +3193,8 @@ class Game extends \Table
 
     /* SOLO UTILITY */
 
-    public function getRhomDeck(bool $onlyTop = false): array {
+    public function getRhomDeck(bool $onlyTop = false): array
+    {
         $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
         if ($onlyTop) {
             return $this->hideCard($rhomDeckTop);

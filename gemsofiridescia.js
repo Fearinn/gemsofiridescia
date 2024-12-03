@@ -517,8 +517,8 @@ define([
       });
 
       this.goi.managers.rhom = new CardManager(this, {
-        cardHeight: 409,
-        cardWidth: 300,
+        cardHeight: 230,
+        cardWidth: 168.75,
         getId: (card) => `rhom-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_card");
@@ -1498,7 +1498,7 @@ define([
 
         document.getElementById(
           `avatar_${bot.id}`
-        ).src = `${g_gamethemeurl}/img/rhomAvatar.jpg`;
+        ).src = `${g_gamethemeurl}/img/solo/rhomAvatar.jpg`;
         document.getElementById(`player_score_${bot.id}`).textContent = 0;
         document
           .getElementById(`goi_gemCounters:${bot.id}`)
