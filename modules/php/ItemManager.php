@@ -8,6 +8,7 @@ use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\Actions\Types\StringParam;
+use BgaUserException;
 
 class ItemManager
 {
@@ -104,12 +105,12 @@ class ItemManager
 
         if ($state_id !== 4) {
             if ($this->id === 4) {
-                return !$this->game->globals->get(EPIC_ELIXIR);
+                return $this->canUseEpicElixir($player_id);
             }
 
             if ($state_id === 2 || $state_id === 20) {
                 if ($this->id === 10) {
-                    $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumber() - 1;
+                    $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumberNoZombie() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
                     return $this->game->globals->get(REVEALS_LIMIT) === 0 && $hasSwapableOpponent && $explorerCard["location"] === "board";
@@ -139,7 +140,7 @@ class ItemManager
         }
 
         if ($this->id === 4) {
-            return !$this->game->globals->get(EPIC_ELIXIR);
+            return $this->canUseEpicElixir($player_id);
         }
 
         if ($this->id === 5) {
@@ -159,8 +160,8 @@ class ItemManager
         }
 
         if ($this->id === 9) {
-            $explorableTiles = $this->game->explorableTiles($player_id);
-            return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$explorableTiles;
+            $prosperousTiles = $this->game->prosperousTiles($player_id);
+            return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$prosperousTiles;
         }
 
         return false;
@@ -169,7 +170,7 @@ class ItemManager
     public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): bool
     {
         if (!$this->isUsable($player_id)) {
-            throw new \BgaVisibleSystemException("You can't use this Item now: actUseItem, $this->card_id");
+            throw new \BgaUserException($this->game->_("You can't use this item now"));
         }
 
         $eventKey = "message";
@@ -220,10 +221,8 @@ class ItemManager
         }
 
         if ($this->id === 5) {
-            $die_id = (string) $args["die_id"];
-            $dieType = (string) $args["dieType"];
-            $gemDice = (array) $args["gemDice"];
-            $this->luckyLibation($die_id, $dieType, $gemDice, $player_id);
+            $dice = (array) $args["dice"];
+            return $this->luckyLibation($dice, $player_id);
         }
 
         if ($this->id === 6) {
@@ -253,7 +252,8 @@ class ItemManager
 
         if ($this->id === 9) {
             $tileCard_id = (int) $args["tileCard_id"];
-            $this->prosperousPickaxe($tileCard_id, $player_id);
+            $rainbowGem = (int) $args["rainbowGem"];
+            $this->prosperousPickaxe($tileCard_id, $player_id, $rainbowGem);
         }
 
         if ($this->id === 10) {
@@ -356,16 +356,18 @@ class ItemManager
     }
 
     public function luckyLibation(
-        #[StringParam(alphanum_dash: true)] ?string $die_id,
-        #[StringParam(alphanum: true)] string $dieType,
-        #[JsonParam(alphanum: false)] ?array $gemDice,
+        #[JsonParam(alphanum: false)] array $dice,
         int $player_id
     ): bool {
-        if ($dieType === "gem") {
-            foreach ($gemDice as $die) {
-                $die_id = $die["id"];
-                $dieType = $die["type"];
+        $minedGemsCount = 0;
+        $lostGemsCount = 0;
+        $diceType = $this->getDiceType($dice);
 
+        foreach ($dice as $die) {
+            $die_id = $die["id"];
+            $dieType = $die["type"];
+
+            if ($diceType === "gem") {
                 $gem_id = $die_id;
                 $gemName = $this->game->gems_info[$gem_id]["name"];
 
@@ -374,57 +376,75 @@ class ItemManager
                 $delta = $newFace - $oldFace;
 
                 $this->game->updateMarketValue($delta, $gem_id, true);
+                $this->game->notifyAllPlayers(
+                    "syncDieRolls",
+                    "",
+                    []
+                );
+
+                continue;
             }
 
-            $this->game->notifyAllPlayers(
-                "syncDieRolls",
-                "",
-                []
-            );
+            $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
+            $die = $rolledDice[$die_id];
+            $dieType = $die["type"];
+            $oldFace = $die["face"];
 
+            if (!array_key_exists($die_id, $rolledDice)) {
+                throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
+            }
+
+            $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
+            $delta = $newFace - $oldFace;
+
+            $tileCard = $this->game->currentTile($player_id);
+            $gem_id = (int) $this->game->currentTile($player_id, true);
+            $gemName = $this->game->gems_info[$gem_id]["name"];
+            $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
+
+            if ($newFace < 1) {
+                $newFace += 6;
+            }
+
+            if ($newFace > 6) {
+                $newFace -= 6;
+            }
+
+            $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
+            $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
+            $this->game->globals->set(ROLLED_DICE, $rolledDice);
+
+            if ($oldFace < $gemMarketValue && $newFace >= $gemMarketValue) {
+                $minedGemsCount++;
+            }
+
+            if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
+                $lostGemsCount++;
+            }
+        }
+
+        $gemsDelta = $minedGemsCount - $lostGemsCount;
+        if ($this->game->globals->get(MARVELOUS_CART)) {
+            $gemsDelta *= 2;
+        }
+
+        if ($gemsDelta === 0) {
             return true;
         }
 
-        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-        $die = $rolledDice[$die_id];
-        $dieType = $die["type"];
-        $oldFace = $die["face"];
+        $fullCargo = false;
 
-        if (!array_key_exists($die_id, $rolledDice)) {
-            throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
+        if ($gemsDelta < 0) {
+            $this->game->discardGems($player_id, null, $gem_id, abs($gemsDelta));
+            $this->handleProsperousGem($gemsDelta, $player_id);
         }
 
-        $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
-        $delta = $newFace - $oldFace;
-
-        $tileCard = $this->game->currentTile($player_id);
-        $gem_id = (int) $this->game->currentTile($player_id, true);
-        $gemName = $this->game->gems_info[$gem_id]["name"];
-        $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
-
-        if ($newFace < 1) {
-            $newFace += 6;
+        if ($gemsDelta > 0) {
+            $fullCargo = !$this->game->incGem($gemsDelta, $gem_id, $player_id, $tileCard, true) ||
+                !$this->handleProsperousGem($gemsDelta, $player_id);
         }
 
-        if ($newFace > 6) {
-            $newFace -= 6;
-        }
-
-        $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
-        $this->game->globals->set(ROLLED_DICE, $rolledDice);
-
-        if ($oldFace < $gemMarketValue) {
-            if ($newFace >= $gemMarketValue) {
-                return $this->game->incGem(1, $gem_id, $player_id, $tileCard, true);
-            }
-        }
-
-        if ($newFace < $gemMarketValue) {
-            $this->game->discardGems($player_id, null, $gem_id);
-        }
-
-        return true;
+        return !$fullCargo;
     }
 
     public function joltyJackhammer(
@@ -510,28 +530,52 @@ class ItemManager
         $delta = $this->game->globals->get(MARVELOUS_CART) ? 2 : 1;
 
         if ($oldFace < $gemMarketValue && $newFace >= $gemMarketValue) {
-            $fullCargo = !$this->game->incGem($delta, $gem_id, $player_id, $tileCard, true);
-            $fullCargo = !$this->handleProsperousGem($delta, $player_id);
+            $fullCargo = !$this->game->incGem($delta, $gem_id, $player_id, $tileCard, true) ||
+                !$this->handleProsperousGem($delta, $player_id);
         }
 
         if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
             $this->game->discardGems($player_id, null, $gem_id, $delta);
-
             $this->handleProsperousGem(-$delta, $player_id);
         }
 
         return !$fullCargo;
     }
 
-    public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id): void
+    public function prosperousPickaxe(#[IntParam(min: 1, max: 58)] int $tileCard_id, int $player_id, ?int $rainbowGem = null): void
     {
-        $explorableTiles = $this->game->explorableTiles($player_id, true);
-        if (!array_key_exists($tileCard_id, $explorableTiles)) {
+        $prosperousTiles = $this->game->prosperousTiles($player_id, true);
+
+        if (!array_key_exists($tileCard_id, $prosperousTiles)) {
             throw new \BgaVisibleSystemException("You can't pick this tile for the Prosperous Pickaxe: $tileCard_id");
         }
 
         $tileCard = $this->game->tile_cards->getCard($tileCard_id);
+        $tile_id = (int) $tileCard["type_arg"];
+        $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
+
+        if ($gem_id === 0 || $gem_id === 10) {
+            $gem_id = $rainbowGem;
+        }
+
+        $tileCard["gem"] = $gem_id;
         $this->game->globals->set(PROSPEROUS_PICKAXE, $tileCard);
+
+        $this->game->notifyAllPlayers(
+            "prosperousPickaxe",
+            clienttranslate('${player_name} picks a ${tile} (hex ${hex}) for the ${item_name}'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->game->getPlayerNameById($player_id),
+                "item_id" => $this->id,
+                "item_name" => clienttranslate("Prosperous Pickaxe"),
+                "hex" => $tileCard["location_arg"],
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard", "item_id"],
+                "i18n" => ["tile", "item_name"],
+                "tile" => clienttranslate("tile"),
+            ],
+        );
     }
 
     public function swappingStones(int $player_id, int $opponent_id): void
@@ -597,10 +641,10 @@ class ItemManager
         }
 
         if (!array_key_exists($tileCard_id, $revealedTiles)) {
-            $this->game->actRevealTile($tileCard_id, true, true);
+            $this->game->actRevealTile(null, $tileCard_id, true, true);
         }
 
-        $this->game->actMoveExplorer($tileCard_id, true);
+        $this->game->actMoveExplorer(null, $tileCard_id, true);
     }
 
     public function isCancellable($player_id): bool
@@ -705,8 +749,7 @@ class ItemManager
             return true;
         }
 
-        $tile_id = (int) $tileCard["type_arg"];
-        $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
+        $gem_id = (int) $tileCard["gem"];
 
         if ($delta < 0) {
             $this->game->discardGems($player_id, null, $gem_id, abs($delta));
@@ -714,5 +757,48 @@ class ItemManager
         }
 
         return $this->game->incGem($delta, $gem_id, $player_id, $tileCard, true);
+    }
+
+    public function canUseEpicElixir(int $player_id): bool
+    {
+        $isLastPlayer = $this->game->castlePlayersCount() === $this->game->getPlayersNumberNoZombie() - 1;
+
+        $canOnlyMoveToCastle = true;
+        if ($isLastPlayer) {
+            $revealableTiles = $this->game->revealableTiles($player_id);
+            $explorableTiles = $this->game->explorableTiles($player_id);
+
+            $adjacentTiles = array_merge($revealableTiles, $explorableTiles);
+
+            foreach ($adjacentTiles as $tileCard) {
+                $region_id = (int) $tileCard["type"];
+
+                if ($region_id !== 5) {
+                    $canOnlyMoveToCastle = false;
+                    break;
+                }
+            }
+        }
+
+        $isLastTurn = $isLastPlayer && $canOnlyMoveToCastle;
+        return !$this->game->globals->get(EPIC_ELIXIR) && !$isLastTurn;
+    }
+
+    public function getDiceType(array $dice): string
+    {
+        $diceType = null;
+        foreach ($dice as $die) {
+            $dieType = $die["type"];
+            if ($diceType === null) {
+                $diceType = $dieType;
+                continue;
+            }
+
+            if ($diceType === "gem" && $diceType !== $dieType) {
+                throw new \BgaVisibleSystemException("You can't roll Gem dice and Mining Dice simultaneously: Lucky Libation, $dieType, $diceType");
+            }
+        }
+
+        return $diceType;
     }
 }

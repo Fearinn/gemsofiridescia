@@ -421,8 +421,8 @@ $this->royaltyTokens_info = [
         "points" => 3
     ],
     2 => [
-        "name" => "septor",
-        "tr_name" => clienttranslate("Septor"),
+        "name" => "scepter",
+        "tr_name" => clienttranslate("Scepter"),
         "points" => 5,
     ],
     3 => [
@@ -455,8 +455,8 @@ $this->relics_info = [
         "cost" => [
             1 => 0,
             2 => 2,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     3 => [
@@ -570,9 +570,9 @@ $this->relics_info = [
         "type" => 2,
         "points" => 5,
         "cost" => [
-            1 => 1,
+            1 => 0,
             2 => 2,
-            3 => 0,
+            3 => 1,
             4 => 0
         ]
     ],
@@ -585,8 +585,8 @@ $this->relics_info = [
         "cost" => [
             1 => 2,
             2 => 0,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     13 => [
@@ -607,12 +607,12 @@ $this->relics_info = [
         "tr_name" => clienttranslate("Amethyst Power Core"),
         "leadGem" => 1,
         "type" => 2,
-        "points" => 9,
+        "points" => 7,
         "cost" => [
             1 => 2,
             2 => 0,
-            3 => 1,
-            4 => 1
+            3 => 2,
+            4 => 0
         ]
     ],
     15 => [
@@ -633,11 +633,11 @@ $this->relics_info = [
         "tr_name" => clienttranslate("Amethyst Vase"),
         "leadGem" => 1,
         "type" => 3,
-        "points" => 5,
+        "points" => 6,
         "cost" => [
-            1 => 2,
+            1 => 1,
             2 => 1,
-            3 => 0,
+            3 => 1,
             4 => 0
         ]
     ],
@@ -649,9 +649,9 @@ $this->relics_info = [
         "points" => 6,
         "cost" => [
             1 => 1,
-            2 => 0,
+            2 => 1,
             3 => 1,
-            4 => 1
+            4 => 0
         ]
     ],
     18 => [
@@ -661,9 +661,9 @@ $this->relics_info = [
         "type" => 3,
         "points" => 6,
         "cost" => [
-            1 => 0,
+            1 => 1,
             2 => 1,
-            3 => 1,
+            3 => 0,
             4 => 1
         ]
     ],
@@ -676,8 +676,8 @@ $this->relics_info = [
         "cost" => [
             1 => 1,
             2 => 2,
-            3 => 1,
-            4 => 0
+            3 => 0,
+            4 => 1
         ]
     ],
     20 => [
@@ -687,8 +687,8 @@ $this->relics_info = [
         "type" => 3,
         "points" => 9,
         "cost" => [
-            1 => 0,
-            2 => 1,
+            1 => 1,
+            2 => 0,
             3 => 2,
             4 => 1
         ]
@@ -889,13 +889,13 @@ $this->items_info = [
     6 => [
         "name" => "Jolty Jackhammer",
         "tr_name" => clienttranslate("Jolty Jackhammer"),
-        "content" => clienttranslate("Modify any one die by +/-1. This can either be a die that you've rolled or a gem market dice."),
+        "content" => clienttranslate("Modify any one die by +/-1. This can either be a die that you've rolled or a gem market die."),
         "cost" => 2,
     ],
     7 => [
         "name" => "Dazzling Dynamite",
         "tr_name" => clienttranslate("Dazzling Dynamite"),
-        "content" => clienttranslate("Modify any one die by up to +/-2. This can either be a die that you've rolled or a gem market dice."),
+        "content" => clienttranslate("Modify any one die by up to +/-2. This can either be a die that you've rolled or a gem market die."),
         "cost" => 3,
     ],
     8 => [

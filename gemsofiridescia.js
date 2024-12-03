@@ -56,17 +56,41 @@ define([
     setup: function (gamedatas) {
       console.log("Starting game setup");
 
+      this.goi.version = gamedatas.version;
+
+      const gameArea = document.getElementById("goi_gameArea");
+
       this.goi.managers.zoom = new ZoomManager({
-        element: document.getElementById("goi_gameArea"),
+        element: gameArea,
         localStorageZoomKey: "gemsofiridescia-zoom",
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-        defaultZoom: 0.2,
+        zoomLevels: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+        defaultZoom: 0.3,
         smooth: true,
+        onZoomChange: () => {
+          const width = gameArea.offsetWidth;
+          const scrollWidth = gameArea.scrollWidth;
+
+          if (scrollWidth > width) {
+            gameArea.style.justifyContent = "flex-start";
+            return;
+          }
+
+          gameArea.style.justifyContent = "center";
+        },
       });
 
+      const width = gameArea.offsetWidth;
+      const scrollWidth = gameArea.scrollWidth;
+      if (scrollWidth > width) {
+        gameArea.style.justifyContent = "flex-start";
+      } else {
+        gameArea.style.justifyContent = "center";
+      }
+
+      this.goi.info.tiles = gamedatas.tilesInfo;
       this.goi.info.relics = gamedatas.relicsInfo;
       this.goi.info.objectives = gamedatas.objectivesInfo;
       this.goi.info.items = gamedatas.itemsInfo;
@@ -159,7 +183,7 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_helpCardContent"> 
+      <div id="goi_helpCardContent" class="goi_cardContent"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
           <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
@@ -185,7 +209,7 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "306.75px",
+            expandedHeight: "230px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
             unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
@@ -220,8 +244,8 @@ define([
       });
 
       this.goi.managers.tiles = new CardManager(this, {
-        cardHeight: 172.5,
-        cardWidth: 150,
+        cardHeight: 130,
+        cardWidth: 112.5,
         getId: (card) => `tile-${card.id}`,
         selectedCardClass: "goi_selectedTile",
         setupDiv: (card, div) => {
@@ -295,8 +319,8 @@ define([
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -306,7 +330,7 @@ define([
         },
         setupFrontDiv: (card, div) => {
           if (!card.type_arg || card.id === "fake") {
-            div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+            div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
             const backgroundPosition = this.calcBackgroundPosition(card.type);
 
             div.style.backgroundPosition = backgroundPosition;
@@ -314,7 +338,7 @@ define([
           }
 
           const backgroundCode = Math.ceil(card.type_arg / 12);
-          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
 
           const spritePosition =
             backgroundCode === 1 ? card.type_arg - 1 : card.type_arg - 13;
@@ -336,7 +360,7 @@ define([
           }
         },
         setupBackDiv: (card, div) => {
-          div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.png)`;
+          div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
           const backgroundPosition = this.calcBackgroundPosition(card.type);
 
           div.style.backgroundPosition = backgroundPosition;
@@ -344,8 +368,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -374,7 +398,7 @@ define([
 
           const cardContent = document.createElement("span");
           cardContent.textContent = _(objectiveContent);
-          cardContent.classList.add("goi_objectiveContent");
+          cardContent.classList.add("goi_cardContent");
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
@@ -410,8 +434,8 @@ define([
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 306.75,
-        cardWidth: 225,
+        cardHeight: 230,
+        cardWidth: 168.75,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -440,10 +464,20 @@ define([
 
           const cardContent = document.createElement("span");
           cardContent.textContent = _(itemContent);
-          cardContent.classList.add("goi_itemContent");
+          cardContent.classList.add("goi_cardContent");
 
           if (div.childElementCount === 1) {
             div.appendChild(cardContent);
+
+            const divHeight = div.offsetHeight;
+            const contentHeight = cardContent.offsetHeight;
+
+            const proportion = (contentHeight / divHeight) * 100;
+            const fontSize = 7 + (15 / proportion - 1) * (proportion / 5);
+            cardContent.style.fontSize = `${fontSize}px`;
+
+            const top = fontSize + 64;
+            cardContent.style.top = `${top}%`;
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
@@ -462,8 +496,8 @@ define([
       });
 
       this.goi.managers.scoringMarkers = new CardManager(this, {
-        cardHeight: 50,
-        cardWidth: 50,
+        cardHeight: 40,
+        cardWidth: 40,
         getId: (card) => `scoringMarker-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_scoringMarker");
@@ -523,13 +557,13 @@ define([
 
       scoringTrack.childNodes.forEach((slot) => {
         slot.style.position = "absolute";
-        slot.style.height = "50px";
-        slot.style.width = "50px";
+        slot.style.height = "40px";
+        slot.style.width = "40px";
 
         const slotId = Number(slot.dataset.slotId);
 
         if (slotId <= 34) {
-          slot.style.bottom = `${3.75 + slotId * 2.5}%`;
+          slot.style.bottom = `${2.5 + slotId * 2.5}%`;
           slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
@@ -542,7 +576,7 @@ define([
 
         if (slotId >= 75) {
           slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
-          slot.style.right = slotId % 2 === 0 ? "6.5%" : "4.25%";
+          slot.style.right = slotId % 2 === 0 ? "5.5%" : "3.25%";
           return;
         }
       });
@@ -611,7 +645,11 @@ define([
 
         let positionLeft = coins >= 10 ? "24%" : "32%";
 
-        if (coins == 1) {
+        if (coins === 11 || coins === 4) {
+          positionLeft = "30%";
+        }
+
+        if (coins === 1) {
           positionLeft = "38%";
         }
 
@@ -619,7 +657,7 @@ define([
           `goi_gemCounters:${player_id}`
         ).innerHTML += `<div class="goi_gemCounter">
         <div class="goi_gemIcon goi_coinIcon"> 
-          <span id="goi_coinCounter:${player_id}" class="goi_markerValue" style="left: ${positionLeft}"></span>
+          <span id="goi_coinCounter:${player_id}" class="goi_iconValue" style="left: ${positionLeft}"></span>
         </div>
       </div>`;
 
@@ -774,7 +812,7 @@ define([
         const stateName = this.getStateName();
 
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("none");
-        this.goi.stocks[this.player_id].dice.scene.setSelectionMode("single");
+        this.goi.stocks[this.player_id].dice.scene.setSelectionMode("multiple");
 
         if (stateName === "client_luckyLibation") {
           this.goi.selections.dice = selection;
@@ -913,9 +951,10 @@ define([
             this.goi.stocks.dice.market.setSelectionMode("single");
           }
 
-          if (selection.length > 0) {
+          if (stateName === "client_luckyLibation") {
+            this.goi.selections.dice = selection;
+          } else if (selection.length > 0) {
             this.goi.selections.die = lastChange;
-            this.goi.selections.dice = [];
           } else {
             this.goi.selections.die = null;
           }
@@ -1074,7 +1113,7 @@ define([
         this.goi.stocks[player_id].objectives.hand = new AllVisibleDeck(
           this.goi.managers.objectives,
           document.getElementById(`goi_objectives:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "36px" }
+          { horizontalShift: "0px", verticalShift: "24px" }
         );
 
         this.goi.stocks[player_id].objectives.hand.onSelectionChange = (
@@ -1118,7 +1157,7 @@ define([
         this.goi.stocks[player_id].items.hand = new AllVisibleDeck(
           this.goi.managers.items,
           document.getElementById(`goi_items:${player_id}`),
-          { horizontalShift: "0px", verticalShift: "48px" }
+          { horizontalShift: "0px", verticalShift: "24px" }
         );
 
         this.goi.stocks[player_id].items.hand.onSelectionChange = (
@@ -1411,7 +1450,7 @@ define([
       this.goi.stocks.items.active = new AllVisibleDeck(
         this.goi.managers.items,
         document.getElementById(`goi_activeItems`),
-        { horizontalShift: "0px", verticalShift: "48px" }
+        { horizontalShift: "0px", verticalShift: "24px" }
       );
 
       this.goi.stocks.items.active.onSelectionChange = (
@@ -1436,7 +1475,7 @@ define([
       this.goi.stocks.items.discard = new AllVisibleDeck(
         this.goi.managers.items,
         document.getElementById(`goi_itemsDiscard`),
-        { horizontalShift: "0px", verticalShift: "48px" }
+        { horizontalShift: "0px", verticalShift: "24px" }
       );
 
       const itemsDiscard = this.goi.globals.itemsDiscard;
@@ -1535,6 +1574,10 @@ define([
           "single",
           usableEpicElixir
         );
+
+        if (!stateName.includes("client_")) {
+          this.goi.selections = this.goi.info.defaultSelections;
+        }
 
         if (
           stateName.includes("client_") &&
@@ -1692,8 +1735,18 @@ define([
           return;
         }
 
+        if (stateName === "confirmAutoMove") {
+          this.addActionButton(
+            "goi_confirm_btn",
+            _("Confirm"),
+            "actConfirmAutoMove"
+          );
+        }
+
         if (stateName === "rainbowTile") {
-          this.generateRainbowOptions();
+          this.generateRainbowOptions(() => {
+            this.actPickRainbowGem();
+          });
           return;
         }
 
@@ -1702,6 +1755,8 @@ define([
           const activeStoneDiceCount = args.args.activeStoneDiceCount;
           const activableStoneDiceCount = args.args.activableStoneDiceCount;
           const canSellGems = args.args.canSellGems;
+          const canSellMoreGems = args.args.canSellMoreGems;
+          const soldGem = args.args.soldGem;
           const canBuyItem = args.args.canBuyItem;
           const buyableItems = args.args.buyableItems;
           const canUseItem = args.args.canUseItem;
@@ -1745,15 +1800,20 @@ define([
             document.getElementById("goi_mine_btn").classList.add("disabled");
           }
 
-          this.addActionButton("goi_sellGems_btn", _("Sell Gem(s)"), () => {
+          const sellGemsText = canSellMoreGems
+            ? _("Sell more Gem(s)")
+            : _("Sell Gem(s)");
+
+          this.addActionButton("goi_sellGems_btn", sellGemsText, () => {
             this.setClientState("client_sellGems", {
               descriptionmyturn: _(
                 "${you} must select Gem(s) to sell (all from the same type)"
               ),
+              client_args: { soldGem: canSellMoreGems ? soldGem : null },
             });
           });
 
-          if (!canSellGems) {
+          if (!canSellGems && !canSellMoreGems) {
             document
               .getElementById("goi_sellGems_btn")
               .classList.add("disabled");
@@ -1789,9 +1849,19 @@ define([
         }
 
         if (stateName === "client_sellGems") {
+          const soldGem = args.client_args.soldGem;
+          let selectableGems =
+            this.goi.stocks[this.player_id].gems.cargo.getCards();
+
+          if (soldGem) {
+            selectableGems = selectableGems.filter((gemCard) => {
+              return soldGem == gemCard.type_arg;
+            });
+          }
+
           this.goi.stocks[this.player_id].gems.cargo.setSelectionMode(
             "multiple",
-            this.goi.stocks[this.player_id].gems.cargo.getCards()
+            selectableGems
           );
         }
 
@@ -1836,7 +1906,9 @@ define([
         }
 
         if (stateName === "client_cauldronOfFortune2") {
-          this.generateRainbowOptions();
+          this.generateRainbowOptions(() => {
+            this.actUseItem();
+          });
         }
 
         if (stateName === "client_regalReferenceBook") {
@@ -1865,7 +1937,7 @@ define([
 
           this.goi.stocks.dice.market.setSelectionMode("multiple");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
-            "single",
+            "multiple",
             rolledDice
           );
         }
@@ -1905,11 +1977,18 @@ define([
         }
 
         if (stateName === "client_prosperousPickaxe") {
-          const explorableTiles = args.args.explorableTiles;
+          const prosperousTiles = args.args.prosperousTiles;
+
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",
-            explorableTiles
+            prosperousTiles
           );
+        }
+
+        if (stateName === "client_prosperousPickaxe2") {
+          this.generateRainbowOptions(() => {
+            this.actUseItem();
+          });
         }
 
         if (stateName === "client_swappingStones") {
@@ -1957,14 +2036,16 @@ define([
           this.goi.globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
-            this.gamedatas.gamestate.descriptionmyturn = this.format_string(
-              _(
-                "The cargos of all players are full. ${you} must pick ${excedentGems} Gem to discard"
-              ),
-              {
-                excedentGems,
-              }
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "The cargos of all players are full. ${you} must pick up to ${excedentGems} Gem(s) to discard"
+                ),
+                {
+                  excedentGems: excedentGems,
+                  you: _("${you}"),
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -2064,14 +2145,16 @@ define([
         const availableCargos = args.args.availableCargos;
 
         if (availableCargos.length === 0) {
-          this.gamedatas.gamestate.descriptionmyturn = this.format_string(
-            _(
-              "The cargos of all players are full. ${actplayer} must pick ${excedentGems} Gem to discard"
-            ),
-            {
-              excedentGems,
-            }
-          );
+          this.gamedatas.gamestate.descriptionmyturn =
+            this.format_string_recursive(
+              _(
+                "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} Gem(s) to discard"
+              ),
+              {
+                actplayer: _("${actplayer}"),
+                excedentGems: excedentGems,
+              }
+            );
           this.updatePageTitle();
         }
       }
@@ -2083,8 +2166,6 @@ define([
     onLeavingState: function (stateName) {
       console.log("Leaving state: " + stateName);
 
-      this.goi.selections = this.goi.info.defaultSelections;
-
       if (!this.goi.globals.player) {
         return;
       }
@@ -2095,6 +2176,11 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
+      if (stateName === "client_pickEmptyTile") {
+        this.goi.stocks.tiles.empty.setSelectionMode("none");
+        this.goi.stocks.tiles.empty.removeAll();
+      }
+
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi.stocks[this.player_id].tiles.victoryPile.setSelectionMode(
@@ -2102,17 +2188,16 @@ define([
         );
       }
 
-      if (stateName === "client_pickEmptyTile") {
-        this.goi.stocks.tiles.empty.setSelectionMode("none");
-        this.goi.stocks.tiles.empty.removeAll();
-      }
-
-      if (stateName === "moveExplorer") {
+      if (stateName === "discardTile") {
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "rainbowTile") {
         this.goi.stocks.gems.rainbowOptions.removeAll();
+      }
+
+      if (stateName === "moveExplorer") {
+        this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
       if (stateName === "discardObjective") {
@@ -2185,6 +2270,8 @@ define([
 
       if (stateName === "client_transferGem") {
         this.goi.stocks[this.player_id].gems.cargo.setSelectionMode("none");
+        this.goi.selections.gems = [];
+        this.goi.selections.opponent = null;
 
         for (const player_id in this.goi.globals.players) {
           const zoneElement = document.getElementById(
@@ -2237,13 +2324,26 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
-    generateRainbowOptions: function () {
+    generateRainbowOptions: function (callback) {
       for (const gemName in this.goi.globals.gemsCounts[this.player_id]) {
-        this.goi.stocks.gems.rainbowOptions.addCard({
-          id: `rainbow-${gemName}`,
-          type: gemName,
-          type_arg: this.goi.info.gemIds[gemName],
-        });
+        const gem_id = this.goi.info.gemIds[gemName];
+        const buttonId = `goi_rainbow-${gem_id}_btn`;
+
+        const backgroundPosition = this.calcBackgroundPosition(gem_id);
+
+        this.addActionButton(
+          buttonId,
+          `<div class="goi_gem card" style="background-position: ${backgroundPosition}"></div>`,
+          () => {
+            this.goi.selections.gem = gem_id;
+            callback();
+          },
+          null,
+          false,
+          "gray"
+        );
+
+        document.getElementById(buttonId).style.border = "none";
       }
 
       const gemCards = this.goi.stocks.gems.rainbowOptions.getCards();
@@ -2489,7 +2589,7 @@ define([
       }
 
       if (stateName === "client_luckyLibation") {
-        if (this.goi.selections.dice.length > 0 || this.goi.selections.die) {
+        if (this.goi.selections.dice.length > 0) {
           this.addActionButton(elementId, message, "actUseItem");
         }
       }
@@ -2567,8 +2667,23 @@ define([
       }
 
       if (stateName === "client_prosperousPickaxe") {
-        if (this.goi.selections.tile) {
-          this.addActionButton(elementId, message, "actUseItem");
+        const selectedTile = this.goi.selections.tile;
+        if (selectedTile) {
+          const tile_id = selectedTile.type_arg;
+          const gem_id = this.goi.info.tiles[tile_id].gem;
+
+          this.addActionButton(elementId, message, () => {
+            if (gem_id == 0 || gem_id == 10) {
+              this.setClientState("client_prosperousPickaxe2", {
+                descriptionmyturn: _(
+                  "${you} must pick the Gem to mine from the Rainbow"
+                ),
+              });
+              return;
+            }
+
+            this.actUseItem();
+          });
         }
       }
 
@@ -2576,6 +2691,7 @@ define([
         if (this.goi.selections.gems.length > 0) {
           this.addActionButton(elementId, message, () => {
             const availableCargos = this.goi.globals.availableCargos;
+
             if (availableCargos.length === 0) {
               this.actTransferGem();
               return;
@@ -2657,6 +2773,7 @@ define([
     //// Player's action
 
     performAction: function (action, args = {}, options = {}) {
+      args.clientVersion = this.goi.version;
       this.bgaPerformAction(action, args, options);
     },
 
@@ -2693,9 +2810,13 @@ define([
       });
     },
 
+    actConfirmAutoMove: function () {
+      this.performAction("actConfirmAutoMove");
+    },
+
     actPickRainbowGem: function () {
       this.performAction("actPickRainbowGem", {
-        gem_id: this.goi.selections.gem.type_arg,
+        gem_id: this.goi.selections.gem,
       });
     },
 
@@ -2745,7 +2866,7 @@ define([
       if (item_id === 5) {
         this.setClientState("client_luckyLibation", {
           descriptionmyturn: _(
-            "${you} must select a die from a mining atempt or a Gem Market Die to re-roll"
+            "${you} must select any dice from a mining atempt or a Gem Market Die to re-roll"
           ),
         });
       }
@@ -2817,7 +2938,7 @@ define([
 
         args = {
           oldGemCards_ids: oldGemCards_ids,
-          newGem_id: this.goi.selections.gem.type_arg,
+          newGem_id: this.goi.selections.gem,
         };
       }
 
@@ -2828,20 +2949,10 @@ define([
       }
 
       if (item_id === 5) {
-        const selecedDice = this.goi.selections.dice;
-        if (selecedDice.length > 0) {
-          args = {
-            die_id: null,
-            dieType: "gem",
-            gemDice: this.goi.selections.dice,
-          };
-        } else {
-          args = {
-            die_id: this.goi.selections.die.id,
-            dieType: this.goi.selections.die.type,
-            gemDice: null,
-          };
-        }
+        args = {
+          diceType: this.goi.selections.dice[0].type,
+          dice: this.goi.selections.dice,
+        };
       }
 
       if (item_id === 6) {
@@ -2869,6 +2980,7 @@ define([
       if (item_id === 9) {
         args = {
           tileCard_id: this.goi.selections.tile.id,
+          rainbowGem: this.goi.selections.gem,
         };
       }
 
@@ -2968,7 +3080,7 @@ define([
         { event: "incGem" },
         { event: "decGem" },
         { event: "transferGem" },
-        { event: "discardGem" },
+        { event: "discardGems" },
         { event: "obtainIridiaStone" },
         { event: "obtainRoyaltyToken" },
         { event: "restoreRelic" },
@@ -3142,7 +3254,7 @@ define([
       this.goi.counters[opponent_id].gems[gemName].incValue(delta);
     },
 
-    notif_discardGem: function (notif) {
+    notif_discardGems: function (notif) {
       const player_id = notif.args.player_id;
       const delta = notif.args.delta;
 
@@ -3199,7 +3311,11 @@ define([
       const coins = this.goi.counters[player_id].coins.getValue();
       let positionLeft = coins >= 10 ? "24%" : "32%";
 
-      if (coins == 1) {
+      if (coins === 11 || coins === 4) {
+        positionLeft = "30%";
+      }
+
+      if (coins === 1) {
         positionLeft = "38%";
       }
 
@@ -3309,7 +3425,18 @@ define([
         type: type,
       };
 
-      this.goi.stocks[player_id].dice.scene.rollDie(die);
+      if (type === "gem") {
+        this.goi.stocks.dice.market
+          .getDieElement(die)
+          .classList.remove("goi_selectedDie");
+        this.goi.stocks.dice.market.rollDie(die);
+      } else {
+        this.goi.stocks[player_id].dice.scene
+          .getDieElement(die)
+          .classList.remove("goi_selectedDie");
+        this.goi.stocks[player_id].dice.scene.rollDie(die);
+      }
+
       this.goi.globals.rolledDice[die_id] = die;
 
       this.playSound("dice");
@@ -3609,7 +3736,7 @@ define([
 
     getRelicTooltip: function (relic_id) {
       const backgroundCode = Math.ceil(relic_id / 12);
-      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.png)`;
+      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
 
       const spritePosition =
         backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
@@ -3634,7 +3761,7 @@ define([
 
       const tooltip = `<div class="goi_logImage goi_item goi_card" style="position: relative; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(itemName)}</span>
-        <span class="goi_itemContent">${_(itemContent)}</span>
+        <span class="goi_cardContent">${_(itemContent)}</span>
       </div>`;
 
       return tooltip;
@@ -3654,7 +3781,7 @@ define([
       const tooltip = `<div class="goi_logImage goi_objective goi_card" 
       style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
         <span class="goi_cardTitle">${_(objectiveName)}</span>
-        <span class="goi_objectiveContent">${_(objectiveContent)}</span>
+        <span class="goi_cardContent">${_(objectiveContent)}</span>
       </div>`;
 
       return tooltip;
@@ -3784,15 +3911,19 @@ define([
           }
 
           if (args.coin) {
-            const delta = Math.abs(args.delta_log);
-            let positionLeft = delta >= 10 ? "24%" : "32%";
+            const coins = Math.abs(args.delta_log);
+            let positionLeft = coins >= 10 ? "24%" : "32%";
 
-            if (delta == 1) {
-              positionLeft = "38%";
+            if (coins === 11 || coins === 4) {
+              positionLeft = "30%";
+            }
+
+            if (coins === 1) {
+              positionLeft = "35%";
             }
 
             args.coin = `<span class="goi_logMarker">
-              <span class="goi_markerValue" style="left: ${positionLeft}">${delta}</span>
+              <span class="goi_iconValue" style="left: ${positionLeft}">${coins}</span>
             </span>`;
 
             args.delta_log = "";
@@ -3803,10 +3934,15 @@ define([
             const backgroundPosition =
               this.calcBackgroundPosition(spritePosition);
 
-            const positionLeft = args.points_log >= 10 ? "24%" : "32%";
+            let positionLeft =
+              args.points_log >= 10 && args.points_log !== 11 ? "19%" : "28%";
+
+            if (args.points_log === 1) {
+              positionLeft = "35%";
+            }
 
             args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
-              <span class="goi_markerValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
+              <span class="goi_iconValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
             </span>`;
           }
         }

@@ -41,10 +41,12 @@ $machinestates = [
             "repeat" => 2,
             "discardCollectedTile" => 20,
             "discardTile" => 21,
+            "confirmAutoMove" => 22,
             "skip" => 3,
             "moveExplorer" => 3,
+            "rainbowTile" => 30,
             "optionalActions" => 4,
-            "startSolo" => 22,
+            "startSolo" => 80,
         ]
     ],
 
@@ -69,23 +71,30 @@ $machinestates = [
     ],
 
     22 => [
-        "name" => "startSolo",
-        "description" => clienttranslate('${actplayer} must click the button to start the solo journey'),
-        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo journey'),
+        "name" => "confirmAutoMove",
+        "description" => clienttranslate('${actplayer} must reveal a tile'),
+        "descriptionmyturn" => clienttranslate('${you} have a single possible move. Confirm it'),
         "type" => "activeplayer",
-        "possibleactions" => ["actStartSolo"],
-        "transitions" => ["rhomFirstTurn" => 80],
+        "possibleactions" => ["actConfirmAutoMove"],
+        "transitions" => [
+            "moveExplorer" => 3,
+        ],
     ],
 
     3 => [
         "name" => "moveExplorer",
-        "description" => clienttranslate('${actplayer} must move his explorer to a revealed tile'),
-        "descriptionmyturn" => clienttranslate('${you} must move your explorer to a revealed tile'),
+        "description" => clienttranslate('${actplayer} must move his explorer onto a revealed tile'),
+        "descriptionmyturn" => clienttranslate('${you} must move your explorer onto a revealed tile'),
         "type" => "activeplayer",
         "args" => "argMoveExplorer",
         "action" => "stMoveExplorer",
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
-        "transitions" => ["back" => 2, "rainbowTile" => 30, "discardObjective" => 32, "optionalActions" => 4]
+        "transitions" => [
+            "back" => 2,
+            "rainbowTile" => 30,
+            "discardObjective" => 32,
+            "optionalActions" => 4
+        ]
     ],
 
     30 => [
@@ -99,8 +108,8 @@ $machinestates = [
 
     31 => [
         "name" => "transferGem",
-        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick ${excedentGems} Gem(s) to give away to other player'),
-        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick ${excedentGems} Gem(s) to give away to other player'),
+        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} Gem(s) to give away to other player'),
+        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} Gem(s) to give away to other player'),
         "type" => "activeplayer",
         "args" => "argTransferGem",
         "action" => "stTransferGem",
@@ -157,6 +166,15 @@ $machinestates = [
     ],
 
     80 => [
+        "name" => "startSolo",
+        "description" => clienttranslate('${actplayer} must click the button to start the solo journey'),
+        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo journey'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actStartSolo"],
+        "transitions" => ["rhomFirstTurn" => 81],
+    ],
+
+    81 => [
         "name" => "rhomFirstTurn",
         "description" => clienttranslate('${rhom} is playing its first turn'),
         "type" => "game",

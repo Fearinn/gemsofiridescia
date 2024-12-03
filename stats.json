@@ -119,6 +119,42 @@
       "id": 28,
       "name": "Points from Iridia Stone",
       "type": "int"
+    },
+    "1:Rolled": {
+      "id": 34,
+      "name": "1s rolled",
+      "type": "int",
+      "display": "limited"
+    },
+    "2:Rolled": {
+      "id": 35,
+      "name": "2s rolled",
+      "type": "int",
+      "display": "limited"
+    },
+    "3:Rolled": {
+      "id": 36,
+      "name": "3s rolled",
+      "type": "int",
+      "display": "limited"
+    },
+    "4:Rolled": {
+      "id": 37,
+      "name": "4s rolled",
+      "type": "int",
+      "display": "limited"
+    },
+    "5:Rolled": {
+      "id": 38,
+      "name": "5s rolled",
+      "type": "int",
+      "display": "limited"
+    },
+    "6:Rolled": {
+      "id": 39,
+      "name": "6s rolled",
+      "type": "int",
+      "display": "limited"
     }
   }
 }
