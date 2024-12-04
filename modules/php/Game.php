@@ -3203,7 +3203,10 @@ class Game extends \Table
     public function upgradeTableDb($from_version)
     {
         if ($from_version <= 2412041803) {
-            $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
+            $scepterColumn = $this->getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'scepter'");
+            if (empty($scepterColumn)) {
+                $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
+            }
         }
     }
 
