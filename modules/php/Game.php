@@ -3200,7 +3200,12 @@ class Game extends \Table
      * @param int $from_version
      * @return void
      */
-    public function upgradeTableDb($from_version) {}
+    public function upgradeTableDb($from_version)
+    {
+        if ($from_version <= 2412041803) {
+            $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
+        }
+    }
 
     /*
      * Gather all information about current game situation (visible by the current player).

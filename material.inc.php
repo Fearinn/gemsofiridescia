@@ -421,7 +421,7 @@ $this->royaltyTokens_info = [
         "points" => 3
     ],
     2 => [
-        "name" => "septor",
+        "name" => "scepter",
         "tr_name" => clienttranslate("Scepter"),
         "points" => 5,
     ],
