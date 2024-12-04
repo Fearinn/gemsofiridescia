@@ -827,7 +827,7 @@ class Game extends \Table
         $soldGem = $this->globals->get(SOLD_GEM);
         $canSellMoreGems = false;
 
-        if (!$canSellGems) {
+        if (!$canSellGems && $soldGem) {
             $gem_id = $soldGem;
             $gemCount = $this->getGemsCounts($player_id, true)[$gem_id];
             $hasPerformedOtherAction = $this->globals->get(ACTION_AFTER_SELL);
