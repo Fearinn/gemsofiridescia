@@ -142,8 +142,15 @@ class Game extends \Table
     public function actConfirmAutoMove(?int $clientVersion): void
     {
         $tileCard_id = $this->globals->get(CURRENT_TILE);
-        $this->actRevealTile($clientVersion, $tileCard_id, false, true);
-        $this->gamestate->nextState("moveExplorer");
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+
+        if (!array_key_exists($tileCard_id, $revealedTiles)) {
+            $this->actRevealTile($clientVersion, $tileCard_id, false, true);
+            $this->gamestate->nextState("moveExplorer");
+            return;
+        }
+
+        $this->actMoveExplorer(null, $tileCard_id);
     }
 
     public function actSkipRevealTile(?int $clientVersion): void
@@ -660,6 +667,17 @@ class Game extends \Table
      * @see ./states.inc.php
      */
 
+    public function argConfirmAutoMove(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        
+        $usableItems = $this->usableItems($player_id);
+
+        return [
+            "usableItems" => $usableItems,
+        ];
+    }
+
     public function argRevealTile(): array
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -686,7 +704,7 @@ class Game extends \Table
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$revealableTiles && !$explorableTiles;
 
-        $auto = $singleRevealableTile && !$usableItems && !$cancellableItems;
+        $auto = ($singleRevealableTile) && !$usableItems && !$cancellableItems;
 
         return [
             "auto" => $auto,
@@ -809,7 +827,8 @@ class Game extends \Table
                 $tileCard = reset($explorableTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
-                $this->actMoveExplorer(null, $tileCard_id);
+                $this->globals->set(CURRENT_TILE, $tileCard_id);
+                $this->gamestate->nextState("confirmAutoMove");
                 return;
             }
 
@@ -3155,7 +3174,7 @@ class Game extends \Table
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (2,9)");
+        WHERE card_location='board' AND card_location_arg IN (29)");
     }
 
     public function debug_giveItem(int $item_id, int $player_id): void

@@ -1570,7 +1570,7 @@ define([
 
           if (usableItems.length > 0) {
             this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item"
+              "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item with the green flag"
             );
             this.updatePageTitle();
           } else if (singleCollectedTile) {
@@ -1651,10 +1651,27 @@ define([
         }
 
         if (stateName === "confirmAutoMove") {
+          const usableItems = args.args.usableItems;
+
+          if (usableItems.length > 0) {
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} have a single possible move. Confirm it or use an Item with the green flag"
+            );
+            this.updatePageTitle();
+          }
+
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
+
           this.addActionButton(
             "goi_confirm_btn",
-            _("Confirm"),
-            "actConfirmAutoMove"
+            _("Confirm automatic move"),
+            "actConfirmAutoMove",
+            null, 
+            false, 
+            "gray",
           );
         }
 
