@@ -52,13 +52,17 @@ $machinestates = [
 
     20 => [
         "name" => "discardCollectedTile",
-        "description" => clienttranslate('${actplayer} has no free adjacent tiles and must discard one from his Victory Pile'),
-        "descriptionmyturn" => clienttranslate('${you} have no free adjacent tiles and must discard one from your Victory Pile'),
+        "description" => clienttranslate('${actplayer} has no legal moves and must discard one tile from his Victory Pile'),
+        "descriptionmyturn" => clienttranslate('${you} have no legal moves and must discard one tile from your Victory Pile'),
         "type" => "activeplayer",
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
         "possibleactions" => ["actDiscardCollectedTile", "actUseItem"],
-        "transitions" => ["repeat" => 2, "revealTile" => 2]
+        "transitions" => [
+            "repeat" => 2,
+            "revealTile" => 2,
+            "optionalActions" => 4
+        ],
     ],
 
     21 => [
@@ -75,9 +79,14 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must reveal a tile'),
         "descriptionmyturn" => clienttranslate('${you} have a single possible move. Confirm it'),
         "type" => "activeplayer",
-        "possibleactions" => ["actConfirmAutoMove"],
+        "args" => "argConfirmAutoMove",
+        "possibleactions" => ["actConfirmAutoMove", "actUseItem"],
         "transitions" => [
+            "repeat" => 2,
             "moveExplorer" => 3,
+            "rainbowTile" => 30,
+            "discardObjective" => 32,
+            "optionalActions" => 4
         ],
     ],
 
@@ -91,6 +100,7 @@ $machinestates = [
         "possibleactions" => ["actMoveExplorer", "actUndoSkipRevealTile"],
         "transitions" => [
             "back" => 2,
+            "confirmAutoMove" => 22,
             "rainbowTile" => 30,
             "discardObjective" => 32,
             "optionalActions" => 4

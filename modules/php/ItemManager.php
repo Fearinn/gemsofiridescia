@@ -108,12 +108,15 @@ class ItemManager
                 return $this->canUseEpicElixir($player_id);
             }
 
-            if ($state_id === 2 || $state_id === 20) {
+            $preRevealStates = [2, 20, 22];
+
+            if (in_array($state_id, $preRevealStates)) {
                 if ($this->id === 10) {
                     $hasSwapableOpponent = $this->game->castlePlayersCount() < $this->game->getPlayersNumberNoZombie() - 1;
                     $explorerCard = $this->game->getExplorerByPlayerId($player_id);
 
-                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $hasSwapableOpponent && $explorerCard["location"] === "board";
+                    return $this->game->globals->get(REVEALS_LIMIT) === 0 && $hasSwapableOpponent
+                        && $explorerCard["location"] === "board";
                 }
 
                 if ($this->id === 11) {
