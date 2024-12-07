@@ -354,7 +354,7 @@ class Game extends \Table
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id === 0 || $gem_id === 10) {
+        if ($gem_id % 10 === 0) {
             $gem_id = $this->globals->get(RAINBOW_GEM);
         }
 
@@ -1609,7 +1609,6 @@ class Game extends \Table
     {
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
-        $this->dump("tileCard_id", $tileCard_id);
         $hex = (int) $tileCard["location_arg"];
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
@@ -1629,7 +1628,10 @@ class Game extends \Table
             ]
         );
 
-        $this->globals->set(HAS_MOVED_EXPLORER, true);
+        if ($player_id !== 1) {
+            $this->globals->set(HAS_MOVED_EXPLORER, true);
+        }
+
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
@@ -1707,7 +1709,7 @@ class Game extends \Table
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = $this->tiles_info[$tile_id]["gem"];
 
-            if ($gem_id === 0 || $gem_id === 10) {
+            if ($gem_id % 10 === 0) {
                 $gem_id = $this->globals->get(RAINBOW_GEM);
             }
 
@@ -1735,7 +1737,7 @@ class Game extends \Table
         $gem_id = (int) $tile_info["gem"];
         $region_id = (int) $tile_info["region"];
 
-        $statName = $gem_id === 0 || $gem_id === 10 ? "rainbow:Tiles" : "$gem_id:GemTiles";
+        $statName = $gem_id % 10 === 0 ? "rainbow:Tiles" : "$gem_id:GemTiles";
         $this->incStatNoRhom(1, $statName, $player_id);
         $this->incStatNoRhom(1, "tilesCollected", $player_id);
 
@@ -3262,7 +3264,7 @@ class Game extends \Table
         return $rhomDeckTop["type"];
     }
 
-    public function gemsByDemand(): array
+    public function gemsDemand(): array
     {
         $gemsDemand = [
             1 => 0,
@@ -3282,36 +3284,37 @@ class Game extends \Table
         }
 
         arsort($gemsDemand);
-
-        $gemsByDemand = [];
-        foreach ($gemsDemand as $gem_id => $demand) {
-            $gemsByDemand[] = $gem_id;
-        }
-
-        return $gemsByDemand;
+        return $gemsDemand;
     }
 
     public function mostDemandingTiles(array $tileCards): array
     {
         $mostDemandingTiles = [];
-        $gemsByDemand = $this->gemsByDemand();
 
-        foreach ($gemsByDemand as $demandingGem) {
-            $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($demandingGem) {
-                $tile_id = (int) $tileCard["type_arg"];
-                $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+        $includesRainbow = false;
+        foreach ($tileCards as $tileCard) {
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-                if ($gem_id === 0 || $gem_id === 10) {
-                    return true;
-                }
-
-                return $gem_id === $demandingGem;
-            });
-
-            if ($mostDemandingTiles) {
+            if ($gem_id % 10 === 0) {
+                $includesRainbow = true;
                 break;
             }
         }
+
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($includesRainbow) {
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+
+            if ($includesRainbow) {
+                return $gem_id % 10 === 0;
+            }
+
+            $gemsDemand = $this->gemsDemand();
+            $maxDemand = max($gemsDemand);
+
+            return $gemsDemand[$gem_id] === $maxDemand;
+        });
 
         if (count($mostDemandingTiles) > 1) {
             usort($mostDemandingTiles, function ($tileCard, $otherTileCard) {
@@ -3370,9 +3373,10 @@ class Game extends \Table
         $gem_id = $tile_info["gem"];
         $tileEffect_id = $tile_info["effect"];
 
-        if ($gem_id === 0 || $gem_id === 10) {
-            $gemsByDemand = $this->gemsByDemand();
-            $gem_id = reset($gemsByDemand);
+        if ($gem_id % 10 === 0) {
+            $gemsDemand = $this->gemsDemand();
+            $k_gemsDemand = array_keys($gemsDemand);
+            $gem_id = reset($k_gemsDemand);
         }
 
         $this->incGem(1, $gem_id, 1, $tileCard);
