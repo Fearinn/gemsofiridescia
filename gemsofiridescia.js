@@ -610,25 +610,25 @@ define([
           continue;
         }
 
-        this.goi.counters[player_id] = {};
-
         this.getPlayerPanelElement(
           player_id
         ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
           </div>`;
 
-        this.goi.counters[player_id].gems = {
-          amethyst: new ebg.counter(),
-          citrine: new ebg.counter(),
-          emerald: new ebg.counter(),
-          sapphire: new ebg.counter(),
+        this.goi.counters[player_id] = {
+          gems: {
+            amethyst: new ebg.counter(),
+            citrine: new ebg.counter(),
+            emerald: new ebg.counter(),
+            sapphire: new ebg.counter(),
+          },
         };
 
         const gemCounters = this.goi.counters[player_id].gems;
 
         let spritePosition = 1;
-        for (const gem in gemCounters) {
+        for (const gemName in gemCounters) {
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
           spritePosition++;
@@ -637,7 +637,7 @@ define([
             `goi_gemCounters:${player_id}`
           ).innerHTML += `<div class="goi_gemCounter">
                 <div class="goi_gemIcon" style="background-position: ${backgroundPosition}"></div>
-                <span id="goi_gemCounter:${player_id}-${gem}" class="goi_counterValue"></span>
+                <span id="goi_gemCounter:${player_id}-${gemName}" class="goi_counterValue"></span>
               </div>`;
         }
 
@@ -661,10 +661,10 @@ define([
         </div>
       </div>`;
 
-        for (const gem in gemCounters) {
-          const gemCounter = gemCounters[gem];
-          gemCounter.create(`goi_gemCounter:${player_id}-${gem}`);
-          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gem]);
+        for (const gemName in gemCounters) {
+          const gemCounter = gemCounters[gemName];
+          gemCounter.create(`goi_gemCounter:${player_id}-${gemName}`);
+          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gemName]);
         }
 
         this.goi.counters[player_id].coins = new ebg.counter();
@@ -1499,11 +1499,31 @@ define([
         document.getElementById(
           `avatar_${bot.id}`
         ).src = `${g_gamethemeurl}/img/solo/rhomAvatar.jpg`;
+
         document.getElementById(`player_score_${bot.id}`).textContent = 0;
         document
           .getElementById(`goi_gemCounters:${bot.id}`)
           .querySelector(".goi_coinIcon")
           .remove();
+
+        this.goi.counters[bot.id] = {
+          gems: {
+            amethyst: new ebg.counter(),
+            citrine: new ebg.counter(),
+            emerald: new ebg.counter(),
+            sapphire: new ebg.counter(),
+          },
+        };
+
+        const gemCounters = this.goi.counters[bot.id].gems;
+
+        for (const gemName in gemCounters) {
+          const gemCounter = gemCounters[gemName];
+          gemCounter.create(`goi_gemCounter:${bot.id}-${gemName}`);
+          gemCounter.setValue(this.goi.globals.gemsCounts[bot.id][gemName]);
+        }
+
+        /* RHOM ZONE */
 
         const rhomDeckElement = document.createElement("div");
         rhomDeckElement.id = "goi_rhomDeck";
@@ -1754,9 +1774,9 @@ define([
             "goi_confirm_btn",
             _("Confirm automatic move"),
             "actConfirmAutoMove",
-            null, 
-            false, 
-            "gray",
+            null,
+            false,
+            "gray"
           );
         }
 
