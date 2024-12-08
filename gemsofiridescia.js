@@ -120,11 +120,12 @@ define([
 
       this.goi.selections = this.goi.info.defaultSelections;
 
+      this.goi.bot = gamedatas.bot;
       this.goi.globals.isSolo = gamedatas.isSolo;
       this.goi.globals.realPlayer = gamedatas.realPlayer;
       this.goi.globals.rhomDeck = gamedatas.rhomDeck;
       this.goi.globals.rhomDeckTop = gamedatas.rhomDeckTop;
-      this.goi.bot = gamedatas.bot;
+      this.goi.globals.rhomDiscard = gamedatas.rhomDiscard;
 
       this.goi.globals.players = gamedatas.playersNoZombie;
       this.goi.globals.player = gamedatas.players[this.player_id];
@@ -1524,14 +1525,14 @@ define([
         }
 
         /* RHOM ZONE */
+        const rhomZoneElement = document.getElementById(
+          `goi_playerZone:${bot.id}`
+        );
 
         const rhomDeckElement = document.createElement("div");
         rhomDeckElement.id = "goi_rhomDeck";
         rhomDeckElement.classList.add("goi_rhomDeck");
-
-        document
-          .getElementById(`goi_playerZone:${bot.id}`)
-          .prepend(rhomDeckElement);
+        rhomZoneElement.prepend(rhomDeckElement);
 
         this.goi.stocks.rhom.deck = new Deck(
           this.goi.managers.rhom,
@@ -1553,8 +1554,26 @@ define([
         }
 
         const rhomDeckTop = this.goi.globals.rhomDeckTop;
+        console.log(rhomDeckTop);
         this.goi.stocks.rhom.deck.addCard(rhomDeckTop);
         this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+
+        const rhomDiscardElement = document.createElement("div");
+        rhomDiscardElement.id = "goi_rhomDiscard";
+        rhomDiscardElement.classList.add("goi_rhomDiscard");
+        rhomZoneElement.prepend(rhomDiscardElement);
+
+        this.goi.stocks.rhom.discard = new CardStock(
+          this.goi.managers.rhom,
+          rhomDiscardElement,
+          {}
+        );
+
+        const rhomDiscard = this.goi.globals.rhomDiscard;
+        for (const rhomCard_id in rhomDiscard) {
+          const rhomCard = rhomDiscard[rhomCard_id];
+          this.goi.stocks.rhom.discard.addCard(rhomCard);
+        }
       }
 
       this.setupNotifications();
@@ -3147,6 +3166,7 @@ define([
         },
         { event: "completeObjective", duration: 1000 },
         { event: "zombieQuit" },
+        { event: "drawRhomCard" },
       ];
 
       notifications.forEach((notif) => {
@@ -3756,6 +3776,21 @@ define([
       }
 
       document.getElementById(`goi_playerZoneContainer:${player_id}`).remove();
+    },
+
+    /* SOLO */
+
+    notif_drawRhomCard: function (notif) {
+      const rhomCard = notif.args.rhomCard;
+      const rhomDeckCount = notif.args.rhomDeckCount;
+      const rhomDeckTop = notif.args.rhomDeckTop;
+
+      this.goi.stocks.rhom.discard.addCard(rhomCard, {
+        fromStock: this.goi.stocks.rhom.deck,
+      });
+
+      this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
+      this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
     },
 
     /* LOGS MANIPULATION */

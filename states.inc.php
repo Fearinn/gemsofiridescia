@@ -163,7 +163,7 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "finalScoring" => 7],
+        "transitions" => ["nextTurn" => 2, "finalScoring" => 7, "rhomTurn" => 8],
         "updateGameProgression" => true,
     ],
 
@@ -173,6 +173,15 @@ $machinestates = [
         "type" => "game",
         "action" => "stFinalScoring",
         "transitions" => ["gameEnd" => 99],
+    ],
+
+    8 => [
+        "name" => "rhomTurn",
+        "description" => clienttranslate('${rhom} is playing its turn'),
+        "type" => "game",
+        "args" => "argRhomTurn",
+        "action" => "stRhomTurn",
+        "transitions" => ["realTurn" => 2],
     ],
 
     80 => [
@@ -188,7 +197,7 @@ $machinestates = [
         "name" => "rhomFirstTurn",
         "description" => clienttranslate('${rhom} is playing its first turn'),
         "type" => "game",
-        "args" => "argRhomFirstTurn",
+        "args" => "argRhomTurn",
         "action" => "stRhomFirstTurn",
         "transitions" => ["realTurn" => 2],
     ],

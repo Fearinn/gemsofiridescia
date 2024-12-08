@@ -50,6 +50,8 @@ const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
 const PROSPEROUS_PICKAXE = "prosperousPickaxe";
 
+const REAL_TURN = "realTurn";
+
 class Game extends \Table
 {
     public function __construct()
@@ -995,6 +997,9 @@ class Game extends \Table
         $epicElixir = $this->globals->get(EPIC_ELIXIR, false);
         $this->disableItems();
 
+        $isSolo = $this->isSolo();
+        $isRealTurn = $this->globals->get(REAL_TURN);
+
         if ($epicElixir) {
             $this->globals->set(EPIC_ELIXIR_TURN, true);
 
@@ -1021,6 +1026,13 @@ class Game extends \Table
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 ]
             );
+
+            if ($isSolo && $isRealTurn) {
+                $this->globals->set(REAL_TURN, false);
+                $this->gamestate->nextState("rhomTurn");
+                return;
+            }
+
             $this->activeNextPlayer();
         }
 
@@ -1095,8 +1107,6 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES);
         $mostDemandingTiles = $this->mostDemandingTiles($revealedTiles);
 
-        // throw new BgaUserException(json_encode($mostDemandingTiles));
-
         foreach ($mostDemandingTiles as $tileCard) {
             $tileCard_id = (int) $tileCard["id"];
             $this->moveExplorer($tileCard_id, 1);
@@ -1106,10 +1116,19 @@ class Game extends \Table
         $this->collectTile(1);
 
         $this->globals->set("rhomFirstTurn", false);
+        $this->globals->set(REAL_TURN, true);
         $this->gamestate->nextState("realTurn");
     }
 
-    public function argRhomFirstTurn(): array
+    public function stRhomTurn(): void
+    {
+        $this->drawRhomCard();
+
+        $this->globals->set(REAL_TURN, true);
+        $this->gamestate->nextState("realTurn");
+    }
+
+    public function argRhomTurn(): array
     {
         return [
             "rhom" => "Rhom"
@@ -3258,6 +3277,35 @@ class Game extends \Table
         return $this->hideCards($rhomDeck, false, true);
     }
 
+    public function getRhomDiscard(): array
+    {
+        return $this->rhom_cards->getCardsInLocation("discard");
+    }
+
+    public function drawRhomCard(): array
+    {
+        $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard");
+        $rhomDeckTop = $this->getRhomDeck(true);
+        $rhomDeckCount = $this->rhom_cards->countCardsInLocation("deck");
+
+        $this->notifyAllPlayers(
+            "drawRhomCard",
+            clienttranslate('${player_name} draws a ${card} from its deck'),
+            [
+                "player_id" => 1,
+                "player_name" => $this->getPlayerOrRhomNameById(1),
+                "card" => clienttranslate("card"),
+                "rhomDeckTop" => $rhomDeckTop,
+                "rhomDeckCount" => $rhomDeckCount,
+                "i18n" => ["card"],
+                "preserve" => ["rhomCard"],
+                "rhomCard" => $rhomCard,
+            ]
+        );
+
+        return $rhomCard;
+    }
+
     public function weathervaneDirection(): string
     {
         $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
@@ -3591,6 +3639,7 @@ class Game extends \Table
             $result["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
             $result["rhomDeck"] = $this->getRhomDeck();
             $result["rhomDeckTop"] = $this->getRhomDeck(true);
+            $result["rhomDiscard"] = $this->getRhomDiscard();
         }
 
         return $result;

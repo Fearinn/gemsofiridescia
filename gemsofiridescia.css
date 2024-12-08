@@ -274,11 +274,6 @@ html {
   width: calc(var(--gemIconSize) / 2);
 }
 
-.goi_rhom .card-side{
-  background-image: url("img/solo/rhom.jpg");
-}
-
-
 .goi_opponentObjectives {
   pointer-events: none;
 }
@@ -573,6 +568,14 @@ html {
   height: calc(var(--tileSize) / 4);
   width: calc(var(--tileSize) / 4);
   z-index: 1;
+}
+
+.goi_rhom .card-side{
+  background-image: url("img/solo/rhom.jpg");
+}
+
+.goi_rhomDeck {
+  margin-left: 4px;
 }
 
 @keyframes pickaxe {
