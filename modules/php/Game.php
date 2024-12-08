@@ -1166,7 +1166,7 @@ class Game extends \Table
         foreach ($players as $player_id => $player) {
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-            if ($explorerCard["location"] === "scene") {
+            if ($explorerCard === null || $explorerCard["location"] === "scene") {
                 $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
                 if ($hasReachedCastle) {
@@ -1317,12 +1317,12 @@ class Game extends \Table
         return $explorerCards;
     }
 
-    public function getExplorerByPlayerId(int $player_id): array | null
+    public function getExplorerByPlayerId(int $player_id): array
     {
         $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location!='box'");
 
-        if ($player_id === 1 && $explorerCard === null) {
-            return ["type_arg" => 1, "location" => "scene"];
+        if ($explorerCard === null) {
+            return ["type_arg" => $player_id, "location" => "scene"];
         }
 
         return $explorerCard;
@@ -1404,10 +1404,10 @@ class Game extends \Table
         }
 
         $adjacentHexes = [
-           "left" => $leftHex,
-           "topLeft" => $topLeftHex,
-           "topRight" => $topRightHex,
-           "right" => $rightHex,
+            "left" => $leftHex,
+            "topLeft" => $topLeftHex,
+            "topRight" => $topRightHex,
+            "right" => $rightHex,
         ];
 
         if ($onlyHexes) {
@@ -2740,13 +2740,19 @@ class Game extends \Table
         return $isValid;
     }
 
-    public function reshuffleItemsDeck(bool $setup = false)
+    public function reshuffleItemsDeck(bool $setup = false, array $players = null)
     {
         $this->item_cards->moveAllCardsInLocation("market", "deck");
         $this->item_cards->moveAllCardsInLocation("discard", "deck");
 
+        if ($players === null) {
+            $players = $this->loadPlayersBasicInfos();
+        }
+
+        $itemsMarketCount = count($players) === 1 ? 6 : 5;
+
         $this->item_cards->shuffle("deck");
-        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+        $this->item_cards->pickCardsForLocation($itemsMarketCount, "deck", "market");
 
         if (!$this->checkItemsMarket()) {
             $this->reshuffleItemsDeck($setup);
@@ -3903,13 +3909,14 @@ class Game extends \Table
             $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$last_player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
         }
 
+        $itemsMarketCount = count($players) === 1 ? 6 : 5;
         $this->item_cards->shuffle("deck");
-        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+        $this->item_cards->pickCardsForLocation($itemsMarketCount, "deck", "market");
 
         if (
             !$this->checkItemsMarket()
         ) {
-            $this->reshuffleItemsDeck(true);
+            $this->reshuffleItemsDeck(true, $players);
         };
 
         $this->globals->set(REVEALS_LIMIT, 0);

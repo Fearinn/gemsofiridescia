@@ -207,13 +207,10 @@
     <div id="goi_stoneDice" class="goi_stoneDice"></div>
   </div>
   <div id="goi_playerZones" class="goi_playerZones"></div>
-  <div id="goi_items" class="goi_items">
-    <div id="goi_rainbowOptions" class="goi_rainbowOptions whiteblock"></div>
-    <div id="goi_merchant" class="goi_merchant">
-      <div id="goi_itemsDeck" class="goi_itemsDeck"></div>
-      <div id="goi_itemsMarket" class="goi_itemsMarket">
-        <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
-      </div>
+  <div id="goi_merchant" class="goi_merchant">
+    <div id="goi_itemsDeck" class="goi_itemsDeck"></div>
+    <div id="goi_itemsMarket" class="goi_itemsMarket">
+      <div id="goi_itemPlaceholder" class="goi_itemPlaceholder"></div>
     </div>
   </div>
 </div>

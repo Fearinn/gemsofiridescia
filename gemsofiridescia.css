@@ -58,13 +58,14 @@ html {
   box-sizing: border-box;
   display: grid;
   grid-template-areas:
-    ". d d d d d ."
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "c c c c c c c";
+    ". . d d d d d . ."
+    ". f f f f f f f ."
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "c c c c c c c c c";
   align-items: flex-start;
   justify-content: center;
   gap: 8px;
@@ -234,7 +235,6 @@ html {
   color: white;
 }
 
-
 .goi_playerPanel {
   display: flex;
   flex-direction: column;
@@ -353,7 +353,13 @@ html {
   background-image: url("img/dice.png");
 }
 
-.goi_items {
+.goi_void {
+  position: absolute !important;
+  top: 0;
+  left: 70%;
+}
+
+.goi_merchant {
   grid-area: b;
   position: relative;
   display: flex;
@@ -363,15 +369,20 @@ html {
   width: calc(var(--cardSize) * 2.1);
 }
 
-.goi_void {
-  position: absolute !important;
-  top: 0;
-  left: 70%;
+.goi_merchant div {
+  flex-shrink: 0;
 }
 
-.goi_merchant {
-  position: relative;
-  width: 100%;
+.goi_merchant.goi_solo {
+  grid-area: f;
+  justify-content: center;
+  margin: 0 auto;
+  width: var(--boardSize);
+}
+
+.goi_merchant.goi_solo .goi_itemsMarket {
+  display: flex;
+  justify-content: space-between;
 }
 
 .goi_itemsDeck {
@@ -390,6 +401,7 @@ html {
 .goi_itemPlaceholder {
   grid-column: 1;
   grid-row: 1;
+  width: var(--cardSize);
 }
 
 .goi_itemsZone {
@@ -570,7 +582,7 @@ html {
   z-index: 1;
 }
 
-.goi_rhom .card-side{
+.goi_rhom .card-side {
   background-image: url("img/solo/rhom.jpg");
 }
 

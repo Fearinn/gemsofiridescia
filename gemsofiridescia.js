@@ -1423,6 +1423,10 @@ define([
         this.goi.stocks.items.deck.setCardVisible(itemCard, false);
       }
 
+      if (this.goi.globals.isSolo) {
+        document.getElementById("goi_merchant").classList.add("goi_solo");
+      }
+
       this.goi.stocks.items.market = new CardStock(
         this.goi.managers.items,
         document.getElementById("goi_itemsMarket")
