@@ -3166,7 +3166,7 @@ define([
         },
         { event: "completeObjective", duration: 1000 },
         { event: "zombieQuit" },
-        { event: "drawRhomCard" },
+        { event: "rhomDrawCard" },
       ];
 
       notifications.forEach((notif) => {
@@ -3780,7 +3780,7 @@ define([
 
     /* SOLO */
 
-    notif_drawRhomCard: function (notif) {
+    notif_rhomDrawCard: function (notif) {
       const rhomCard = notif.args.rhomCard;
       const rhomDeckCount = notif.args.rhomDeckCount;
       const rhomDeckTop = notif.args.rhomDeckTop;

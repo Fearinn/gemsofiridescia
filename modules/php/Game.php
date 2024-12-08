@@ -1122,7 +1122,7 @@ class Game extends \Table
 
     public function stRhomTurn(): void
     {
-        $this->drawRhomCard();
+        $this->rhomRevealTiles();
 
         $this->globals->set(REAL_TURN, true);
         $this->gamestate->nextState("realTurn");
@@ -1305,7 +1305,7 @@ class Game extends \Table
         return $explorerCards;
     }
 
-    public function getExplorerByPlayerId(int $player_id): array
+    public function getExplorerByPlayerId(int $player_id): array | null
     {
         $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location!='box'");
 
@@ -1337,14 +1337,14 @@ class Game extends \Table
         }
     }
 
-    public function adjacentTiles(int $player_id, int $hex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true): array
+    public function adjacentTiles(int $player_id, int $hex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true, bool $withDirections = false): array
     {
         $adjacentTiles = [];
 
         if (!$hex) {
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-            if ($explorerCard["location"] === "scene") {
+            if ($explorerCard === null || $explorerCard["location"] === "scene") {
                 if ($onlyHexes) {
                     if ($this->getPlayersNumber() === 2) {
                         return [2, 3, 4, 5];
@@ -1392,10 +1392,10 @@ class Game extends \Table
         }
 
         $adjacentHexes = [
-            $leftHex,
-            $rightHex,
-            $topLeftHex,
-            $topRightHex
+           "left" => $leftHex,
+           "topLeft" => $topLeftHex,
+           "topRight" => $topRightHex,
+           "right" => $rightHex,
         ];
 
         if ($onlyHexes) {
@@ -1419,7 +1419,7 @@ class Game extends \Table
             return $hexes;
         }
 
-        foreach ($adjacentHexes as $hex) {
+        foreach ($adjacentHexes as $direction => $hex) {
             if ($hex === null) {
                 continue;
             }
@@ -1428,6 +1428,12 @@ class Game extends \Table
 
             if ($tileCard) {
                 $tileCard_id = (int) $tileCard["id"];
+
+                if ($withDirections) {
+                    $adjacentTiles[$direction] = $tileCard;
+                    continue;
+                }
+
                 $adjacentTiles[$tileCard_id] = $tileCard;
             }
         }
@@ -3282,14 +3288,14 @@ class Game extends \Table
         return $this->rhom_cards->getCardsInLocation("discard");
     }
 
-    public function drawRhomCard(): array
+    public function rhomDrawCard(): array
     {
         $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard");
         $rhomDeckTop = $this->getRhomDeck(true);
         $rhomDeckCount = $this->rhom_cards->countCardsInLocation("deck");
 
         $this->notifyAllPlayers(
-            "drawRhomCard",
+            "rhomDrawCard",
             clienttranslate('${player_name} draws a ${card} from its deck'),
             [
                 "player_id" => 1,
@@ -3410,6 +3416,46 @@ class Game extends \Table
         }
 
         return $mostDemandingTiles;
+    }
+
+    public function rhomRevealTiles(): void
+    {
+        $rhomCard = $this->rhomDrawCard();
+        $rhom_id = (int) $rhomCard["type_arg"];
+
+        $directions = $this->rhom_info[$rhom_id]["directions"];
+        asort($directions);
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        $adjacentTiles = $this->adjacentTiles(1, null, false, true, true);
+
+        $revealsLimit = 0;
+        foreach ($directions as $direction => $order) {
+            $tileCard = null;
+            foreach ($adjacentTiles as $tileDirection => $l_tileCard) {
+                if ($direction === $tileDirection) {
+                    $tileCard = $l_tileCard;
+                    break;
+                }
+            }
+
+            if (!$tileCard) {
+                continue;
+            }
+
+            $tileCard_id = (int) $tileCard["id"];
+
+            if (array_key_exists($tileCard_id, $revealedTiles)) {
+                continue;
+            }
+
+            $this->revealTile($tileCard_id, 1);
+            $revealsLimit++;
+
+            if ($revealsLimit === 2) {
+                break;
+            }
+        }
     }
 
     public function rhomResolveTileEffect(array $tileCard): void
