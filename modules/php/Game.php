@@ -1166,7 +1166,7 @@ class Game extends \Table
         foreach ($players as $player_id => $player) {
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-            if ($explorerCard === null || $explorerCard["location"] === "scene") {
+            if ($explorerCard["location"] === "scene") {
                 $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
 
                 if ($hasReachedCastle) {
@@ -1319,10 +1319,10 @@ class Game extends \Table
 
     public function getExplorerByPlayerId(int $player_id): array
     {
-        $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location!='box'");
+        $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location<>'box'");
 
         if ($explorerCard === null) {
-            return ["type_arg" => $player_id, "location" => "scene"];
+            $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location<>'box'");
         }
 
         return $explorerCard;
@@ -1356,7 +1356,7 @@ class Game extends \Table
         if (!$hex) {
             $explorerCard = $this->getExplorerByPlayerId($player_id);
 
-            if ($explorerCard === null || $explorerCard["location"] === "scene") {
+            if ($explorerCard["location"] === "scene") {
                 if ($onlyHexes) {
                     if ($this->getPlayersNumber() === 2) {
                         return [2, 3, 4, 5];
