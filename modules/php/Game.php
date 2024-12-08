@@ -1124,6 +1124,18 @@ class Game extends \Table
     {
         $this->rhomRevealTiles();
 
+        $explorableTiles = $this->explorableTiles(1);
+        $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+
+        foreach ($mostDemandingTiles as $tileCard) {
+            $tileCard_id = (int) $tileCard["id"];
+            $this->moveExplorer($tileCard_id, 1);
+            break;
+        }
+
+        $this->collectTile(1);
+
+        $this->globals->set("rhomFirstTurn", false);
         $this->globals->set(REAL_TURN, true);
         $this->gamestate->nextState("realTurn");
     }
