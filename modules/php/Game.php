@@ -82,6 +82,8 @@ class Game extends \Table
 
         $this->rhom_cards = $this->getNew("module.common.deck");
         $this->rhom_cards->init("rhom");
+        $this->rhom_cards->autoreshuffle = true;
+        $this->rhom_cards->autoreshuffle_trigger = ["obj" => $this, "method", "reshuffleRhomDeck"];
 
         $this->barrier_cards = $this->getNew("module.common.deck");
         $this->barrier_cards->init("barrier");
@@ -3298,6 +3300,21 @@ class Game extends \Table
         return $this->hideCards($rhomDeck, false, true);
     }
 
+    public function reshuffleRhomDeck(): void
+    {
+        $this->rhom_cards->moveAllCardsInLocation("discard", "deck");
+        $this->rhom_cards->shuffle("deck");
+
+        $this->notifyAllPlayers(
+            "reshuffleRhomDeck",
+            clienttranslate('The Rhom&apos;s deck is reshuffled'),
+            [
+                "rhomDeckCount" => $this->rhom_cards->countCardsInLocation("deck"),
+                "rhomDeckTop" => $this->getRhomDeck(true),
+            ]
+        );
+    }
+
     public function getRhomDiscard(): array
     {
         return $this->rhom_cards->getCardsInLocation("discard");
@@ -3626,6 +3643,10 @@ class Game extends \Table
         $this->setStat(0, "iridia:Relics", $opponent_id);
 
         $this->calcFinalScoring();
+    }
+
+    public function debug_reshuffleRhomDeck(): void {
+        $this->reshuffleRhomDeck();
     }
 
     /**

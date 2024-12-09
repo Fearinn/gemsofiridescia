@@ -3168,6 +3168,7 @@ define([
         { event: "completeObjective", duration: 1000 },
         { event: "zombieQuit" },
         { event: "rhomDrawCard" },
+        { event: "reshuffleRhomDeck", duration: 1000 },
       ];
 
       notifications.forEach((notif) => {
@@ -3393,7 +3394,8 @@ define([
       if (this.goi.globals.isSolo && player_id == bot.id) {
         const scoreElement = document.getElementById(`player_score_${bot.id}`);
         const prevPoints = Number(scoreElement.innerText);
-        document.getElementById(`player_score_${bot.id}`).innerText = points + prevPoints;
+        document.getElementById(`player_score_${bot.id}`).innerText =
+          points + prevPoints;
 
         score = points + prevPoints;
       } else {
@@ -3800,6 +3802,18 @@ define([
         fromStock: this.goi.stocks.rhom.deck,
       });
 
+      this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
+      this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+    },
+
+    notif_reshuffleRhomDeck: function (notif) {
+      const rhomDeckCount = notif.args.rhomDeckCount;
+      const rhomDeckTop = notif.args.rhomDeckTop;
+
+      const rhomDiscard = this.goi.stocks.rhom.discard.getCards();
+      this.goi.stocks.rhom.deck.addCards(rhomDiscard);
+
+      this.goi.stocks.rhom.deck.shuffle();
       this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
       this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
     },
