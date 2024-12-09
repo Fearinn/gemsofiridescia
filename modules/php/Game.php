@@ -25,8 +25,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
-use BgaSystemException;
-use BgaUserException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -98,7 +96,7 @@ class Game extends \Table
      * In this scenario, each time a player plays a card, this method will be called. This method is called directly
      * by the action defined into `gemsofiridescia.action.php`.
      *
-     * @throws BgaSystemException
+     * @throws \BgaSystemException
      * @see action_gemsofiridescia::actMyAction
      */
 
@@ -1739,8 +1737,7 @@ class Game extends \Table
 
         $hex = (int) $explorerCard["location_arg"];
 
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
-        AND card_location_arg=$hex");
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
 
         if ($onlyGem) {
             $tile_id = (int) $tileCard["type_arg"];
@@ -3364,17 +3361,25 @@ class Game extends \Table
         $mostDemandingTiles = [];
 
         $includesRainbow = false;
+        $gemsDemand = $this->gemsDemand();
+        $maxDemand = 0;
+
         foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
             if ($gem_id % 10 === 0) {
                 $includesRainbow = true;
-                break;
+                continue;
+            }
+
+            $demand = (int) $gemsDemand[$gem_id];
+            if ($maxDemand < $demand && $gem_id !== 1) {
+                $maxDemand = $demand;
             }
         }
 
-        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($includesRainbow) {
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($includesRainbow, $gemsDemand, $maxDemand) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
@@ -3382,10 +3387,11 @@ class Game extends \Table
                 return $gem_id % 10 === 0;
             }
 
-            $gemsDemand = $this->gemsDemand();
-            $maxDemand = max($gemsDemand);
+            $demand = (int) $gemsDemand[$gem_id];
 
-            return $gemsDemand[$gem_id] === $maxDemand;
+            if ($demand === $maxDemand) {
+                return true;
+            }
         });
 
         if (count($mostDemandingTiles) > 1) {
@@ -3406,7 +3412,7 @@ class Game extends \Table
                     return $otherHex <=> $hex;
                 }
 
-                $ascending = $weathervaneDirection === "left" ? 1 : -1;
+                $ascending = $weathervaneDirection === "left" ? -1 : 1;
                 $descending = -$ascending;
 
                 if ($hex === $currentHex - 1) {
@@ -3423,13 +3429,16 @@ class Game extends \Table
                     }
                     return $ascending;
                 }
-
+                
                 if ($hex === $currentHex + 7) {
-                    if ($otherHex === $currentHex - 1) {
-                        return $descending;
+                    if ($otherHex === $currentHex + 1) {
+                        return $ascending;
                     }
-                    return $ascending;
+
+                    return $descending;
                 }
+
+                return 0;
             });
         }
 
@@ -3457,7 +3466,7 @@ class Game extends \Table
                 }
             }
 
-            if (!$tileCard) {
+            if ($tileCard === null) {
                 continue;
             }
 

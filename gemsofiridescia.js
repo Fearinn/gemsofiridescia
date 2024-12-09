@@ -2405,9 +2405,6 @@ define([
 
         document.getElementById(buttonId).style.border = "none";
       }
-
-      const gemCards = this.goi.stocks.gems.rainbowOptions.getCards();
-      this.goi.stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
     },
 
     generateItemButton: function (item_id, elementId, isCancellable) {

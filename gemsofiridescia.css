@@ -590,6 +590,10 @@ html {
   margin-left: 4px;
 }
 
+.goi_rhomDiscard .goi_rhom:not(:first-child) {
+  margin-top: calc(-1 * var(--cardHeight));
+}
+
 @keyframes pickaxe {
   0% {
     transform: rotate(90deg);
