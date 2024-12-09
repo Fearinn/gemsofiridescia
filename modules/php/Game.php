@@ -3360,6 +3360,7 @@ class Game extends \Table
     {
         $mostDemandingTiles = [];
 
+
         $includesRainbow = false;
         $gemsDemand = $this->gemsDemand();
         $maxDemand = 0;
@@ -3374,7 +3375,7 @@ class Game extends \Table
             }
 
             $demand = (int) $gemsDemand[$gem_id];
-            if ($maxDemand < $demand && $gem_id !== 1) {
+            if ($maxDemand < $demand) {
                 $maxDemand = $demand;
             }
         }
@@ -3429,7 +3430,7 @@ class Game extends \Table
                     }
                     return $ascending;
                 }
-                
+
                 if ($hex === $currentHex + 7) {
                     if ($otherHex === $currentHex + 1) {
                         return $ascending;
@@ -3504,16 +3505,13 @@ class Game extends \Table
 
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];
-            $effectValue = $tileEffect["values"][$region_id];
-
-            if ($tileEffect_id === 1 || $tileEffect_id !== 2) {
-                $this->incRoyaltyPoints($effectValue, 1);
-                $this->incStatNoRhom($effectValue, "tilesPoints", 1);
-            }
+            $points = $tileEffect["values"][$region_id];
 
             if ($tileEffect_id === 3) {
-                $this->rollDie(1, 1, "stone");
+                $points = $this->rollDie(1, 1, "stone");
             }
+
+            $this->incRoyaltyPoints($points, 1);
         }
     }
 

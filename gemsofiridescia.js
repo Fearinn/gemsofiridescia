@@ -3388,8 +3388,18 @@ define([
       const player_id = notif.args.player_id;
       const points = notif.args.points;
 
-      this.scoreCtrl[player_id].incValue(points);
-      const score = this.scoreCtrl[player_id].getValue();
+      let score = 0;
+      const bot = this.goi.bot;
+      if (this.goi.globals.isSolo && player_id == bot.id) {
+        const scoreElement = document.getElementById(`player_score_${bot.id}`);
+        const prevPoints = Number(scoreElement.innerText);
+        document.getElementById(`player_score_${bot.id}`).innerText = points + prevPoints;
+
+        score = points + prevPoints;
+      } else {
+        this.scoreCtrl[player_id].incValue(points);
+        score = this.scoreCtrl[player_id].getValue();
+      }
 
       const player_color = `#${this.goi.globals.players[player_id].color}`;
 
