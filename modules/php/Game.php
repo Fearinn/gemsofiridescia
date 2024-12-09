@@ -49,6 +49,7 @@ const SWAPPING_STONES = "swappingStones";
 const PROSPEROUS_PICKAXE = "prosperousPickaxe";
 
 const REAL_TURN = "realTurn";
+const RHOM_MULTIPLIER = "rhomMultiplier";
 
 class Game extends \Table
 {
@@ -3341,6 +3342,43 @@ class Game extends \Table
             ]
         );
 
+        $rhom_id = $rhomCard["type_arg"];
+        $effect = (int) $this->rhom_info[$rhom_id]["effect"];
+
+        if ($effect === 1) {
+            $position = (int) $this->rollDie("1:1", 1, "mining");
+            $itemMarket = $this->getObjectListFromDB("$this->deckSelectQuery from item WHERE card_location='market'");
+            $itemCard = $itemMarket[$position - 1];
+            $itemCard_id = (int) $itemCard["id"];
+
+            $item = new ItemManager($itemCard_id, $this);
+            $item->discard();
+
+            $points = $item->cost;
+            $this->incRoyaltyPoints($points, 1, true);
+
+            $this->notifyAllPlayers(
+                "rhomDiscardItem",
+                clienttranslate('${player_name} discards the ${item_name} and scores ${points_log} points'),
+                [
+                    "player_id" => 1,
+                    "player_name" => $this->getPlayerOrRhomNameById(1),
+                    "item_name" => $item->tr_name,
+                    "points_log" => $points,
+                    "points" => $points,
+                    "i18n" => ["item_name"],
+                    "preserve" => ["item_id"],
+                    "item_id" => $item->id,
+                ]
+            );
+
+            $this->replaceItem();
+        }
+
+        if ($effect === 2 || $effect === 3) {
+            $this->globals->set(RHOM_MULTIPLIER, $effect);
+        }
+
         return $rhomCard;
     }
 
@@ -3518,7 +3556,8 @@ class Game extends \Table
             $gem_id = reset($k_gemsDemand);
         }
 
-        $this->incGem(1, $gem_id, 1, $tileCard);
+        $rhomMultiplier = $this->globals->get(RHOM_MULTIPLIER, 1);
+        $this->incGem($rhomMultiplier, $gem_id, 1, $tileCard);
 
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];
@@ -3645,7 +3684,8 @@ class Game extends \Table
         $this->calcFinalScoring();
     }
 
-    public function debug_reshuffleRhomDeck(): void {
+    public function debug_reshuffleRhomDeck(): void
+    {
         $this->reshuffleRhomDeck();
     }
 
