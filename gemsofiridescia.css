@@ -470,15 +470,16 @@ html {
 .goi_scoringHundred {
   position: absolute;
   top: 5%;
-  right: 5%;
+  left: 30%;
   width: var(--scoringMarkerSize);
 }
 
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
+  font-size: 12px;
   position: absolute;
-  top: 10%;
-  left: 0;
+  top: 14%;
+  left: 5%;
   color: white;
   transform: rotate(-45deg);
 }
@@ -646,12 +647,6 @@ html {
   gap: 8px;
 }
 
-.goi_castlePile {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .goi_royaltyToken {
   background-image: url("img/royaltyTokens.png");
   height: var(--royaltyTokenSize);
@@ -660,6 +655,12 @@ html {
 
 .goi_royaltyToken .card-side {
   box-shadow: none !important;
+}
+
+.goi_iridiaStone {
+  position: absolute;
+  left: 45%;
+  top: 1%;
 }
 
 .goi_playerBoard {
@@ -707,6 +708,10 @@ html {
   gap: 4px;
   max-width: var(--playerBoardSize);
   overflow-x: auto;
+}
+
+.goi_cargoExcedent:empty {
+  visibility: hidden;
 }
 
 .goi_cargoBox {

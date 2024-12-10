@@ -836,7 +836,6 @@ define([
 
         document.getElementById("goi_playerZones").innerHTML += `
         <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
-          <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
@@ -854,6 +853,8 @@ define([
                   <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
                   <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
                 </div>
+                <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
+                <div id="goi_iridiaStone:${player_id}" class="goi_iridiaStone"></div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
               <div id="goi_book:${player_id}" class="goi_book"></div>
@@ -862,10 +863,7 @@ define([
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
                 <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
-                <div id="goi_castlePile:${player_id}" class="goi_castlePile">
-                  <div id="goi_iridiaStone:${player_id}"></div>
-                  <div id="goi_royaltyToken:${player_id}"></div> 
-                </div>
+                <div id="goi_royaltyToken:${player_id}"></div> 
               </div>
             </div>
           </div>
@@ -1669,9 +1667,9 @@ define([
             "goi_confirm_btn",
             _("Confirm automatic move"),
             "actConfirmAutoMove",
-            null, 
-            false, 
-            "gray",
+            null,
+            false,
+            "gray"
           );
         }
 
