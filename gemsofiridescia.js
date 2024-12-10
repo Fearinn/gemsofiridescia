@@ -610,16 +610,7 @@ define([
         }
 
         const coins = this.goi.globals.coins[player_id];
-
-        let positionLeft = coins >= 10 ? "24%" : "32%";
-
-        if (coins === 11 || coins === 4) {
-          positionLeft = "30%";
-        }
-
-        if (coins === 1) {
-          positionLeft = "38%";
-        }
+        const positionLeft = this.calcCoinPosition(coins);
 
         document.getElementById(
           `goi_gemCounters:${player_id}`
@@ -2250,6 +2241,24 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
+    calcCoinPosition: function (coins) {
+      let positionLeft = coins >= 10 ? "23%" : "32%";
+
+      if (coins >= 20) {
+        positionLeft = "17%";
+      }
+
+      if (coins === 11 || coins === 4) {
+        positionLeft = "30%";
+      }
+
+      if (coins === 1) {
+        positionLeft = "36%";
+      }
+
+      return positionLeft;
+    },
+
     generateRainbowOptions: function (callback) {
       for (const gemName in this.goi.globals.gemsCounts[this.player_id]) {
         const gem_id = this.goi.info.gemIds[gemName];
@@ -3231,15 +3240,7 @@ define([
       this.goi.counters[player_id].coins.incValue(delta);
 
       const coins = this.goi.counters[player_id].coins.getValue();
-      let positionLeft = coins >= 10 ? "24%" : "32%";
-
-      if (coins === 11 || coins === 4) {
-        positionLeft = "30%";
-      }
-
-      if (coins === 1) {
-        positionLeft = "38%";
-      }
+      const positionLeft = this.calcCoinPosition(coins);
 
       this.goi.counters[player_id].coins.span.style.left = positionLeft;
 
@@ -3821,15 +3822,7 @@ define([
 
           if (args.coin) {
             const coins = Math.abs(args.delta_log);
-            let positionLeft = coins >= 10 ? "24%" : "32%";
-
-            if (coins === 11 || coins === 4) {
-              positionLeft = "30%";
-            }
-
-            if (coins === 1) {
-              positionLeft = "35%";
-            }
+            const positionLeft = this.calcCoinPosition(coins);
 
             args.coin = `<span class="goi_logMarker">
               <span class="goi_iconValue" style="left: ${positionLeft}">${coins}</span>
