@@ -432,6 +432,12 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
+          const item_id = Number(card.type_arg);
+
+          if (item_id) {
+            this.addItemContent(item_id, div);
+          }
+
           div.classList.add("goi_card");
           div.classList.add("goi_item");
           div.style.position = "relative";
@@ -453,24 +459,6 @@ define([
 
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
-          }
-
-          const cardContent = document.createElement("span");
-          cardContent.textContent = _(itemContent);
-          cardContent.classList.add("goi_cardContent");
-
-          if (div.childElementCount === 1) {
-            div.appendChild(cardContent);
-
-            const divHeight = div.offsetHeight;
-            const contentHeight = cardContent.offsetHeight;
-
-            const proportion = (contentHeight / divHeight) * 100;
-            const fontSize = 7 + (15 / proportion - 1) * (proportion / 5);
-            cardContent.style.fontSize = `${fontSize}px`;
-
-            const top = fontSize + 64;
-            cardContent.style.top = `${top}%`;
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
@@ -2701,6 +2689,36 @@ define([
         );
 
         this.generateItemButton(item_id, elementId, isCancellable);
+      }
+    },
+
+    addItemContent: function (item_id, div, contentElement, initialFont = 15) {
+      if (!contentElement) {
+        const itemInfo = this.goi.info.items[item_id];
+        const itemContent = itemInfo.content;
+
+        contentElement = document.createElement("span");
+        contentElement.textContent = _(itemContent);
+        contentElement.classList.add("goi_cardContent");
+
+        contentElement.style.fontFamily = "'rooney-web', serif";
+        contentElement.style.fontSize = `${initialFont}px`;
+        div.appendChild(contentElement);
+      }
+
+      const contentHeight = contentElement.offsetHeight;
+      const maxHeight = 230 * 0.15;
+
+      if (contentHeight > maxHeight) {
+        const fontSize = initialFont * 0.95;
+        contentElement.style.fontSize = `${fontSize}px`;
+
+        const positionTop = 71 + fontSize / 5;
+        contentElement.style.top = `${positionTop}%`;
+        
+        requestAnimationFrame(() => {
+          this.addItemContent(item_id, div, contentElement, fontSize);
+        }, 0);
       }
     },
 

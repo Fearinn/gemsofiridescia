@@ -436,10 +436,8 @@ html {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 7px;
   top: 71%;
   text-align: center;
-  max-height: calc(var(--cardHeight) * 0.15);
 }
 
 .goi_board {
