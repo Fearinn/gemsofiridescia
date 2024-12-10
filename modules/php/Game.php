@@ -670,7 +670,6 @@ class Game extends \Table
     public function argConfirmAutoMove(): array
     {
         $player_id = (int) $this->getActivePlayerId();
-        
         $usableItems = $this->usableItems($player_id);
 
         return [
@@ -1284,7 +1283,7 @@ class Game extends \Table
         if (in_array($hex, $leftEdges)) {
             $leftHex = null;
 
-            if ($tileRow % 2 === 0) {
+            if ($tileRow % 2 === 0 && $tileRow < 8) {
                 $topLeftHex = null;
             }
         };
@@ -1292,7 +1291,7 @@ class Game extends \Table
         if (in_array($hex, $rightEdges)) {
             $rightHex = null;
 
-            if ($tileRow % 2 === 0) {
+            if ($tileRow % 2 === 0 && $tileRow < 8) {
                 $topRightHex = null;
             }
         }
