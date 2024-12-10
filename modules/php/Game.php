@@ -1722,7 +1722,7 @@ class Game extends \Table
         );
 
         $castlePlayersCount = (int) $this->castlePlayersCount();
-        $playersNumber = (int) $this->getPlayersNumberNoZombie();
+        $playersNumber = (int) $this->getPlayersNumber();
 
         if ($playersNumber > 1 && $playersNumber === $castlePlayersCount) {
             return;
@@ -1733,14 +1733,19 @@ class Game extends \Table
             $token_id = 3;
 
             if ($playersNumber <= 2) {
-                $score_aux = 1;
-                $token_id = 1;
+                $score_aux = 10;
+                $token_id = 2;
             }
         }
 
         if ($castlePlayersCount === 2) {
             $score_aux = 10;
             $token_id = 2;
+
+            if ($playersNumber === 3) {
+                $score_aux = 1;
+                $token_id = 1;
+            }
         }
 
         if ($castlePlayersCount === 3) {
@@ -2755,7 +2760,7 @@ class Game extends \Table
         if ($gemsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeGemsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from gems sets'),
+                clienttranslate('${player_name} scores ${points_log} points from gem sets'),
                 [
                     "player_name" => $this->getPlayerNameById($player_id),
                     "points" => $gemsPoints,
@@ -2855,7 +2860,7 @@ class Game extends \Table
         if ($tilesPoints) {
             $this->notifyAllPlayers(
                 "computeTilesPoints",
-                clienttranslate('${player_name} scores ${points_log} points from tiles sets'),
+                clienttranslate('${player_name} scores ${points_log} points from tile sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
@@ -2965,7 +2970,7 @@ class Game extends \Table
         if ($relicsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeRelicsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from relics sets'),
+                clienttranslate('${player_name} scores ${points_log} points from relic sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),
