@@ -3098,6 +3098,7 @@ class Game extends \Table
                 "id" => "finalScoring",
                 "title" => clienttranslate("Final scoring"),
                 "table" => $table,
+                "closing" => clienttranslate("Close"),
             ]
         );
     }
