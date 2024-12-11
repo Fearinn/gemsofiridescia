@@ -96,11 +96,15 @@ class ObjectiveManager
                     continue;
                 }
 
-                $relicsCount = $this->game->getStat("$relicType:TypeRelics", $player_id);
+                $relicsCount = (int) $this->game->getStat("$relicType:TypeRelics", $player_id);
 
                 if ($relicsCount >= $maxRelics) {
                     $maxRelics = $relicsCount;
                 }
+            }
+
+            if ($maxRelics === 0) {
+                return false;
             }
 
             $relicsForSets = $this->game->globals->get("relicsForSets:$current_player_id");
