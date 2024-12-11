@@ -1539,9 +1539,16 @@ define([
           }
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} may reveal a tile or use an Item with the green flag"
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} may reveal a tile or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -1576,9 +1583,16 @@ define([
           const singleCollectedTile = args.args.singleCollectedTile;
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item with the green flag"
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           } else if (singleCollectedTile) {
             this.goi.selections.tile = singleCollectedTile;
@@ -1661,9 +1675,16 @@ define([
           const usableItems = args.args.usableItems;
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} have a single possible move. Confirm it or use an Item with the green flag"
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} have a single possible move. Confirm it or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -3896,6 +3917,10 @@ define([
         }
 
         if (this.getGameUserPreference(101) == 1) {
+          if (args.green_flag) {
+            args.green_flag = `<div class="textalign"><span class="goi_greenFlag textalign_inner"></span></div>`;
+          }
+
           if (args.gem_label) {
             const gem_id = args.gem_id;
             const backgroundPosition = this.calcBackgroundPosition(gem_id);
