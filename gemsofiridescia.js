@@ -366,6 +366,12 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
+          const objective_id = Number(card.type_arg);
+
+          if (objective_id) {
+            this.addObjectiveContent(objective_id, div);
+          }
+
           div.classList.add("goi_card");
           div.classList.add("goi_objective");
           div.style.position = "relative";
@@ -387,14 +393,6 @@ define([
 
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
-          }
-
-          const cardContent = document.createElement("span");
-          cardContent.textContent = _(objectiveContent);
-          cardContent.classList.add("goi_cardContent");
-
-          if (div.childElementCount === 1) {
-            div.appendChild(cardContent);
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
@@ -2708,7 +2706,7 @@ define([
       }
     },
 
-    addItemContent: function (item_id, div, contentElement, initialFont = 15) {
+    addItemContent: function (item_id, div, contentElement, initialFont = 14) {
       if (!contentElement) {
         const itemInfo = this.goi.info.items[item_id];
         const itemContent = itemInfo.content;
@@ -2729,15 +2727,43 @@ define([
         const fontSize = initialFont * 0.98;
         contentElement.style.fontSize = `${fontSize}px`;
 
-        const positionTop = 71 + fontSize / 5;
-        contentElement.style.top = `${positionTop}%`;
-
         requestAnimationFrame(() => {
           this.addItemContent(item_id, div, contentElement, fontSize);
         }, 0);
       }
+    },
 
-      contentElement.style.maxHeight = "15%";
+    addObjectiveContent: function (
+      objective_id,
+      div,
+      contentElement,
+      initialFont = 12
+    ) {
+      if (!contentElement) {
+        const objectiveInfo = this.goi.info.objectives[objective_id];
+        const objectiveContent = objectiveInfo.content;
+
+        contentElement = document.createElement("span");
+        contentElement.textContent = _(objectiveContent);
+        contentElement.classList.add("goi_cardContent");
+
+        contentElement.style.fontFamily = `"rooney-web", serif`;
+        contentElement.style.fontSize = `${initialFont}px`;
+        div.appendChild(contentElement);
+      }
+
+      const contentHeight = contentElement.offsetHeight;
+      const maxHeight = 230 * 0.12;
+
+      if (contentHeight > maxHeight) {
+        const fontSize = initialFont * 0.98;
+        contentElement.style.fontSize = `${fontSize}px`;
+
+        requestAnimationFrame(() => {
+          contentElement.style.transform = "translateY(-50%)";
+          this.addObjectiveContent(objective_id, div, contentElement, fontSize);
+        }, 0);
+      }
     },
 
     ///////////////////////////////////////////////////
@@ -3712,7 +3738,9 @@ define([
     },
 
     createItemTooltip: function (item_id) {
-      const realCard = document.getElementById("goi_gameArea").querySelector(`#item-tooltip-${item_id}`);
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#item-tooltip-${item_id}`);
       const clone = realCard.cloneNode(true);
       clone.style.visibility = "visible";
       return clone.outerHTML;
@@ -3768,17 +3796,15 @@ define([
         let tooltip = this._registeredCustomTooltips[id];
 
         if (tooltip.match("goi_item")) {
-          console.log(
-            new dijit.Tooltip({
-              connectId: [id],
-              getContent: (matchedNode) => {
-                const item_id = id.split("-")[1];
-                const newTooltip = this.createItemTooltip(item_id);
-                console.log(newTooltip);
-                return this.createItemTooltip(item_id);
-              },
-            })
-          );
+          new dijit.Tooltip({
+            connectId: [id],
+            getContent: (matchedNode) => {
+              const item_id = id.split("-")[1];
+              const newTooltip = this.createItemTooltip(item_id);
+              console.log(newTooltip);
+              return this.createItemTooltip(item_id);
+            },
+          });
         } else {
           this.addCustomTooltip(id, tooltip);
           this._attachedTooltips[id] = tooltip;
