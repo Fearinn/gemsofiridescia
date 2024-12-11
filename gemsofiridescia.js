@@ -366,10 +366,8 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
-          const objective_id = Number(card.type_arg);
-
-          if (objective_id) {
-            this.addObjectiveContent(objective_id, div);
+          if (card.type == -99) {
+            div.style.visibility = "hidden";
           }
 
           div.classList.add("goi_card");
@@ -393,6 +391,10 @@ define([
 
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
+          }
+
+          if (div.childElementCount === 1) {
+            this.addObjectiveContent(objective_id, div);
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
@@ -435,10 +437,6 @@ define([
           }
           const item_id = Number(card.type_arg);
 
-          if (item_id) {
-            this.addItemContent(item_id, div);
-          }
-
           div.classList.add("goi_card");
           div.classList.add("goi_item");
           div.style.position = "relative";
@@ -460,6 +458,10 @@ define([
 
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
+          }
+
+          if (div.childElementCount === 1) {
+            this.addItemContent(item_id, div);
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
@@ -1088,17 +1090,7 @@ define([
           }
         }
 
-        this.goi.stocks.objectives.void = new VoidStock(
-          this.goi.managers.objectives,
-          document.getElementById("goi_void")
-        );
-
         /* ITEMS */
-        document.getElementById("goi_activeItemsTitle").textContent =
-          _("Active");
-
-        document.getElementById("goi_itemsDiscardTitle").textContent =
-          _("Discard");
 
         this.goi.stocks[player_id].items.hand = new AllVisibleDeck(
           this.goi.managers.items,
@@ -1346,7 +1338,31 @@ define([
         this.goi.stocks.relics.market.addCard(relicCard);
       }
 
+      /* OBECTIVES */
+
+      this.goi.stocks.objectives.tooltips = new CardStock(
+        this.goi.managers.objectives,
+        document.getElementById("goi_void")
+      );
+
+      for (const objective_id in this.goi.info.objectives) {
+        this.goi.stocks.objectives.tooltips.addCard({
+          id: `tooltip-${objective_id}`,
+          type: -99,
+          type_arg: objective_id,
+        });
+      }
+
+      this.goi.stocks.objectives.void = new VoidStock(
+        this.goi.managers.objectives,
+        document.getElementById("goi_void")
+      );
+
       /* ITEMS */
+      document.getElementById("goi_activeItemsTitle").textContent = _("Active");
+
+      document.getElementById("goi_itemsDiscardTitle").textContent =
+        _("Discard");
 
       this.goi.stocks.items.tooltips = new CardStock(
         this.goi.managers.items,
@@ -3741,29 +3757,20 @@ define([
       const realCard = document
         .getElementById("goi_gameArea")
         .querySelector(`#item-tooltip-${item_id}`);
+
       const clone = realCard.cloneNode(true);
       clone.style.visibility = "visible";
       return clone.outerHTML;
     },
 
-    getObjectiveTooltip: function (objective_id) {
-      const objectiveInfo = this.goi.info.objectives[objective_id];
-      const objectiveName = objectiveInfo.tr_name;
-      const objectiveContent = objectiveInfo.content;
+    createObjectiveTooltip: function (objective_id) {
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#objective-tooltip-${objective_id}`);
 
-      const backgroundCode = objective_id <= 7 ? 1 : 2;
-      const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
-
-      const spritePosition = objective_id - 8 * (backgroundCode - 1);
-      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
-
-      const tooltip = `<div class="goi_logImage goi_objective goi_card" 
-      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(objectiveName)}</span>
-        <span class="goi_cardContent">${_(objectiveContent)}</span>
-      </div>`;
-
-      return tooltip;
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
     addCustomTooltip: function (container, html) {
@@ -3800,9 +3807,15 @@ define([
             connectId: [id],
             getContent: (matchedNode) => {
               const item_id = id.split("-")[1];
-              const newTooltip = this.createItemTooltip(item_id);
-              console.log(newTooltip);
               return this.createItemTooltip(item_id);
+            },
+          });
+        } else if (tooltip.match("goi_objective")) {
+          new dijit.Tooltip({
+            connectId: [id],
+            getContent: (matchedNode) => {
+              const objective_id = id.split("-")[1];
+              return this.createObjectiveTooltip(objective_id);
             },
           });
         } else {
@@ -3870,15 +3883,14 @@ define([
             const objectiveCard = args.objectiveCard;
 
             const objective_id = Number(objectiveCard.type_arg);
-            const uid = `${Date.now()}${objective_id}`;
+            const uid = `${Date.now()}-${objective_id}`;
             const elementId = `goi_objectiveLog:${uid}`;
 
             args.objective_name = `<span id="${elementId}" style="font-weight: bold;">${_(
               args.objective_name
             )}</span>`;
 
-            const tooltip = this.getObjectiveTooltip(objective_id);
-
+            const tooltip = this.createObjectiveTooltip(objective_id);
             this.registerCustomTooltip(tooltip, elementId);
           }
         }
