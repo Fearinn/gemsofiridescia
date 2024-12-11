@@ -288,7 +288,7 @@ html {
   font-size: 11px;
 
   position: absolute;
-  top: 73%;
+  top: 71%;
   display: flex;
   text-align: center;
   max-height: 12%;
@@ -366,6 +366,8 @@ html {
   position: absolute !important;
   top: 0;
   left: 70%;
+  overflow: hidden;
+  max-height: var(--cardSize);
 }
 
 .goi_merchant {
@@ -424,12 +426,6 @@ html {
 .goi_item,
 .goi_item .card-side {
   background-image: url("img/items.png");
-}
-
-.goi_item.goi_logImage .goi_cardContent {
-  top: 72%;
-  font-size: 7px;
-  overflow-y: auto;
 }
 
 .goi_item .goi_cardContent {

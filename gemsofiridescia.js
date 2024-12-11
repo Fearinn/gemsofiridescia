@@ -432,6 +432,9 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
+          if (card.type == -99) {
+            div.style.visibility = "hidden";
+          }
           const item_id = Number(card.type_arg);
 
           if (item_id) {
@@ -1346,6 +1349,19 @@ define([
       }
 
       /* ITEMS */
+
+      this.goi.stocks.items.tooltips = new CardStock(
+        this.goi.managers.items,
+        document.getElementById("goi_void")
+      );
+
+      for (const item_id in this.goi.info.items) {
+        this.goi.stocks.items.tooltips.addCard({
+          id: `tooltip-${item_id}`,
+          type: -99,
+          type_arg: item_id,
+        });
+      }
 
       this.goi.stocks.items.deck = new Deck(
         this.goi.managers.items,
@@ -2710,16 +2726,18 @@ define([
       const maxHeight = 230 * 0.15;
 
       if (contentHeight > maxHeight) {
-        const fontSize = initialFont * 0.95;
+        const fontSize = initialFont * 0.98;
         contentElement.style.fontSize = `${fontSize}px`;
 
         const positionTop = 71 + fontSize / 5;
         contentElement.style.top = `${positionTop}%`;
-        
+
         requestAnimationFrame(() => {
           this.addItemContent(item_id, div, contentElement, fontSize);
         }, 0);
       }
+
+      contentElement.style.maxHeight = "15%";
     },
 
     ///////////////////////////////////////////////////
@@ -3693,19 +3711,11 @@ define([
       return tooltip;
     },
 
-    getItemTooltip: function (item_id) {
-      const itemInfo = this.goi.info.items[item_id];
-      const itemName = itemInfo.tr_name;
-      const itemContent = itemInfo.content;
-
-      const backgroundPosition = this.calcBackgroundPosition(item_id);
-
-      const tooltip = `<div class="goi_logImage goi_item goi_card" style="position: relative; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(itemName)}</span>
-        <span class="goi_cardContent">${_(itemContent)}</span>
-      </div>`;
-
-      return tooltip;
+    createItemTooltip: function (item_id) {
+      const realCard = document.getElementById("goi_gameArea").querySelector(`#item-tooltip-${item_id}`);
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
     getObjectiveTooltip: function (objective_id) {
@@ -3755,8 +3765,24 @@ define([
       console.log("Attaching toolips");
 
       for (const id in this._registeredCustomTooltips) {
-        this.addCustomTooltip(id, this._registeredCustomTooltips[id]);
-        this._attachedTooltips[id] = this._registeredCustomTooltips[id];
+        let tooltip = this._registeredCustomTooltips[id];
+
+        if (tooltip.match("goi_item")) {
+          console.log(
+            new dijit.Tooltip({
+              connectId: [id],
+              getContent: (matchedNode) => {
+                const item_id = id.split("-")[1];
+                const newTooltip = this.createItemTooltip(item_id);
+                console.log(newTooltip);
+                return this.createItemTooltip(item_id);
+              },
+            })
+          );
+        } else {
+          this.addCustomTooltip(id, tooltip);
+          this._attachedTooltips[id] = tooltip;
+        }
       }
 
       this._registeredCustomTooltips = {};
@@ -3802,14 +3828,14 @@ define([
 
           if (args.item_id && args.item_name) {
             const item_id = Number(args.item_id);
-            const uid = `${Date.now()}${item_id}`;
+            const uid = `${Date.now()}-${item_id}`;
             const elementId = `goi_itemLog:${uid}`;
 
             args.item_name = `<span id="${elementId}" style="font-weight: bold;">${_(
               args.item_name
             )}</span>`;
 
-            const tooltip = this.getItemTooltip(item_id);
+            const tooltip = this.createItemTooltip(item_id);
 
             this.registerCustomTooltip(tooltip, elementId);
           }
