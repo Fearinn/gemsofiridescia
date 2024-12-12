@@ -167,6 +167,10 @@ class ItemManager
             return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$prosperousTiles;
         }
 
+        if ($this->id === 12) {
+            return true;
+        }
+
         return false;
     }
 
@@ -178,7 +182,7 @@ class ItemManager
 
         $eventKey = "message";
 
-        $possiblyCancellable = [3, 4, 9];
+        $possiblyCancellable = [3, 4, 9, 12];
 
         if (in_array($this->id, $possiblyCancellable)) {
             $eventKey = "activateItem";
@@ -267,6 +271,10 @@ class ItemManager
         if ($this->id === 11) {
             $tileCard_id = (int) $args["tileCard_id"];
             $this->cleverCatapult($tileCard_id, $player_id);
+        }
+
+        if ($this->id === 12) {
+            $this->wishingWell($player_id);
         }
 
         return true;
@@ -650,6 +658,25 @@ class ItemManager
         $this->game->actMoveExplorer(null, $tileCard_id, true);
     }
 
+    public function wishingWell(int $player_id): void {
+        $die_1 = $this->game->rollDie("1:$player_id", $player_id, "mining");
+        $die_2 = $this->game->rollDie("2:$player_id", $player_id, "mining");
+
+        $max = max([$die_1, $die_2]);
+        $this->globals->set(WISHING_WELL, $max);
+    }
+
+    public function wishingWell2(#[IntParam(min: 1, max: 4)] int $gem_id, int $player_id): bool {
+        $marketValue = $this->globals->get("$gem_id:marketValue");
+        $wellMax = $this->globals->get(WISHING_WELL, 99);
+
+        if ($wellMax > $marketValue) {
+            throw new \BgaVisibleSystemException("You can't gain this gem from the Wishing Well: $gem_id, $marketValue, $wellMax");
+        } 
+
+        return $this->game->incGem(1, $gem_id, $player_id);
+    }
+
     public function isCancellable($player_id): bool
     {
         if (!$this->checkLocation("active", $player_id)) {
@@ -741,6 +768,10 @@ class ItemManager
 
         if ($this->id === 9) {
             $this->game->globals->set(PROSPEROUS_PICKAXE, null);
+        }
+
+        if ($this->id === 12) {
+            $this->game->globals->set(WISHING_WELL, 99);
         }
     }
 

@@ -146,6 +146,16 @@ $machinestates = [
         "transitions" => ["repeat" => 4, "skip" => 5, "restoreRelic" => 5]
     ],
 
+    40 => [
+        "name" => "pickWellGem",
+        "description" => clienttranslate('${actplayer} must pick a Gem for the Wishing Well'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the Wishing Well'),
+        "type" => "activeplayer",
+        "args" => "argPickWellgem",
+        "possibleactions" => ["actPickWellGem"],
+        "transitions" => ["optionlActions" => 4],
+    ],
+
     5 => [
         "name" => "restoreRelic",
         "description" => clienttranslate('${actplayer} may restore a Relic'),

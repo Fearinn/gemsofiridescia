@@ -48,6 +48,7 @@ const EPIC_ELIXIR = "epicElixir";
 const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
 const PROSPEROUS_PICKAXE = "prosperousPickaxe";
+const WISHING_WELL = "wishingWell";
 
 class Game extends \Table
 {
@@ -525,6 +526,18 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
+    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    {
+        $this->checkVersion($clientVersion);
+        $player_id = (int) $this->getActivePlayerId();
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $item->undo($player_id);
+
+        $this->gamestate->nextState("repeat");
+    }
+
     #[CheckAction(false)]
     public function actUseEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
     {
@@ -561,16 +574,20 @@ class Game extends \Table
         $this->gamestate->jumpToState($state_id);
     }
 
-    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
-    {
+    public function actPickWellGem (?int $clientVersion, int $gem_id) {
         $this->checkVersion($clientVersion);
-        $player_id = (int) $this->getActivePlayerId();
+        $player_id = $this->getActivePlayerId();
 
+        if (!$this->globals->get(WISHING_WELL)) {
+            throw new \BgaVisibleSystemException("The Wishing Well was not used");
+        }
+
+        $itemCard_id = $this->globals->get(WISHING_WELL);
+    
         $item = new ItemManager($itemCard_id, $this);
-
-        $item->undo($player_id);
-
-        $this->gamestate->nextState("repeat");
+        $item->wishingWell2($gem_id, $player_id);
+        $item->disable();
+        $item->discard();
     }
 
     public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
