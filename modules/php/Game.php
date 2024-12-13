@@ -1265,7 +1265,7 @@ class Game extends \Table
             $hex = (int) $explorerCard["location_arg"];
         }
 
-        $tileRow = $this->hexRow($hex);
+        $tileRow = (int) $this->hexRow($hex);
 
         $leftHex = $hex - 1;
         $rightHex = $hex + 1;
@@ -1306,7 +1306,7 @@ class Game extends \Table
         if ($onlyHexes) {
             $hexes = [];
             foreach ($adjacentHexes as $hex) {
-                if ($hex === null) {
+                if ($hex === null || !in_array($hex, range(1, 58))) {
                     continue;
                 }
 
@@ -1421,6 +1421,10 @@ class Game extends \Table
     public function closestEmpty(int $player_id, array $adjacentHexes): array
     {
         $emptyWithAdjacent = [];
+
+        if (!$adjacentHexes) {
+            return [];
+        }
 
         foreach ($adjacentHexes as $hex) {
             $adjacentTiles = $this->adjacentTiles($player_id, $hex);

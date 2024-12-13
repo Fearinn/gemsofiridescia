@@ -2132,16 +2132,17 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
-      if (stateName === "client_pickEmptyTile") {
-        this.goi.stocks.tiles.empty.setSelectionMode("none");
-        this.goi.stocks.tiles.empty.removeAll();
-      }
 
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi.stocks[this.player_id].tiles.victoryPile.setSelectionMode(
           "none"
         );
+      }
+
+      if (stateName === "client_pickEmptyTile") {
+        this.goi.stocks.tiles.empty.setSelectionMode("none");
+        this.goi.stocks.tiles.empty.removeAll();
       }
 
       if (stateName === "discardTile") {

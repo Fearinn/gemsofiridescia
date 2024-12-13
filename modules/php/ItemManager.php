@@ -635,7 +635,7 @@ class ItemManager
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->game->getPlayerNameById($player_id),
-                    "hex" => abs($tileCard_id),
+                    "hex" => $hex,
                     "explorerCard" => $explorerCard,
                 ]
             );
