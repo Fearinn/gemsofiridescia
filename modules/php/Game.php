@@ -523,6 +523,11 @@ class Game extends \Table
             return;
         };
 
+        if ($item->id === 12) {
+            $this->gamestate->nextState("pickWellGem");
+            return;
+        }
+
         $this->gamestate->nextState("repeat");
     }
 
@@ -574,20 +579,29 @@ class Game extends \Table
         $this->gamestate->jumpToState($state_id);
     }
 
-    public function actPickWellGem (?int $clientVersion, int $gem_id) {
+    public function actPickWellGem(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id)
+    {
         $this->checkVersion($clientVersion);
-        $player_id = $this->getActivePlayerId();
+        $player_id = (int) $this->getActivePlayerId();
 
-        if (!$this->globals->get(WISHING_WELL)) {
+        $registeredWell = $this->globals->get(WISHING_WELL);
+
+        if ($registeredWell === null) {
             throw new \BgaVisibleSystemException("The Wishing Well was not used");
         }
 
-        $itemCard_id = $this->globals->get(WISHING_WELL);
-    
+        $itemCard_id = (int) $registeredWell["card_id"];
+
         $item = new ItemManager($itemCard_id, $this);
-        $item->wishingWell2($gem_id, $player_id);
-        $item->disable();
-        $item->discard();
+
+        if (!$item->wishingWell2($gem_id, $player_id)) {
+            $anchorState_id = (int) $this->gamestate->state_id();
+            $this->globals->set(ANCHOR_STATE, $anchorState_id);
+            $this->gamestate->jumpToState(31);
+            return;
+        };
+
+        $this->gamestate->nextState("optionalActions");
     }
 
     public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
@@ -913,6 +927,71 @@ class Game extends \Table
         }
     }
 
+    public function argPickWellgem(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $marketValues = $this->getMarketValues(null);
+
+        $registeredWell = $this->globals->get(WISHING_WELL);
+        $itemCard_id = (int) $registeredWell["card_id"];
+        $maxValue = (int) $registeredWell["maxValue"];
+        $pickableGems = [];
+
+        foreach ($marketValues as $gemName => $marketValue) {
+            if ($marketValue <= $maxValue) {
+                $pickableGems[$gemName] = $marketValue;
+            }
+        }
+
+        $usableItems = $this->usableItems($player_id);
+        $auto = !$usableItems && count($pickableGems) === 1;
+
+        return [
+            "itemCard_id" => $itemCard_id,
+            "pickableGems" => $pickableGems,
+            "singlePickableGem" => reset($pickableGems),
+            "failed" => !$pickableGems,
+            "auto" => $auto,
+            "no_notify" => $auto || !$pickableGems,
+        ];
+    }
+
+    public function stPickWellGem(): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        $args = $this->argPickWellgem();
+
+        if ($args["no_notify"]) {
+            if ($args["auto"]) {
+                $gem_id = (int) $args["singlePickableGem"];
+                $this->actPickWellGem(null, $gem_id);
+                return;
+            }
+
+            if ($args["failed"]) {
+                $this->notifyAllPlayers(
+                    "failedWell",
+                    clienttranslate('The ${item_name} of ${player_name} fails'),
+                    [
+                        "player_name" => $this->getPlayerNameById($player_id),
+                        "item_name" => clienttranslate("Wishing Well"),
+                        "i18n" => ["item_name"],
+                        "preserve" => ["item_id"],
+                        "item_id" => 12,
+                    ]
+                );
+
+                $itemCard_id = $args["itemCard_id"];
+                $item = new ItemManager($itemCard_id, $this);
+                $item->disable();
+                $item->discard();
+
+                $this->gamestate->nextState("fail");
+            }
+        }
+    }
+
     public function argTransferGem(): array
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -1158,7 +1237,7 @@ class Game extends \Table
         }
     }
 
-    public function rollDie(int | string $die_id, int $player_id, string $type): int
+    public function rollDie(int | string $die_id, int $player_id, string $type, bool $rerollable = true): int
     {
         $face = bga_rand(1, 6);
 
@@ -1180,7 +1259,12 @@ class Game extends \Table
 
 
         $rerollabeDice = $this->globals->get(ROLLED_DICE, []);
-        $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type, "face" => $face];
+
+        if ($rerollable) {
+            $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type, "face" => $face];
+        } else {
+            unset($rerollabeDice[$die_id]);
+        }
 
         $this->globals->set(ROLLED_DICE, $rerollabeDice);
 

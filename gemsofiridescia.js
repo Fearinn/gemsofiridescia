@@ -1964,6 +1964,13 @@ define([
           );
         }
 
+        if (stateName === "pickWellGem") {
+          const pickableGems = args.args.pickableGems;
+          this.generateRainbowOptions(() => {
+            this.actPickWellGem();
+          }, pickableGems);
+        }
+        
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
           const catapultableEmpty = catapultableTiles.empty;
@@ -2298,8 +2305,12 @@ define([
       return positionLeft;
     },
 
-    generateRainbowOptions: function (callback) {
-      for (const gemName in this.goi.globals.gemsCounts[this.player_id]) {
+    generateRainbowOptions: function (callback, pickableGems) {
+      if (!pickableGems) {
+         pickableGems = this.goi.globals.gemsCounts[this.player_id];
+      }
+
+      for (const gemName in pickableGems) {
         const gem_id = this.goi.info.gemIds[gemName];
         const buttonId = `goi_rainbow-${gem_id}_btn`;
 
@@ -2877,7 +2888,7 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi.selections.item.type_arg);
 
-      const instantaneousItems = [3, 4];
+      const instantaneousItems = [3, 4, 12];
 
       if (instantaneousItems.includes(item_id)) {
         this.actUseItem();
@@ -2951,6 +2962,8 @@ define([
     actUseItem: function () {
       const selectedItem = this.goi.selections.item;
       const item_id = Number(selectedItem.type_arg);
+
+      console.log(selectedItem, item_id, "test");
 
       if (item_id === 4) {
         this.performAction(
@@ -3030,6 +3043,10 @@ define([
         };
       }
 
+      if (item_id === 12) {
+        args = {}
+      }
+
       this.performAction("actUseItem", {
         itemCard_id: selectedItem.id,
         args: JSON.stringify(args),
@@ -3053,6 +3070,12 @@ define([
 
       this.performAction("actUndoItem", {
         itemCard_id: selectedItem.id,
+      });
+    },
+
+    actPickWellGem: function () {
+      this.bgaPerformAction("actPickWellGem", {
+        gem_id: this.goi.selections.gem
       });
     },
 

@@ -142,8 +142,15 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argOptionalActions",
         "action" => "stOptionalActions",
-        "possibleactions" => ["actMine", "actSellGems", "actSkipOptionalActions", "actBuyItem", "actUseItem", "actUndoItem"],
-        "transitions" => ["repeat" => 4, "skip" => 5, "restoreRelic" => 5]
+        "possibleactions" => [
+            "actMine",
+            "actSellGems",
+            "actSkipOptionalActions",
+            "actBuyItem",
+            "actUseItem",
+            "actUndoItem",
+        ],
+        "transitions" => ["repeat" => 4, "pickWellGem" => 40, "skip" => 5, "restoreRelic" => 5]
     ],
 
     40 => [
@@ -152,8 +159,9 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the Wishing Well'),
         "type" => "activeplayer",
         "args" => "argPickWellgem",
+        "action" => "stPickWellGem",
         "possibleactions" => ["actPickWellGem"],
-        "transitions" => ["optionlActions" => 4],
+        "transitions" => ["repeat" => 4, "fail" => 4, "optionalActions" => 4],
     ],
 
     5 => [

@@ -8,7 +8,6 @@ use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\Actions\Types\StringParam;
-use BgaUserException;
 
 class ItemManager
 {
@@ -383,7 +382,7 @@ class ItemManager
                 $gemName = $this->game->gems_info[$gem_id]["name"];
 
                 $oldFace = $this->game->globals->get("$gemName:MarketValue");
-                $newFace = $this->game->rollDie($die_id, $player_id, "gem");
+                $newFace = $this->game->rollDie($die_id, $player_id, "gem", false);
                 $delta = $newFace - $oldFace;
 
                 $this->game->updateMarketValue($delta, $gem_id, true);
@@ -402,28 +401,16 @@ class ItemManager
             $oldFace = $die["face"];
 
             if (!array_key_exists($die_id, $rolledDice)) {
-                throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
+                throw new \BgaVisibleSystemException("You can't reroll this die: Lucky Libation, $die_id");
             }
 
-            $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
+            $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType, false);
             $delta = $newFace - $oldFace;
 
             $tileCard = $this->game->currentTile($player_id);
             $gem_id = (int) $this->game->currentTile($player_id, true);
             $gemName = $this->game->gems_info[$gem_id]["name"];
             $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
-
-            if ($newFace < 1) {
-                $newFace += 6;
-            }
-
-            if ($newFace > 6) {
-                $newFace -= 6;
-            }
-
-            $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-            $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
-            $this->game->globals->set(ROLLED_DICE, $rolledDice);
 
             if ($oldFace < $gemMarketValue && $newFace >= $gemMarketValue) {
                 $minedGemsCount++;
@@ -658,21 +645,34 @@ class ItemManager
         $this->game->actMoveExplorer(null, $tileCard_id, true);
     }
 
-    public function wishingWell(int $player_id): void {
-        $die_1 = $this->game->rollDie("1:$player_id", $player_id, "mining");
-        $die_2 = $this->game->rollDie("2:$player_id", $player_id, "mining");
+    public function wishingWell(int $player_id): void
+    {
+        $die_1 = (int) $this->game->rollDie("1-$player_id", $player_id, "mining");
+        $die_2 = (int) $this->game->rollDie("2-$player_id", $player_id, "mining");
 
-        $max = max([$die_1, $die_2]);
-        $this->globals->set(WISHING_WELL, $max);
+        $max = (int) max([$die_1, $die_2]);
+
+        $this->game->globals->set(ROLLED_DICE, []);
+        $this->game->globals->set(WISHING_WELL, ["card_id" => $this->card_id, "maxValue" => $max]);        
     }
 
-    public function wishingWell2(#[IntParam(min: 1, max: 4)] int $gem_id, int $player_id): bool {
-        $marketValue = $this->globals->get("$gem_id:marketValue");
-        $wellMax = $this->globals->get(WISHING_WELL, 99);
+    public function wishingWell2(#[IntParam(min: 1, max: 4)] int $gem_id, int $player_id): bool
+    {
+        $marketValue = $this->game->getMarketValues($gem_id);
+        $registeredWell = $this->game->globals->get(WISHING_WELL);
 
-        if ($wellMax > $marketValue) {
-            throw new \BgaVisibleSystemException("You can't gain this gem from the Wishing Well: $gem_id, $marketValue, $wellMax");
-        } 
+        if ($registeredWell === null) {
+            throw new \BgaVisibleSystemException("You didn't use the Wishing Well");
+        }
+
+        $maxValue = $registeredWell["maxValue"];
+
+        if ($maxValue < $marketValue) {
+            throw new \BgaVisibleSystemException("You can't gain this gem from the Wishing Well: $gem_id, $marketValue, $maxValue");
+        }
+
+        $this->disable();
+        $this->discard();
 
         return $this->game->incGem(1, $gem_id, $player_id);
     }
@@ -771,7 +771,7 @@ class ItemManager
         }
 
         if ($this->id === 12) {
-            $this->game->globals->set(WISHING_WELL, 99);
+            $this->game->globals->set(WISHING_WELL, null);
         }
     }
 
