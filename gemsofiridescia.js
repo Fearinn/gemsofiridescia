@@ -1538,15 +1538,19 @@ define([
             this.updatePageTitle();
           }
 
-          if (usableItems.length > 0) {
+          if (usableItems.length > 0 && usableItems.length !== usableEpicElixir.length) {
+            let description = _(
+              "${you} may reveal a tile or use an Item with the ${green_flag}"
+            );
+
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
-                _(
-                  "${you} may reveal a tile or use an Item with the ${green_flag}"
-                ),
+                description,
                 {
                   you: _("${you}"),
                   green_flag: _("green flag"),
+                  item_name: _("Epic Elixir"),
+                  item_id: 4,
                 }
               );
             this.updatePageTitle();
@@ -3919,7 +3923,7 @@ define([
 
         if (this.getGameUserPreference(101) == 1) {
           if (args.green_flag) {
-            args.green_flag = `<div class="textalign"><span class="goi_greenFlag textalign_inner"></span></div>`;
+            args.green_flag = `<span class="textalign"><span class="goi_greenFlag textalign_inner"></span></span>`;
           }
 
           if (args.gem_label) {
