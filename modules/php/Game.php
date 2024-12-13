@@ -1372,7 +1372,13 @@ class Game extends \Table
             }
         }
 
-        $prosperousTiles = $explorableTiles + $tilesBehind;
+        $prosperousTiles = [];
+        if ($associative) {
+            $prosperousTiles = $explorableTiles + $tilesBehind;
+        } else {
+            $prosperousTiles = array_merge($explorableTiles, $tilesBehind);
+        }
+
         return $prosperousTiles;
     }
 

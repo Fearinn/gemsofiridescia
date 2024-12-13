@@ -557,7 +557,7 @@ class ItemManager
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id === 0 || $gem_id === 10) {
+        if ($gem_id % 10 === 0) {
             $gem_id = $rainbowGem;
         }
 
