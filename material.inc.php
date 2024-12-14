@@ -921,6 +921,12 @@ $this->items_info = [
         "tr_name" => clienttranslate("Clever Catapult"),
         "content" => clienttranslate("Jump over one adjacent tile space onto an unoccupied tile space. If the tile is not yet revealed, reveal it after landing. (Must be played at the start of your turn, prior to revealing tiles.)"),
         "cost" => 3,
+    ],
+    12 => [
+        "name" => "Wishing Well",
+        "tr_name" => clienttranslate("Whising Well"),
+        "content" => clienttranslate("Roll your mining dice. Gain one gem with market value equal to or lower than one of your dice."),
+        "cost" => 5,
     ]
 ];
 

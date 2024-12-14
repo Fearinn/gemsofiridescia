@@ -86,6 +86,13 @@ html {
   background-size: cover !important;
 }
 
+.goi_greenFlag {
+  display: inline-block;
+  background-image: url("img/greenFlag.png");
+  height: 32px;
+  width: 32px;
+}
+
 .goi_card {
   height: var(--cardHeight);
   width: var(--cardSize);
@@ -103,6 +110,7 @@ html {
   justify-content: center;
   overflow-x: hidden;
   overflow-y: auto;
+  text-align: center;
   width: 95%;
 }
 
@@ -286,13 +294,8 @@ html {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 11px;
-
-  position: absolute;
-  top: 73%;
-  display: flex;
-  text-align: center;
-  max-height: 12%;
+  top: 77%;
+  transform: translateY(-50%);
 }
 
 .goi_rainbowOptions {
@@ -351,6 +354,14 @@ html {
 
 .goi_dieFace {
   background-image: url("img/dice.png");
+}
+
+.goi_void {
+  position: absolute !important;
+  top: 0;
+  left: 70%;
+  overflow: hidden;
+  max-height: var(--cardSize);
 }
 
 .goi_void {
@@ -436,23 +447,15 @@ html {
 
 .goi_item,
 .goi_item .card-side {
-  background-image: url("img/items.png");
-}
-
-.goi_item.goi_logImage .goi_cardContent {
-  top: 72%;
-  font-size: 7px;
-  overflow-y: auto;
+  background-image: url("img/items.jpg");
 }
 
 .goi_item .goi_cardContent {
   font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 7px;
-  top: 71%;
-  text-align: center;
-  max-height: calc(var(--cardHeight) * 0.15);
+  top: 79.5%;
+  transform: translateY(-50%);
 }
 
 .goi_board {
@@ -483,15 +486,16 @@ html {
 .goi_scoringHundred {
   position: absolute;
   top: 5%;
-  right: 5%;
+  left: 30%;
   width: var(--scoringMarkerSize);
 }
 
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
+  font-size: 12px;
   position: absolute;
-  top: 10%;
-  left: 0;
+  top: 14%;
+  left: 5%;
   color: white;
   transform: rotate(-45deg);
 }
@@ -671,12 +675,6 @@ html {
   gap: 8px;
 }
 
-.goi_castlePile {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .goi_royaltyToken {
   background-image: url("img/royaltyTokens.png");
   height: var(--royaltyTokenSize);
@@ -685,6 +683,12 @@ html {
 
 .goi_royaltyToken .card-side {
   box-shadow: none !important;
+}
+
+.goi_iridiaStone {
+  position: absolute;
+  left: 45%;
+  top: 1%;
 }
 
 .goi_playerBoard {
@@ -732,6 +736,10 @@ html {
   gap: 4px;
   max-width: var(--playerBoardSize);
   overflow-x: auto;
+}
+
+.goi_cargoExcedent:empty {
+  visibility: hidden;
 }
 
 .goi_cargoBox {

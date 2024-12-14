@@ -374,6 +374,10 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
+          if (card.type == -99) {
+            div.style.visibility = "hidden";
+          }
+
           div.classList.add("goi_card");
           div.classList.add("goi_objective");
           div.style.position = "relative";
@@ -397,12 +401,8 @@ define([
             div.appendChild(cardTitle);
           }
 
-          const cardContent = document.createElement("span");
-          cardContent.textContent = _(objectiveContent);
-          cardContent.classList.add("goi_cardContent");
-
           if (div.childElementCount === 1) {
-            div.appendChild(cardContent);
+            this.addObjectiveContent(objective_id, div);
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
@@ -440,6 +440,11 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
+          if (card.type == -99) {
+            div.style.visibility = "hidden";
+          }
+          const item_id = Number(card.type_arg);
+
           div.classList.add("goi_card");
           div.classList.add("goi_item");
           div.style.position = "relative";
@@ -463,22 +468,8 @@ define([
             div.appendChild(cardTitle);
           }
 
-          const cardContent = document.createElement("span");
-          cardContent.textContent = _(itemContent);
-          cardContent.classList.add("goi_cardContent");
-
           if (div.childElementCount === 1) {
-            div.appendChild(cardContent);
-
-            const divHeight = div.offsetHeight;
-            const contentHeight = cardContent.offsetHeight;
-
-            const proportion = (contentHeight / divHeight) * 100;
-            const fontSize = 7 + (15 / proportion - 1) * (proportion / 5);
-            cardContent.style.fontSize = `${fontSize}px`;
-
-            const top = fontSize + 64;
-            cardContent.style.top = `${top}%`;
+            this.addItemContent(item_id, div);
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
@@ -643,16 +634,7 @@ define([
         }
 
         const coins = this.goi.globals.coins[player_id];
-
-        let positionLeft = coins >= 10 ? "24%" : "32%";
-
-        if (coins === 11 || coins === 4) {
-          positionLeft = "30%";
-        }
-
-        if (coins === 1) {
-          positionLeft = "38%";
-        }
+        const positionLeft = this.calcCoinPosition(coins);
 
         document.getElementById(
           `goi_gemCounters:${player_id}`
@@ -869,7 +851,6 @@ define([
 
         document.getElementById("goi_playerZones").innerHTML += `
         <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
-          <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
@@ -887,6 +868,8 @@ define([
                   <div id="goi_cargoBox:${player_id}-6" class="goi_cargoBox" data-box=6></div> 
                   <div id="goi_cargoBox:${player_id}-7" class="goi_cargoBox" data-box=7></div> 
                 </div>
+                <div id="goi_scoringHundred:${player_id}" class="goi_scoringHundred"></div>
+                <div id="goi_iridiaStone:${player_id}" class="goi_iridiaStone"></div>
             </div>
             <div id="goi_playerHand:${player_id}" class="goi_playerHand">
               <div id="goi_book:${player_id}" class="goi_book"></div>
@@ -895,10 +878,7 @@ define([
               <div id="goi_victoryPiles:${player_id}" class="goi_victoryPiles">
                 <div id="goi_relicsPile:${player_id}" class="goi_relicsPile"></div>
                 <div id="goi_tilesPile:${player_id}" class="goi_tilesPile"></div>
-                <div id="goi_castlePile:${player_id}" class="goi_castlePile">
-                  <div id="goi_iridiaStone:${player_id}"></div>
-                  <div id="goi_royaltyToken:${player_id}"></div> 
-                </div>
+                <div id="goi_royaltyToken:${player_id}"></div> 
               </div>
             </div>
           </div>
@@ -964,6 +944,9 @@ define([
         };
 
         const rolledDice = this.goi.globals.rolledDice;
+
+        console.log(rolledDice, "rolledDice");
+
         const mininigDie1_id = `1-${player_id}`;
         const mininigDie2_id = `2-${player_id}`;
 
@@ -1143,17 +1126,7 @@ define([
           }
         }
 
-        this.goi.stocks.objectives.void = new VoidStock(
-          this.goi.managers.objectives,
-          document.getElementById("goi_void")
-        );
-
         /* ITEMS */
-        document.getElementById("goi_activeItemsTitle").textContent =
-          _("Active");
-
-        document.getElementById("goi_itemsDiscardTitle").textContent =
-          _("Discard");
 
         this.goi.stocks[player_id].items.hand = new AllVisibleDeck(
           this.goi.managers.items,
@@ -1401,7 +1374,44 @@ define([
         this.goi.stocks.relics.market.addCard(relicCard);
       }
 
+      /* OBECTIVES */
+
+      this.goi.stocks.objectives.tooltips = new CardStock(
+        this.goi.managers.objectives,
+        document.getElementById("goi_void")
+      );
+
+      for (const objective_id in this.goi.info.objectives) {
+        this.goi.stocks.objectives.tooltips.addCard({
+          id: `tooltip-${objective_id}`,
+          type: -99,
+          type_arg: objective_id,
+        });
+      }
+
+      this.goi.stocks.objectives.void = new VoidStock(
+        this.goi.managers.objectives,
+        document.getElementById("goi_void")
+      );
+
       /* ITEMS */
+      document.getElementById("goi_activeItemsTitle").textContent = _("Active");
+
+      document.getElementById("goi_itemsDiscardTitle").textContent =
+        _("Discard");
+
+      this.goi.stocks.items.tooltips = new CardStock(
+        this.goi.managers.items,
+        document.getElementById("goi_void")
+      );
+
+      for (const item_id in this.goi.info.items) {
+        this.goi.stocks.items.tooltips.addCard({
+          id: `tooltip-${item_id}`,
+          type: -99,
+          type_arg: item_id,
+        });
+      }
 
       this.goi.stocks.items.deck = new Deck(
         this.goi.managers.items,
@@ -1659,10 +1669,21 @@ define([
             this.updatePageTitle();
           }
 
-          if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} may reveal a tile or use an Item with the green flag"
+          if (usableItems.length > 0 && usableItems.length !== usableEpicElixir.length) {
+            let description = _(
+              "${you} may reveal a tile or use an Item with the ${green_flag}"
             );
+
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                description,
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                  item_name: _("Epic Elixir"),
+                  item_id: 4,
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -1697,9 +1718,16 @@ define([
           const singleCollectedTile = args.args.singleCollectedTile;
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item with the green flag"
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} have no legal moves and must discard one tile from your Victory Pile or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           } else if (singleCollectedTile) {
             this.goi.selections.tile = singleCollectedTile;
@@ -1782,9 +1810,16 @@ define([
           const usableItems = args.args.usableItems;
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} have a single possible move. Confirm it or use an Item with the green flag"
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} have a single possible move. Confirm it or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           }
 
@@ -1822,9 +1857,6 @@ define([
           const canUseItem = args.args.canUseItem;
           const usableItems = args.args.usableItems;
           const cancellableItems = args.args.cancellableItems;
-          const rolledDice = args.args.rolledDice;
-
-          this.goi.globals.rolledDice = rolledDice;
 
           this.goi.globals.cancellableItems = cancellableItems;
           this.goi.stocks.items.active.setSelectionMode(
@@ -1989,44 +2021,46 @@ define([
         }
 
         if (stateName === "client_luckyLibation") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
 
           this.goi.stocks.dice.market.setSelectionMode("multiple");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "multiple",
-            rolledDice
+            rerollableDice
           );
         }
 
         if (stateName === "client_joltyJackhammer") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
+
+          console.log(rerollableDice, this.goi.stocks[this.player_id].dice.scene.getDice(), "rerollable");
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "single",
-            rolledDice
+            rerollableDice
           );
         }
 
         if (stateName === "client_dazzlingDynamite") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "single",
-            rolledDice
+            rerollableDice
           );
         }
 
@@ -2064,6 +2098,22 @@ define([
           );
         }
 
+        if (stateName === "pickWellGem") {
+          const usableItems = args.args.usableItems;
+          const pickableGems = args.args.pickableGems;
+
+          if (usableItems.length > usableEpicElixir.length) {
+            this.gamedatas.gamestate.descriptionmyturn = _("${you} must select a Gem for the Wishing Well or use an Item");
+            this.updatePageTitle();
+          }
+
+          this.generateRainbowOptions(() => {
+            this.actPickWellGem();
+          }, pickableGems);
+
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode("single", usableItems);
+        }
+        
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
           const catapultableEmpty = catapultableTiles.empty;
@@ -2236,16 +2286,17 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
-      if (stateName === "client_pickEmptyTile") {
-        this.goi.stocks.tiles.empty.setSelectionMode("none");
-        this.goi.stocks.tiles.empty.removeAll();
-      }
 
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi.stocks[this.player_id].tiles.victoryPile.setSelectionMode(
           "none"
         );
+      }
+
+      if (stateName === "client_pickEmptyTile") {
+        this.goi.stocks.tiles.empty.setSelectionMode("none");
+        this.goi.stocks.tiles.empty.removeAll();
       }
 
       if (stateName === "discardTile") {
@@ -2384,8 +2435,30 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
-    generateRainbowOptions: function (callback) {
-      for (const gemName in this.goi.globals.gemsCounts[this.player_id]) {
+    calcCoinPosition: function (coins) {
+      let positionLeft = coins >= 10 ? "23%" : "32%";
+
+      if (coins >= 20) {
+        positionLeft = "17%";
+      }
+
+      if (coins === 11 || coins === 4) {
+        positionLeft = "30%";
+      }
+
+      if (coins === 1) {
+        positionLeft = "36%";
+      }
+
+      return positionLeft;
+    },
+
+    generateRainbowOptions: function (callback, pickableGems) {
+      if (!pickableGems) {
+         pickableGems = this.goi.globals.gemsCounts[this.player_id];
+      }
+
+      for (const gemName in pickableGems) {
         const gem_id = this.goi.info.gemIds[gemName];
         const buttonId = `goi_rainbow-${gem_id}_btn`;
 
@@ -2826,6 +2899,66 @@ define([
       }
     },
 
+    addItemContent: function (item_id, div, contentElement, initialFont = 14) {
+      if (!contentElement) {
+        const itemInfo = this.goi.info.items[item_id];
+        const itemContent = itemInfo.content;
+
+        contentElement = document.createElement("span");
+        contentElement.textContent = _(itemContent);
+        contentElement.classList.add("goi_cardContent");
+
+        contentElement.style.fontFamily = "'rooney-web', serif";
+        contentElement.style.fontSize = `${initialFont}px`;
+        div.appendChild(contentElement);
+      }
+
+      const contentHeight = contentElement.offsetHeight;
+      const maxHeight = 230 * 0.15;
+
+      if (contentHeight > maxHeight) {
+        const fontSize = initialFont * 0.98;
+        contentElement.style.fontSize = `${fontSize}px`;
+
+        requestAnimationFrame(() => {
+          this.addItemContent(item_id, div, contentElement, fontSize);
+        }, 0);
+      }
+    },
+
+    addObjectiveContent: function (
+      objective_id,
+      div,
+      contentElement,
+      initialFont = 12
+    ) {
+      if (!contentElement) {
+        const objectiveInfo = this.goi.info.objectives[objective_id];
+        const objectiveContent = objectiveInfo.content;
+
+        contentElement = document.createElement("span");
+        contentElement.textContent = _(objectiveContent);
+        contentElement.classList.add("goi_cardContent");
+
+        contentElement.style.fontFamily = `"rooney-web", serif`;
+        contentElement.style.fontSize = `${initialFont}px`;
+        div.appendChild(contentElement);
+      }
+
+      const contentHeight = contentElement.offsetHeight;
+      const maxHeight = 230 * 0.12;
+
+      if (contentHeight > maxHeight) {
+        const fontSize = initialFont * 0.98;
+        contentElement.style.fontSize = `${fontSize}px`;
+
+        requestAnimationFrame(() => {
+          contentElement.style.transform = "translateY(-50%)";
+          this.addObjectiveContent(objective_id, div, contentElement, fontSize);
+        }, 0);
+      }
+    },
+
     ///////////////////////////////////////////////////
     //// Player's action
 
@@ -2900,7 +3033,7 @@ define([
     onUseItem: function () {
       const item_id = Number(this.goi.selections.item.type_arg);
 
-      const instantaneousItems = [3, 4];
+      const instantaneousItems = [3, 4, 12];
 
       if (instantaneousItems.includes(item_id)) {
         this.actUseItem();
@@ -2974,6 +3107,8 @@ define([
     actUseItem: function () {
       const selectedItem = this.goi.selections.item;
       const item_id = Number(selectedItem.type_arg);
+
+      console.log(selectedItem, item_id, "test");
 
       if (item_id === 4) {
         this.performAction(
@@ -3053,6 +3188,10 @@ define([
         };
       }
 
+      if (item_id === 12) {
+        args = {}
+      }
+
       this.performAction("actUseItem", {
         itemCard_id: selectedItem.id,
         args: JSON.stringify(args),
@@ -3076,6 +3215,12 @@ define([
 
       this.performAction("actUndoItem", {
         itemCard_id: selectedItem.id,
+      });
+    },
+
+    actPickWellGem: function () {
+      this.bgaPerformAction("actPickWellGem", {
+        gem_id: this.goi.selections.gem
       });
     },
 
@@ -3368,15 +3513,7 @@ define([
       this.goi.counters[player_id].coins.incValue(delta);
 
       const coins = this.goi.counters[player_id].coins.getValue();
-      let positionLeft = coins >= 10 ? "24%" : "32%";
-
-      if (coins === 11 || coins === 4) {
-        positionLeft = "30%";
-      }
-
-      if (coins === 1) {
-        positionLeft = "38%";
-      }
+      const positionLeft = this.calcCoinPosition(coins);
 
       this.goi.counters[player_id].coins.span.style.left = positionLeft;
 
@@ -3849,39 +3986,24 @@ define([
       return tooltip;
     },
 
-    getItemTooltip: function (item_id) {
-      const itemInfo = this.goi.info.items[item_id];
-      const itemName = itemInfo.tr_name;
-      const itemContent = itemInfo.content;
+    createItemTooltip: function (item_id) {
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#item-tooltip-${item_id}`);
 
-      const backgroundPosition = this.calcBackgroundPosition(item_id);
-
-      const tooltip = `<div class="goi_logImage goi_item goi_card" style="position: relative; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(itemName)}</span>
-        <span class="goi_cardContent">${_(itemContent)}</span>
-      </div>`;
-
-      return tooltip;
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
-    getObjectiveTooltip: function (objective_id) {
-      const objectiveInfo = this.goi.info.objectives[objective_id];
-      const objectiveName = objectiveInfo.tr_name;
-      const objectiveContent = objectiveInfo.content;
+    createObjectiveTooltip: function (objective_id) {
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#objective-tooltip-${objective_id}`);
 
-      const backgroundCode = objective_id <= 7 ? 1 : 2;
-      const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
-
-      const spritePosition = objective_id - 8 * (backgroundCode - 1);
-      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
-
-      const tooltip = `<div class="goi_logImage goi_objective goi_card" 
-      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(objectiveName)}</span>
-        <span class="goi_cardContent">${_(objectiveContent)}</span>
-      </div>`;
-
-      return tooltip;
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
     addCustomTooltip: function (container, html) {
@@ -3911,8 +4033,28 @@ define([
       console.log("Attaching toolips");
 
       for (const id in this._registeredCustomTooltips) {
-        this.addCustomTooltip(id, this._registeredCustomTooltips[id]);
-        this._attachedTooltips[id] = this._registeredCustomTooltips[id];
+        let tooltip = this._registeredCustomTooltips[id];
+
+        if (tooltip.match("goi_item")) {
+          new dijit.Tooltip({
+            connectId: [id],
+            getContent: (matchedNode) => {
+              const item_id = id.split("-")[1];
+              return this.createItemTooltip(item_id);
+            },
+          });
+        } else if (tooltip.match("goi_objective")) {
+          new dijit.Tooltip({
+            connectId: [id],
+            getContent: (matchedNode) => {
+              const objective_id = id.split("-")[1];
+              return this.createObjectiveTooltip(objective_id);
+            },
+          });
+        } else {
+          this.addCustomTooltip(id, tooltip);
+          this._attachedTooltips[id] = tooltip;
+        }
       }
 
       this._registeredCustomTooltips = {};
@@ -3971,14 +4113,14 @@ define([
 
           if (args.item_id && args.item_name) {
             const item_id = Number(args.item_id);
-            const uid = `${Date.now()}${item_id}`;
+            const uid = `${Date.now()}-${item_id}`;
             const elementId = `goi_itemLog:${uid}`;
 
             args.item_name = `<span id="${elementId}" style="font-weight: bold;">${_(
               args.item_name
             )}</span>`;
 
-            const tooltip = this.getItemTooltip(item_id);
+            const tooltip = this.createItemTooltip(item_id);
 
             this.registerCustomTooltip(tooltip, elementId);
           }
@@ -3987,20 +4129,23 @@ define([
             const objectiveCard = args.objectiveCard;
 
             const objective_id = Number(objectiveCard.type_arg);
-            const uid = `${Date.now()}${objective_id}`;
+            const uid = `${Date.now()}-${objective_id}`;
             const elementId = `goi_objectiveLog:${uid}`;
 
             args.objective_name = `<span id="${elementId}" style="font-weight: bold;">${_(
               args.objective_name
             )}</span>`;
 
-            const tooltip = this.getObjectiveTooltip(objective_id);
-
+            const tooltip = this.createObjectiveTooltip(objective_id);
             this.registerCustomTooltip(tooltip, elementId);
           }
         }
 
         if (this.getGameUserPreference(101) == 1) {
+          if (args.green_flag) {
+            args.green_flag = `<span class="textalign"><span class="goi_greenFlag textalign_inner"></span></span>`;
+          }
+
           if (args.gem_label) {
             const gem_id = args.gem_id;
             const backgroundPosition = this.calcBackgroundPosition(gem_id);
@@ -4009,15 +4154,7 @@ define([
 
           if (args.coin) {
             const coins = Math.abs(args.delta_log);
-            let positionLeft = coins >= 10 ? "24%" : "32%";
-
-            if (coins === 11 || coins === 4) {
-              positionLeft = "30%";
-            }
-
-            if (coins === 1) {
-              positionLeft = "35%";
-            }
+            const positionLeft = this.calcCoinPosition(coins);
 
             args.coin = `<span class="goi_logMarker">
               <span class="goi_iconValue" style="left: ${positionLeft}">${coins}</span>

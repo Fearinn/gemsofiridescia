@@ -26,6 +26,9 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 
+const ST_PICK_WELL_GEM = 40;
+const ST_TRANSFER_GEM = 31;
+
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
 const HAS_MOVED_EXPLORER = "hasMovedExplorer";
@@ -36,6 +39,7 @@ const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ROLLED_DICE = "rolledDice";
+const REROLLABLE_DICE = "rerollableDice";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
@@ -47,6 +51,7 @@ const EPIC_ELIXIR = "epicElixir";
 const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
 const PROSPEROUS_PICKAXE = "prosperousPickaxe";
+const WISHING_WELL = "wishingWell";
 
 const REAL_TURN = "realTurn";
 const RHOM_MULTIPLIER = "rhomMultiplier";
@@ -279,7 +284,7 @@ class Game extends \Table
         ) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         }
 
@@ -337,6 +342,7 @@ class Game extends \Table
 
         $this->globals->set(HAS_MINED, true);
         $this->globals->set(ROLLED_DICE, []);
+        $this->globals->set(REROLLABLE_DICE, []);
 
         $stoneDiceCount = count($stoneDice);
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
@@ -407,7 +413,7 @@ class Game extends \Table
             if ($fullCargo) {
                 $anchorState_id = (int) $this->gamestate->state_id();
                 $this->globals->set(ANCHOR_STATE, $anchorState_id);
-                $this->gamestate->jumpToState(31);
+                $this->gamestate->jumpToState(ST_TRANSFER_GEM);
                 return;
             }
         }
@@ -479,9 +485,31 @@ class Game extends \Table
         if (!$item->use($player_id, $args)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         };
+
+        if ($item->id === 12) {
+            $this->gamestate->nextState("pickWellGem");
+            return;
+        }
+
+        $duringWell = (int) $this->gamestate->state_id() === 40;
+        if ($duringWell) {
+            return;
+        }
+
+        $this->gamestate->nextState("repeat");
+    }
+
+    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    {
+        $this->checkVersion($clientVersion);
+        $player_id = (int) $this->getActivePlayerId();
+
+        $item = new ItemManager($itemCard_id, $this);
+
+        $item->undo($player_id);
 
         $this->gamestate->nextState("repeat");
     }
@@ -522,16 +550,29 @@ class Game extends \Table
         $this->gamestate->jumpToState($state_id);
     }
 
-    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actPickWellGem(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id)
     {
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
+        $registeredWell = $this->globals->get(WISHING_WELL);
+
+        if ($registeredWell === null) {
+            throw new \BgaVisibleSystemException("The Wishing Well was not used");
+        }
+
+        $itemCard_id = (int) $registeredWell["card_id"];
+
         $item = new ItemManager($itemCard_id, $this);
 
-        $item->undo($player_id);
+        if (!$item->wishingWell2($gem_id, $player_id)) {
+            $anchorState_id = (int) $this->gamestate->state_id();
+            $this->globals->set(ANCHOR_STATE, $anchorState_id);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
+            return;
+        };
 
-        $this->gamestate->nextState("repeat");
+        $this->gamestate->nextState("optionalActions");
     }
 
     public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
@@ -636,7 +677,6 @@ class Game extends \Table
     public function argConfirmAutoMove(): array
     {
         $player_id = (int) $this->getActivePlayerId();
-
         $usableItems = $this->usableItems($player_id);
 
         return [
@@ -853,7 +893,7 @@ class Game extends \Table
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
             "cancellableItems" => $this->cancellableItems($player_id),
-            "rolledDice" => $this->globals->get(ROLLED_DICE, []),
+            "rerollableDice" => $this->globals->get(REROLLABLE_DICE, []),
             "bookableRelics" => $bookableRelics,
             "_no_notify" => !$canMine && !$canSellGems && !$canSellMoreGems && !$canBuyItem && !$canUseItem,
         ];
@@ -865,6 +905,74 @@ class Game extends \Table
 
         if ($args["_no_notify"]) {
             $this->gamestate->nextState("restoreRelic");
+        }
+    }
+
+    public function argPickWellgem(): array
+    {
+        $player_id = (int) $this->getActivePlayerId();
+
+        $marketValues = $this->getMarketValues(null);
+
+        $registeredWell = $this->globals->get(WISHING_WELL);
+        $itemCard_id = (int) $registeredWell["card_id"];
+        $maxValue = (int) $registeredWell["max"];
+        $pickableGems = [];
+
+        foreach ($marketValues as $gemName => $marketValue) {
+            if ($marketValue <= $maxValue) {
+                $pickableGems[$gemName] = $marketValue;
+            }
+        }
+
+        $usableItems = $this->usableItems($player_id);
+        $rerrolableDice = $this->globals->get(REROLLABLE_DICE, []);
+        $auto = !$usableItems && count($pickableGems) === 1;
+
+        return [
+            "itemCard_id" => $itemCard_id,
+            "pickableGems" => $pickableGems,
+            "singlePickableGem" => reset($pickableGems),
+            "failed" => !$pickableGems,
+            "usableItems" => $usableItems,
+            "rerollableDice" => $rerrolableDice,
+            "auto" => $auto,
+            "no_notify" => $auto || !$pickableGems,
+        ];
+    }
+
+    public function stPickWellGem(): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        $args = $this->argPickWellgem();
+
+        if ($args["no_notify"]) {
+            if ($args["auto"]) {
+                $gem_id = (int) $args["singlePickableGem"];
+                $this->actPickWellGem(null, $gem_id);
+                return;
+            }
+
+            if ($args["failed"]) {
+                $this->notifyAllPlayers(
+                    "failedWell",
+                    clienttranslate('The ${item_name} of ${player_name} fails'),
+                    [
+                        "player_name" => $this->getPlayerNameById($player_id),
+                        "item_name" => clienttranslate("Wishing Well"),
+                        "i18n" => ["item_name"],
+                        "preserve" => ["item_id"],
+                        "item_id" => 12,
+                    ]
+                );
+
+                $itemCard_id = $args["itemCard_id"];
+                $item = new ItemManager($itemCard_id, $this);
+                $item->disable();
+                $item->discard();
+
+                $this->gamestate->nextState("fail");
+            }
         }
     }
 
@@ -983,6 +1091,7 @@ class Game extends \Table
         $this->globals->set(SOLD_GEM, null);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(ROLLED_DICE, []);
+        $this->globals->set(REROLLABLE_DICE, []);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
 
@@ -1245,7 +1354,7 @@ class Game extends \Table
         }
     }
 
-    public function rollDie(int | string $die_id, int $player_id, string $type): int
+    public function rollDie(int | string $die_id, int $player_id, string $type, bool $rerollable = true): int
     {
         $face = bga_rand(1, 6);
 
@@ -1265,13 +1374,34 @@ class Game extends \Table
             ]
         );
 
+        $die = ["id" => $die_id, "type" => $type, "face" => $face];
 
-        $rerollabeDice = $this->globals->get(ROLLED_DICE, []);
-        $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type, "face" => $face];
-
-        $this->globals->set(ROLLED_DICE, $rerollabeDice);
+        $this->updateRolledDice($die);
+        $this->updateRerollableDice($die, !$rerollable);
 
         return $face;
+    }
+
+    public function updateRolledDice(array $die) {
+        $die_id = $die["id"];
+
+        $rolledDice = $this->globals->get(ROLLED_DICE, []);
+        $rolledDice[$die_id] = $die;
+
+        $this->globals->set(ROLLED_DICE, $rolledDice);
+    }
+
+    public function updateRerollableDice(array $die, bool $remove = false) {
+        $die_id = $die["id"];
+
+        $rerollableDice = $this->globals->get(REROLLABLE_DICE, []);
+        $rerollableDice[$die_id] = $die;
+
+        if ($remove) {
+            unset($rerollableDice[$die_id]);
+        }
+
+        $this->globals->set(REROLLABLE_DICE, $rerollableDice);
     }
 
     public function checkCardLocation(array $card, string | int $location, int $location_arg = null): bool
@@ -1373,7 +1503,7 @@ class Game extends \Table
             $hex = (int) $explorerCard["location_arg"];
         }
 
-        $tileRow = $this->hexRow($hex);
+        $tileRow = (int) $this->hexRow($hex);
 
         $leftHex = $hex - 1;
         $rightHex = $hex + 1;
@@ -1391,7 +1521,7 @@ class Game extends \Table
         if (in_array($hex, $leftEdges)) {
             $leftHex = null;
 
-            if ($tileRow % 2 === 0) {
+            if ($tileRow % 2 === 0 && $tileRow < 8) {
                 $topLeftHex = null;
             }
         };
@@ -1399,7 +1529,7 @@ class Game extends \Table
         if (in_array($hex, $rightEdges)) {
             $rightHex = null;
 
-            if ($tileRow % 2 === 0) {
+            if ($tileRow % 2 === 0 && $tileRow < 8) {
                 $topRightHex = null;
             }
         }
@@ -1414,7 +1544,7 @@ class Game extends \Table
         if ($onlyHexes) {
             $hexes = [];
             foreach ($adjacentHexes as $hex) {
-                if ($hex === null) {
+                if ($hex === null || !in_array($hex, range(1, 58))) {
                     continue;
                 }
 
@@ -1486,7 +1616,13 @@ class Game extends \Table
             }
         }
 
-        $prosperousTiles = $explorableTiles + $tilesBehind;
+        $prosperousTiles = [];
+        if ($associative) {
+            $prosperousTiles = $explorableTiles + $tilesBehind;
+        } else {
+            $prosperousTiles = array_merge($explorableTiles, $tilesBehind);
+        }
+
         return $prosperousTiles;
     }
 
@@ -1535,6 +1671,10 @@ class Game extends \Table
     public function closestEmpty(int $player_id, array $adjacentHexes): array
     {
         $emptyWithAdjacent = [];
+
+        if (!$adjacentHexes) {
+            return [];
+        }
 
         foreach ($adjacentHexes as $hex) {
             $adjacentTiles = $this->adjacentTiles($player_id, $hex);
@@ -1727,7 +1867,7 @@ class Game extends \Table
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         };
 
@@ -1896,7 +2036,7 @@ class Game extends \Table
         );
 
         $castlePlayersCount = (int) $this->castlePlayersCount();
-        $playersNumber = (int) $this->getPlayersNumberNoZombie();
+        $playersNumber = (int) $this->getPlayersNumber();
 
         if ($playersNumber > 1 && $playersNumber === $castlePlayersCount) {
             return;
@@ -1907,14 +2047,19 @@ class Game extends \Table
             $token_id = 3;
 
             if ($playersNumber <= 2) {
-                $score_aux = 1;
-                $token_id = 1;
+                $score_aux = 10;
+                $token_id = 2;
             }
         }
 
         if ($castlePlayersCount === 2) {
             $score_aux = 10;
             $token_id = 2;
+
+            if ($playersNumber === 3) {
+                $score_aux = 1;
+                $token_id = 1;
+            }
         }
 
         if ($castlePlayersCount === 3) {
@@ -2935,7 +3080,7 @@ class Game extends \Table
         if ($gemsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeGemsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from gems sets'),
+                clienttranslate('${player_name} scores ${points_log} points from gem sets'),
                 [
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $gemsPoints,
@@ -3035,7 +3180,7 @@ class Game extends \Table
         if ($tilesPoints) {
             $this->notifyAllPlayers(
                 "computeTilesPoints",
-                clienttranslate('${player_name} scores ${points_log} points from tiles sets'),
+                clienttranslate('${player_name} scores ${points_log} points from tile sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -3145,7 +3290,7 @@ class Game extends \Table
         if ($relicsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeRelicsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from relics sets'),
+                clienttranslate('${player_name} scores ${points_log} points from relic sets'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -3273,6 +3418,7 @@ class Game extends \Table
                 "id" => "finalScoring",
                 "title" => clienttranslate("Final scoring"),
                 "table" => $table,
+                "closing" => clienttranslate("Close"),
             ]
         );
     }
@@ -3597,7 +3743,7 @@ class Game extends \Table
 
         $anchorState_id = (int) $this->gamestate->state_id();
         $this->globals->set(ANCHOR_STATE, $anchorState_id);
-        $this->gamestate->jumpToState(31);
+        $this->gamestate->jumpToState(ST_TRANSFER_GEM);
     }
 
     public function debug_zombieQuit(int $player_id): void
@@ -3673,10 +3819,10 @@ class Game extends \Table
     {
         $this->setStat(0, "1:TypeRelics", $player_id);
         $this->setStat(0, "2:TypeRelics", $player_id);
-        $this->setStat(2, "3:TypeRelics", $player_id);
-        $this->setStat(1, "iridia:Relics", $player_id);
+        $this->setStat(0, "3:TypeRelics", $player_id);
+        $this->setStat(0, "iridia:Relics", $player_id);
 
-        $this->setStat(1, "1:TypeRelics", $opponent_id);
+        $this->setStat(0, "1:TypeRelics", $opponent_id);
         $this->setStat(0, "2:TypeRelics", $opponent_id);
         $this->setStat(0, "3:TypeRelics", $opponent_id);
         $this->setStat(0, "iridia:Relics", $opponent_id);

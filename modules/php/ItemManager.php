@@ -8,7 +8,6 @@ use Bga\GameFramework\Actions\Types\IntArrayParam;
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use Bga\GameFramework\Actions\Types\StringParam;
-use BgaUserException;
 
 class ItemManager
 {
@@ -126,6 +125,12 @@ class ItemManager
                 }
             }
 
+            $wellModifiers = [5, 6, 7];
+
+            if ($state_id === 40 && in_array($this->id, $wellModifiers)) {
+                return true;
+            }
+
             return false;
         }
 
@@ -167,6 +172,10 @@ class ItemManager
             return !$this->game->globals->get(PROSPEROUS_PICKAXE) && $this->game->getCoins($player_id) >= 3 && !!$prosperousTiles;
         }
 
+        if ($this->id === 12) {
+            return true;
+        }
+
         return false;
     }
 
@@ -178,7 +187,7 @@ class ItemManager
 
         $eventKey = "message";
 
-        $possiblyCancellable = [3, 4, 9];
+        $possiblyCancellable = [3, 4, 9, 12];
 
         if (in_array($this->id, $possiblyCancellable)) {
             $eventKey = "activateItem";
@@ -225,27 +234,30 @@ class ItemManager
 
         if ($this->id === 5) {
             $dice = (array) $args["dice"];
-            return $this->luckyLibation($dice, $player_id);
+            $duringWell = $this->duringWell();
+            return $this->luckyLibation($dice, $player_id, $duringWell);
         }
 
         if ($this->id === 6) {
             $die_id = (string) $args["die_id"];
             $dieType = (string) $args["dieType"];
             $delta = (int) $args["delta"];
+            $duringWell = $this->duringWell();
 
             if (abs($delta) !== 1) {
                 throw new \BgaVisibleSystemException("Invalid delta for Jolty Jackhammer: $delta");
             }
 
-            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id);
+            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id, false, $duringWell);
         }
 
         if ($this->id === 7) {
             $die_id = (string) $args["die_id"];
             $dieType = (string) $args["dieType"];
             $delta = (int) $args["delta"];
+            $duringWell = $this->duringWell();
 
-            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id, true);
+            return $this->joltyJackhammer($delta, $die_id, $dieType, $player_id, true, $duringWell);
         }
 
         if ($this->id === 8) {
@@ -267,6 +279,10 @@ class ItemManager
         if ($this->id === 11) {
             $tileCard_id = (int) $args["tileCard_id"];
             $this->cleverCatapult($tileCard_id, $player_id);
+        }
+
+        if ($this->id === 12) {
+            $this->wishingWell($player_id);
         }
 
         return true;
@@ -360,7 +376,8 @@ class ItemManager
 
     public function luckyLibation(
         #[JsonParam(alphanum: false)] array $dice,
-        int $player_id
+        int $player_id,
+        bool $duringWell,
     ): bool {
         $minedGemsCount = 0;
         $lostGemsCount = 0;
@@ -368,14 +385,13 @@ class ItemManager
 
         foreach ($dice as $die) {
             $die_id = $die["id"];
-            $dieType = $die["type"];
 
             if ($diceType === "gem") {
                 $gem_id = $die_id;
                 $gemName = $this->game->gems_info[$gem_id]["name"];
 
                 $oldFace = $this->game->globals->get("$gemName:MarketValue");
-                $newFace = $this->game->rollDie($die_id, $player_id, "gem");
+                $newFace = $this->game->rollDie($die_id, $player_id, "gem", false);
                 $delta = $newFace - $oldFace;
 
                 $this->game->updateMarketValue($delta, $gem_id, true);
@@ -388,34 +404,32 @@ class ItemManager
                 continue;
             }
 
-            $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-            $die = $rolledDice[$die_id];
+            if ($diceType === "gem") {
+                if ($duringWell) {
+                    $this->game->gamestate->nextState("pickWellGem");
+                } else {
+                    $this->game->globals->set(REROLLABLE_DICE, []);
+                }
+                return true;
+            }
+
+            $rerollableDice = $this->game->globals->get(REROLLABLE_DICE, []);
+
+            if (!array_key_exists($die_id, $rerollableDice)) {
+                throw new \BgaVisibleSystemException("You can't reroll this die: Lucky Libation, $die_id");
+            }
+
+            $die = $rerollableDice[$die_id];
             $dieType = $die["type"];
             $oldFace = $die["face"];
 
-            if (!array_key_exists($die_id, $rolledDice)) {
-                throw new \BgaVisibleSystemException("You didn't roll this die: Lucky Libation, $die_id");
-            }
-
-            $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType);
+            $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType, false);
             $delta = $newFace - $oldFace;
 
             $tileCard = $this->game->currentTile($player_id);
             $gem_id = (int) $this->game->currentTile($player_id, true);
             $gemName = $this->game->gems_info[$gem_id]["name"];
             $gemMarketValue = (int) $this->game->globals->get("$gemName:MarketValue");
-
-            if ($newFace < 1) {
-                $newFace += 6;
-            }
-
-            if ($newFace > 6) {
-                $newFace -= 6;
-            }
-
-            $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-            $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
-            $this->game->globals->set(ROLLED_DICE, $rolledDice);
 
             if ($oldFace < $gemMarketValue && $newFace >= $gemMarketValue) {
                 $minedGemsCount++;
@@ -424,6 +438,15 @@ class ItemManager
             if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
                 $lostGemsCount++;
             }
+
+            if ($duringWell) {
+                $this->updateWishingWell($newFace);
+            }
+        }
+
+        if ($duringWell) {
+            $this->game->gamestate->nextState("pickWellGem");
+            return true;
         }
 
         $gemsDelta = $minedGemsCount - $lostGemsCount;
@@ -455,10 +478,13 @@ class ItemManager
         #[StringParam(alphanum_dash: true)] string $die_id,
         #[StringParam(enum: ["gem", "stone", "mining"])] string $dieType,
         int $player_id,
-        bool $isDynamite = false,
+        bool $isDynamite,
+        bool $duringWell,
     ): bool {
+        $itemName = $isDynamite ? "Dazzling Dynamite" : "Jolty Jackhammer";
+
         if ($delta === 0) {
-            throw new \BgaVisibleSystemException("Invalid delta for Jolty Jackhammer: 0");
+            throw new \BgaVisibleSystemException("Invalid delta for $itemName: 0");
         }
 
         if ($dieType === "gem") {
@@ -475,16 +501,22 @@ class ItemManager
             $newFace = $this->game->updateMarketValue($delta, $gem_id);
             $oldFace = $newFace - $delta;
 
+            if ($duringWell) {
+                $this->game->gamestate->nextState("pickWellGem");
+            } else {
+                $this->game->globals->set(REROLLABLE_DICE, []);
+            }
             return true;
         }
 
-        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-        $die = $rolledDice[$die_id];
-        $dieType = $die["type"];
+        $rerollableDice = $this->game->globals->get(REROLLABLE_DICE, []);
 
-        if (!array_key_exists($die_id, $rolledDice)) {
-            throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer, $die_id");
+        if (!array_key_exists($die_id, $rerollableDice)) {
+            throw new \BgaVisibleSystemException("You didn't roll this die: $itemName, $die_id");
         }
+
+        $die = $rerollableDice[$die_id];
+        $dieType = $die["type"];
 
         $tileCard = $this->game->currentTile($player_id);
         $gem_id = (int) $this->game->currentTile($player_id, true);
@@ -525,9 +557,14 @@ class ItemManager
             ]
         );
 
-        $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
-        $this->game->globals->set(ROLLED_DICE, $rolledDice);
+        $die = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
+        $this->game->updateRolledDice($die);
+
+        if ($duringWell) {
+            $this->updateWishingWell($newFace);
+            $this->game->gamestate->nextState("pickWellGem");
+            return true;
+        }
 
         $fullCargo = false;
         $delta = $this->game->globals->get(MARVELOUS_CART) ? 2 : 1;
@@ -557,7 +594,7 @@ class ItemManager
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->game->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id === 0 || $gem_id === 10) {
+        if ($gem_id % 10 === 0) {
             $gem_id = $rainbowGem;
         }
 
@@ -634,8 +671,8 @@ class ItemManager
                 clienttranslate('${player_name} jumps to an empty tile space (hex ${hex})'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
-                    "hex" => abs($tileCard_id),
+                    "player_name" => $this->game->getPlayerNameById($player_id),
+                    "hex" => $hex,
                     "explorerCard" => $explorerCard,
                 ]
             );
@@ -648,6 +685,38 @@ class ItemManager
         }
 
         $this->game->actMoveExplorer(null, $tileCard_id, true);
+    }
+
+    public function wishingWell(int $player_id): void
+    {
+        $die_1 = (int) $this->game->rollDie("1-$player_id", $player_id, "mining");
+        $die_2 = (int) $this->game->rollDie("2-$player_id", $player_id, "mining");
+
+        $max = (int) max([$die_1, $die_2]);
+        $min = (int) min([$die_1, $die_2]);
+
+        $this->game->globals->set(WISHING_WELL, ["card_id" => $this->card_id, "max" => $max, "min" => $min]);
+    }
+
+    public function wishingWell2(#[IntParam(min: 1, max: 4)] int $gem_id, int $player_id): bool
+    {
+        $marketValue = $this->game->getMarketValues($gem_id);
+        $registeredWell = $this->game->globals->get(WISHING_WELL);
+
+        if ($registeredWell === null) {
+            throw new \BgaVisibleSystemException("You didn't use the Wishing Well");
+        }
+
+        $maxValue = $registeredWell["max"];
+
+        if ($maxValue < $marketValue) {
+            throw new \BgaVisibleSystemException("You can't gain this gem from the Wishing Well: $gem_id, $marketValue, $maxValue");
+        }
+
+        $this->disable();
+        $this->discard();
+
+        return $this->game->incGem(1, $gem_id, $player_id);
     }
 
     public function isCancellable($player_id): bool
@@ -742,6 +811,11 @@ class ItemManager
         if ($this->id === 9) {
             $this->game->globals->set(PROSPEROUS_PICKAXE, null);
         }
+
+        if ($this->id === 12) {
+            $this->game->globals->set(REROLLABLE_DICE, []);
+            $this->game->globals->set(WISHING_WELL, null);
+        }
     }
 
     public function handleProsperousGem(int $delta, int $player_id): bool
@@ -803,5 +877,34 @@ class ItemManager
         }
 
         return $diceType;
+    }
+
+    public function updateWishingWell(int $newFace): array
+    {
+        $registeredWell = $this->game->globals->get(WISHING_WELL);
+
+        $registeredMax = (int) $registeredWell["max"];
+        $registeredMin = (int) $registeredWell["min"];
+
+        if ($newFace > $registeredMax) {
+            $registeredWell["max"] = $newFace;
+        }
+
+        if ($newFace < $registeredMax) {
+            if ($registeredMax > $registeredMin) {
+                $registeredWell["max"] = $newFace;
+            }
+
+            if ($registeredMax === $registeredMin) {
+                $registeredWell["min"] = $newFace;
+            }
+        }
+
+        $this->game->globals->set(WISHING_WELL, $registeredWell);
+        return $registeredWell;
+    }
+
+    public function duringWell(): bool {
+        return (int) $this->game->gamestate->state_id() === (int) ST_PICK_WELL_GEM;
     }
 }
