@@ -125,6 +125,12 @@ class ItemManager
                 }
             }
 
+            $wellModifiers = [5, 6, 7];
+
+            if ($state_id === 40 && in_array($this->id, $wellModifiers)) {
+                return true;
+            }
+
             return false;
         }
 
@@ -395,14 +401,15 @@ class ItemManager
                 continue;
             }
 
-            $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-            $die = $rolledDice[$die_id];
-            $dieType = $die["type"];
-            $oldFace = $die["face"];
+            $rerollableDice = $this->game->globals->get(REROLLABLE_DICE, []);
 
-            if (!array_key_exists($die_id, $rolledDice)) {
+            if (!array_key_exists($die_id, $rerollableDice)) {
                 throw new \BgaVisibleSystemException("You can't reroll this die: Lucky Libation, $die_id");
             }
+
+            $die = $rerollableDice[$die_id];
+            $dieType = $die["type"];
+            $oldFace = $die["face"];
 
             $newFace = (int) $this->game->rollDie($die_id, $player_id, $dieType, false);
             $delta = $newFace - $oldFace;
@@ -419,6 +426,12 @@ class ItemManager
             if ($oldFace >= $gemMarketValue && $newFace < $gemMarketValue) {
                 $lostGemsCount++;
             }
+        }
+
+        $isWell = (int) $this->game->gamestate->state_id() === 40;
+        if ($isWell) {
+            $this->game->gamestate->nextState("pickWellGem");
+            return true;
         }
 
         $gemsDelta = $minedGemsCount - $lostGemsCount;
@@ -473,13 +486,14 @@ class ItemManager
             return true;
         }
 
-        $rolledDice = $this->game->globals->get(ROLLED_DICE, []);
-        $die = $rolledDice[$die_id];
-        $dieType = $die["type"];
+        $rerollableDice = $this->game->globals->get(REROLLABLE_DICE, []);
 
-        if (!array_key_exists($die_id, $rolledDice)) {
+        if (!array_key_exists($die_id, $rerollableDice)) {
             throw new \BgaVisibleSystemException("You didn't roll this die: Jolty Jackhammer, $die_id");
         }
+
+        $die = $rerollableDice[$die_id];
+        $dieType = $die["type"];
 
         $tileCard = $this->game->currentTile($player_id);
         $gem_id = (int) $this->game->currentTile($player_id, true);
@@ -520,9 +534,14 @@ class ItemManager
             ]
         );
 
-        $rolledDice =  $this->game->globals->get(ROLLED_DICE, []);
-        $rolledDice[$die_id] = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
-        $this->game->globals->set(ROLLED_DICE, $rolledDice);
+        $die = ["id" => $die_id, "type" => $dieType, "face" => $newFace];
+        $this->game->updateRolledDice($die);
+
+        $isWell = (int) $this->game->gamestate->state_id() === 40;
+        if ($isWell) {
+            $this->game->gamestate->nextState("pickWellGem");
+            return true;
+        }
 
         $fullCargo = false;
         $delta = $this->game->globals->get(MARVELOUS_CART) ? 2 : 1;
@@ -652,7 +671,6 @@ class ItemManager
 
         $max = (int) max([$die_1, $die_2]);
 
-        $this->game->globals->set(ROLLED_DICE, []);
         $this->game->globals->set(WISHING_WELL, ["card_id" => $this->card_id, "maxValue" => $max]);        
     }
 
@@ -771,6 +789,7 @@ class ItemManager
         }
 
         if ($this->id === 12) {
+            $this->game->globals->set(REROLLABLE_DICE, []);
             $this->game->globals->set(WISHING_WELL, null);
         }
     }

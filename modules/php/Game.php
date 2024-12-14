@@ -25,7 +25,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
-use BgaSystemException;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -37,6 +36,7 @@ const RAINBOW_GEM = "activeGem";
 const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
 const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
 const ROLLED_DICE = "rolledDice";
+const REROLLABLE_DICE = "rerollableDice";
 const ANCHOR_STATE = "anchorState";
 const HAS_EXPANDED_TILES = "hasExpandedTiles";
 const CURRENT_TILE = "currentTile";
@@ -96,7 +96,7 @@ class Game extends \Table
      * In this scenario, each time a player plays a card, this method will be called. This method is called directly
      * by the action defined into `gemsofiridescia.action.php`.
      *
-     * @throws BgaSystemException
+     * @throws \BgaSystemException
      * @see action_gemsofiridescia::actMyAction
      */
 
@@ -377,6 +377,7 @@ class Game extends \Table
 
         $this->globals->set(HAS_MINED, true);
         $this->globals->set(ROLLED_DICE, []);
+        $this->globals->set(REROLLABLE_DICE, []);
 
         $stoneDiceCount = count($stoneDice);
         $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
@@ -912,7 +913,7 @@ class Game extends \Table
             "canUseItem" => $canUseItem,
             "usableItems" => $usableItems,
             "cancellableItems" => $this->cancellableItems($player_id),
-            "rolledDice" => $this->globals->get(ROLLED_DICE, []),
+            "rerollableDice" => $this->globals->get(REROLLABLE_DICE, []),
             "bookableRelics" => $bookableRelics,
             "_no_notify" => !$canMine && !$canSellGems && !$canSellMoreGems && !$canBuyItem && !$canUseItem,
         ];
@@ -945,6 +946,7 @@ class Game extends \Table
         }
 
         $usableItems = $this->usableItems($player_id);
+        $rerrolableDice = $this->globals->get(REROLLABLE_DICE, []);
         $auto = !$usableItems && count($pickableGems) === 1;
 
         return [
@@ -952,6 +954,8 @@ class Game extends \Table
             "pickableGems" => $pickableGems,
             "singlePickableGem" => reset($pickableGems),
             "failed" => !$pickableGems,
+            "usableItems" => $usableItems,
+            "rerollableDice" => $rerrolableDice,
             "auto" => $auto,
             "no_notify" => $auto || !$pickableGems,
         ];
@@ -1107,6 +1111,7 @@ class Game extends \Table
         $this->globals->set(SOLD_GEM, null);
         $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
         $this->globals->set(ROLLED_DICE, []);
+        $this->globals->set(REROLLABLE_DICE, []);
         $this->globals->set(RAINBOW_GEM, null);
         $this->globals->set(ANCHOR_STATE, null);
 
@@ -1257,18 +1262,34 @@ class Game extends \Table
             ]
         );
 
+        $die = ["id" => $die_id, "type" => $type, "face" => $face];
 
-        $rerollabeDice = $this->globals->get(ROLLED_DICE, []);
-
-        if ($rerollable) {
-            $rerollabeDice[$die_id] = ["id" => $die_id, "type" => $type, "face" => $face];
-        } else {
-            unset($rerollabeDice[$die_id]);
-        }
-
-        $this->globals->set(ROLLED_DICE, $rerollabeDice);
+        $this->updateRolledDice($die);
+        $this->updateRerollableDice($die, !$rerollable);
 
         return $face;
+    }
+
+    public function updateRolledDice(array $die) {
+        $die_id = $die["id"];
+
+        $rolledDice = $this->globals->get(ROLLED_DICE, []);
+        $rolledDice[$die_id] = $die;
+
+        $this->globals->set(ROLLED_DICE, $rolledDice);
+    }
+
+    public function updateRerollableDice(array $die, bool $remove = false) {
+        $die_id = $die["id"];
+
+        $rerollableDice = $this->globals->get(REROLLABLE_DICE, []);
+        $rerollableDice[$die_id] = $die;
+
+        if ($remove) {
+            unset($rerollableDice[$die_id]);
+        }
+
+        $this->globals->set(REROLLABLE_DICE, $rerollableDice);
     }
 
     public function checkCardLocation(array $card, string | int $location, int $location_arg = null): bool

@@ -911,6 +911,9 @@ define([
         };
 
         const rolledDice = this.goi.globals.rolledDice;
+
+        console.log(rolledDice, "rolledDice");
+
         const mininigDie1_id = `1-${player_id}`;
         const mininigDie2_id = `2-${player_id}`;
 
@@ -1726,9 +1729,6 @@ define([
           const canUseItem = args.args.canUseItem;
           const usableItems = args.args.usableItems;
           const cancellableItems = args.args.cancellableItems;
-          const rolledDice = args.args.rolledDice;
-
-          this.goi.globals.rolledDice = rolledDice;
 
           this.goi.globals.cancellableItems = cancellableItems;
           this.goi.stocks.items.active.setSelectionMode(
@@ -1893,44 +1893,46 @@ define([
         }
 
         if (stateName === "client_luckyLibation") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
 
           this.goi.stocks.dice.market.setSelectionMode("multiple");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "multiple",
-            rolledDice
+            rerollableDice
           );
         }
 
         if (stateName === "client_joltyJackhammer") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
+
+          console.log(rerollableDice, this.goi.stocks[this.player_id].dice.scene.getDice(), "rerollable");
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "single",
-            rolledDice
+            rerollableDice
           );
         }
 
         if (stateName === "client_dazzlingDynamite") {
-          const rolledDice = [];
-          for (const die_id in args.args.rolledDice) {
-            const die = args.args.rolledDice[die_id];
-            rolledDice.push(die);
+          const rerollableDice = [];
+          for (const die_id in args.args.rerollableDice) {
+            const die = args.args.rerollableDice[die_id];
+            rerollableDice.push(die);
           }
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "single",
-            rolledDice
+            rerollableDice
           );
         }
 
@@ -1969,10 +1971,14 @@ define([
         }
 
         if (stateName === "pickWellGem") {
+          const usableItems = args.args.usableItems;
           const pickableGems = args.args.pickableGems;
+
           this.generateRainbowOptions(() => {
             this.actPickWellGem();
           }, pickableGems);
+
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode("single", usableItems);
         }
         
         if (stateName === "client_cleverCatapult") {

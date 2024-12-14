@@ -160,8 +160,8 @@ $machinestates = [
         "type" => "activeplayer",
         "args" => "argPickWellgem",
         "action" => "stPickWellGem",
-        "possibleactions" => ["actPickWellGem"],
-        "transitions" => ["repeat" => 4, "fail" => 4, "optionalActions" => 4],
+        "possibleactions" => ["actPickWellGem", "actUseItem"],
+        "transitions" => ["pickWellGem" => 40,"repeat" => 4, "fail" => 4, "optionalActions" => 4],
     ],
 
     5 => [
