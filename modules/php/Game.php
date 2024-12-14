@@ -26,6 +26,8 @@ use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 
+const ST_PICK_WELL_GEM = 40;
+
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
 const HAS_MOVED_EXPLORER = "hasMovedExplorer";
@@ -529,6 +531,11 @@ class Game extends \Table
             return;
         }
 
+        $duringWell = (int) $this->gamestate->state_id() === 40;
+        if ($duringWell) {
+            return;
+        }
+
         $this->gamestate->nextState("repeat");
     }
 
@@ -936,7 +943,7 @@ class Game extends \Table
 
         $registeredWell = $this->globals->get(WISHING_WELL);
         $itemCard_id = (int) $registeredWell["card_id"];
-        $maxValue = (int) $registeredWell["maxValue"];
+        $maxValue = (int) $registeredWell["max"];
         $pickableGems = [];
 
         foreach ($marketValues as $gemName => $marketValue) {
