@@ -407,6 +407,8 @@ class ItemManager
             if ($diceType === "gem") {
                 if ($duringWell) {
                     $this->game->gamestate->nextState("pickWellGem");
+                } else {
+                    $this->game->globals->set(REROLLABLE_DICE, []);
                 }
                 return true;
             }
@@ -499,9 +501,10 @@ class ItemManager
             $newFace = $this->game->updateMarketValue($delta, $gem_id);
             $oldFace = $newFace - $delta;
 
-
             if ($duringWell) {
                 $this->game->gamestate->nextState("pickWellGem");
+            } else {
+                $this->game->globals->set(REROLLABLE_DICE, []);
             }
             return true;
         }

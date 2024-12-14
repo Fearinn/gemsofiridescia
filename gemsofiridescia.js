@@ -1974,6 +1974,11 @@ define([
           const usableItems = args.args.usableItems;
           const pickableGems = args.args.pickableGems;
 
+          if (usableItems.length > usableEpicElixir.length) {
+            this.gamedatas.gamestate.descriptionmyturn = _("${you} must select a Gem for the Wishing Well or use an Item");
+            this.updatePageTitle();
+          }
+
           this.generateRainbowOptions(() => {
             this.actPickWellGem();
           }, pickableGems);

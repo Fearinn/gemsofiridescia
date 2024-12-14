@@ -27,6 +27,7 @@ use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
 
 const ST_PICK_WELL_GEM = 40;
+const ST_TRANSFER_GEM = 31;
 
 const PLAYER_BOARDS = "playerBoards";
 const REVEALS_LIMIT = "revealsLimit";
@@ -321,7 +322,7 @@ class Game extends \Table
         ) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         }
 
@@ -450,7 +451,7 @@ class Game extends \Table
             if ($fullCargo) {
                 $anchorState_id = (int) $this->gamestate->state_id();
                 $this->globals->set(ANCHOR_STATE, $anchorState_id);
-                $this->gamestate->jumpToState(31);
+                $this->gamestate->jumpToState(ST_TRANSFER_GEM);
                 return;
             }
         }
@@ -522,7 +523,7 @@ class Game extends \Table
         if (!$item->use($player_id, $args)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         };
 
@@ -605,7 +606,7 @@ class Game extends \Table
         if (!$item->wishingWell2($gem_id, $player_id)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         };
 
@@ -1690,7 +1691,7 @@ class Game extends \Table
         if (!$this->incGem(1, $gem_id, $player_id, $tileCard)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
-            $this->gamestate->jumpToState(31);
+            $this->gamestate->jumpToState(ST_TRANSFER_GEM);
             return;
         };
 
@@ -3265,7 +3266,7 @@ class Game extends \Table
 
         $anchorState_id = (int) $this->gamestate->state_id();
         $this->globals->set(ANCHOR_STATE, $anchorState_id);
-        $this->gamestate->jumpToState(31);
+        $this->gamestate->jumpToState(ST_TRANSFER_GEM);
     }
 
     public function debug_zombieQuit(int $player_id): void
