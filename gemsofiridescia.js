@@ -1515,7 +1515,7 @@ define([
           `avatar_${bot.id}`
         ).src = `${g_gamethemeurl}/img/solo/rhomAvatar.jpg`;
 
-        document.getElementById(`player_score_${bot.id}`).textContent = 0;
+        document.getElementById(`player_score_${bot.id}`).textContent = bot.score;
         document
           .getElementById(`goi_gemCounters:${bot.id}`)
           .querySelector(".goi_coinIcon")

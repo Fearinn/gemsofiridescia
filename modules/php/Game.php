@@ -2562,6 +2562,10 @@ class Game extends \Table
 
         $this->dbQuery("UPDATE player SET player_score=player_score+$delta WHERE player_id=$player_id");
 
+        if ($player_id === 1) {
+            $this->dbQuery("UPDATE robot SET score=score+$delta WHERE id=1");
+        }
+ 
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
             $silent ? "" : clienttranslate('${player_name} scores ${points_log} point(s)'),
