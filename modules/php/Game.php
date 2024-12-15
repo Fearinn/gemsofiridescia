@@ -3740,7 +3740,23 @@ class Game extends \Table
             $points = $tileEffect["values"][$region_id];
 
             if ($tileEffect_id === 3) {
-                $points = $this->rollDie(1, 1, "stone");
+                $publicStoneDiceCount = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
+                $player_id = (int) $this->getActivePlayerId();
+
+                if ($publicStoneDiceCount === 0) {
+                    $this->notifyAllPlayers(
+                        "message",
+                        clienttranslate('${player_name} does not roll a die because all Stone Dice are with ${player_name2}'),
+                        [
+                            "player_id" => 1,
+                            "player_name" => $this->getPlayerOrRhomNameById(1),
+                            "player_id2" => $player_id,
+                            "player_name2" => $this->getPlayerOrRhomNameById($player_id)
+                        ]
+                    );
+                    return;
+                }
+                $points = $this->rollDie("1:1", 1, "mining");
             }
 
             $this->incRoyaltyPoints($points, 1);
