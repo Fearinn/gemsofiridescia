@@ -413,6 +413,7 @@ html {
   grid-column: 1;
   grid-row: 1;
   width: var(--cardSize);
+  order: -99;
 }
 
 .goi_itemsZone {

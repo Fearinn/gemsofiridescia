@@ -2660,7 +2660,13 @@ class Game extends \Table
 
     public function getRelicsMarket(): array
     {
-        return $this->relic_cards->getCardsInLocation("market");
+        $relicsMarket = $this->relic_cards->getCardsInLocation("market");
+
+        uasort($relicsMarket, function ($relicCard, $otherRelicCard) {
+            return (int) $otherRelicCard["location_arg"] <=> (int) $relicCard["location_arg"];
+        });
+
+        return $relicsMarket;
     }
 
     public function getRestoredRelics(?int $player_id): array
@@ -2715,10 +2721,6 @@ class Game extends \Table
                 $restorableRelics[] = $relicCard;
             }
         }
-
-        uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
-            return (int) $otherRelicCard["location_arg"] <=> (int) $relicCard["location_arg"];
-        });
 
         return $restorableRelics;
     }
@@ -2819,12 +2821,14 @@ class Game extends \Table
     public function replaceRelic(): void
     {
         $relicCard = $this->relic_cards->getCardOnTop("deck");
-        $relicCard_id = (int) $relicCard["id"];
-        $this->relic_cards->insertCardOnExtremePosition($relicCard_id, "market", false);
 
         if (!$relicCard) {
             return;
         }
+
+        $relicCard_id = (int) $relicCard["id"];
+        $this->relic_cards->insertCardOnExtremePosition($relicCard_id, "market", false);
+        $relicCard = $this->relic_cards->getCard($relicCard_id);
 
         $relic_id = $relicCard["type_arg"];
 
@@ -2865,6 +2869,9 @@ class Game extends \Table
     public function getItemsMarket(): array
     {
         $itemsMarket = $this->item_cards->getCardsInLocation("market");
+        uasort($itemsMarket, function ($itemCard, $otherItemCard) {
+            return (int) $otherItemCard["location_arg"] <=> (int) $itemCard["location_arg"];
+        });
 
         return $itemsMarket;
     }
@@ -3027,9 +3034,16 @@ class Game extends \Table
 
     public function replaceItem(): void
     {
-        $itemCard = $this->item_cards->pickCardForLocation("deck", "market");
+        $itemCard = $this->item_cards->getCardOnTop("deck");
+
+        if (!$itemCard) {
+            $this->reshuffleItemsDeck();
+            return;
+        }
 
         $itemCard_id = (int) $itemCard["id"];
+        $this->item_cards->insertCardOnExtremePosition($itemCard_id, "market", false);
+        $itemCard = $this->item_cards->getCard($itemCard_id);
 
         $item = new ItemManager($itemCard_id, $this);
 
@@ -3506,8 +3520,11 @@ class Game extends \Table
 
         if ($effect === 1) {
             $position = (int) $this->rollDie("1:1", 1, "mining");
-            $itemMarket = $this->getObjectListFromDB("$this->deckSelectQuery from item WHERE card_location='market'");
-            $itemCard = $itemMarket[$position - 1];
+            $itemsMarket = $this->getItemsMarket();
+
+            $itemsMarket = array_values($itemsMarket);
+
+            $itemCard = $itemsMarket[$position - 1];
             $itemCard_id = (int) $itemCard["id"];
 
             $item = new ItemManager($itemCard_id, $this);

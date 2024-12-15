@@ -1349,7 +1349,11 @@ define([
       this.goi.stocks.relics.market = new CardStock(
         this.goi.managers.relics,
         document.getElementById("goi_relicsMarket"),
-        {}
+        {
+          sort: (a, b) => {
+            return Number(b.location_arg) - Number(a.location_arg);
+          },
+        }
       );
 
       this.goi.stocks.relics.market.onSelectionChange = (
@@ -1439,7 +1443,12 @@ define([
 
       this.goi.stocks.items.market = new CardStock(
         this.goi.managers.items,
-        document.getElementById("goi_itemsMarket")
+        document.getElementById("goi_itemsMarket"),
+        {
+          sort: (a, b) => {
+            return Number(b.location_arg) - Number(a.location_arg);
+          },
+        }
       );
 
       this.goi.stocks.items.market.onSelectionChange = (
@@ -1515,7 +1524,8 @@ define([
           `avatar_${bot.id}`
         ).src = `${g_gamethemeurl}/img/solo/rhomAvatar.jpg`;
 
-        document.getElementById(`player_score_${bot.id}`).textContent = bot.score;
+        document.getElementById(`player_score_${bot.id}`).textContent =
+          bot.score;
         document
           .getElementById(`goi_gemCounters:${bot.id}`)
           .querySelector(".goi_coinIcon")
@@ -1669,21 +1679,21 @@ define([
             this.updatePageTitle();
           }
 
-          if (usableItems.length > 0 && usableItems.length !== usableEpicElixir.length) {
+          if (
+            usableItems.length > 0 &&
+            usableItems.length !== usableEpicElixir.length
+          ) {
             let description = _(
               "${you} may reveal a tile or use an Item with the ${green_flag}"
             );
 
             this.gamedatas.gamestate.descriptionmyturn =
-              this.format_string_recursive(
-                description,
-                {
-                  you: _("${you}"),
-                  green_flag: _("green flag"),
-                  item_name: _("Epic Elixir"),
-                  item_id: 4,
-                }
-              );
+              this.format_string_recursive(description, {
+                you: _("${you}"),
+                green_flag: _("green flag"),
+                item_name: _("Epic Elixir"),
+                item_id: 4,
+              });
             this.updatePageTitle();
           }
 
@@ -2041,7 +2051,11 @@ define([
             rerollableDice.push(die);
           }
 
-          console.log(rerollableDice, this.goi.stocks[this.player_id].dice.scene.getDice(), "rerollable");
+          console.log(
+            rerollableDice,
+            this.goi.stocks[this.player_id].dice.scene.getDice(),
+            "rerollable"
+          );
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
@@ -2103,7 +2117,9 @@ define([
           const pickableGems = args.args.pickableGems;
 
           if (usableItems.length > usableEpicElixir.length) {
-            this.gamedatas.gamestate.descriptionmyturn = _("${you} must select a Gem for the Wishing Well or use an Item");
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} must select a Gem for the Wishing Well or use an Item"
+            );
             this.updatePageTitle();
           }
 
@@ -2111,9 +2127,12 @@ define([
             this.actPickWellGem();
           }, pickableGems);
 
-          this.goi.stocks[this.player_id].items.hand.setSelectionMode("single", usableItems);
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
         }
-        
+
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
           const catapultableEmpty = catapultableTiles.empty;
@@ -2286,7 +2305,6 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
-
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
         this.goi.stocks[this.player_id].tiles.victoryPile.setSelectionMode(
@@ -2455,7 +2473,7 @@ define([
 
     generateRainbowOptions: function (callback, pickableGems) {
       if (!pickableGems) {
-         pickableGems = this.goi.globals.gemsCounts[this.player_id];
+        pickableGems = this.goi.globals.gemsCounts[this.player_id];
       }
 
       for (const gemName in pickableGems) {
@@ -3189,7 +3207,7 @@ define([
       }
 
       if (item_id === 12) {
-        args = {}
+        args = {};
       }
 
       this.performAction("actUseItem", {
@@ -3220,7 +3238,7 @@ define([
 
     actPickWellGem: function () {
       this.bgaPerformAction("actPickWellGem", {
-        gem_id: this.goi.selections.gem
+        gem_id: this.goi.selections.gem,
       });
     },
 
