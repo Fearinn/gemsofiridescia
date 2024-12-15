@@ -1243,6 +1243,7 @@ class Game extends \Table
             break;
         }
 
+        $this->rhomRestoreRelic();
         $this->collectTile(1);
 
         $this->globals->set("rhomFirstTurn", false);
@@ -1382,7 +1383,8 @@ class Game extends \Table
         return $face;
     }
 
-    public function updateRolledDice(array $die) {
+    public function updateRolledDice(array $die)
+    {
         $die_id = $die["id"];
 
         $rolledDice = $this->globals->get(ROLLED_DICE, []);
@@ -1391,7 +1393,8 @@ class Game extends \Table
         $this->globals->set(ROLLED_DICE, $rolledDice);
     }
 
-    public function updateRerollableDice(array $die, bool $remove = false) {
+    public function updateRerollableDice(array $die, bool $remove = false)
+    {
         $die_id = $die["id"];
 
         $rerollableDice = $this->globals->get(REROLLABLE_DICE, []);
@@ -2709,6 +2712,10 @@ class Game extends \Table
             }
         }
 
+        uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
+            return (int) $otherRelicCard["location_arg"] <=> (int) $relicCard["location_arg"];
+        });
+
         return $restorableRelics;
     }
 
@@ -2807,7 +2814,9 @@ class Game extends \Table
 
     public function replaceRelic(): void
     {
-        $relicCard = $this->relic_cards->pickCardForLocation("deck", "market");
+        $relicCard = $this->relic_cards->getCardOnTop("deck");
+        $relicCard_id = (int) $relicCard["id"];
+        $this->relic_cards->insertCardOnExtremePosition($relicCard_id, "market", false);
 
         if (!$relicCard) {
             return;
@@ -3715,6 +3724,27 @@ class Game extends \Table
 
             $this->incRoyaltyPoints($points, 1);
         }
+    }
+
+    public function rhomRestoreRelic(): void
+    {
+        $restorableRelics = $this->restorableRelics(1, true);
+
+        if (!$restorableRelics) {
+            return;
+        }
+
+        $weathervaneDirection = $this->weathervaneDirection();
+
+        if ($weathervaneDirection === "right") {
+            $restorableRelics = array_reverse($restorableRelics, true);
+        }
+
+        $relicCard = reset($restorableRelics);
+        $relicCard_id = (int) $relicCard["id"];
+
+        $this->restoreRelic($relicCard_id, 1);
+        $this->rhomRestoreRelic();
     }
 
     /*  DEBUG */
