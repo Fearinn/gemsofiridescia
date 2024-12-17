@@ -126,6 +126,7 @@ define([
       this.goi.globals.rhomDeck = gamedatas.rhomDeck;
       this.goi.globals.rhomDeckTop = gamedatas.rhomDeckTop;
       this.goi.globals.rhomDiscard = gamedatas.rhomDiscard;
+      this.goi.globals.barricadeTiles = gamedatas.barricadeTiles;
 
       this.goi.globals.players = gamedatas.playersNoZombie;
       this.goi.globals.player = gamedatas.players[this.player_id];
@@ -252,6 +253,12 @@ define([
         setupDiv: (card, div) => {
           div.classList.add("goi_tile");
           div.style.position = "absolute";
+
+          if (card.location === "barricade") {
+            const barricadeElement = document.createElement("div");
+            barricadeElement.classList.add("goi_barricade");
+            div.appendChild(barricadeElement);
+          }
 
           if (card.id < 0) {
             div.classList.add("goi_emptyTile");
@@ -742,6 +749,31 @@ define([
         this.handleSelection();
       };
 
+      if (this.goi.globals.isSolo) {
+        this.goi.stocks.tiles.barricade = new CardStock(
+          this.goi.managers.tiles,
+          document.getElementById("goi_board"),
+          {}
+        );
+
+        const barricadeTiles = this.goi.globals.barricadeTiles;
+        for (const tileCard_id in barricadeTiles) {
+          const tileCard = barricadeTiles[tileCard_id];
+          this.goi.stocks.tiles.barricade.addCard(
+            tileCard,
+            {},
+            {
+              forceToElement: document.getElementById(
+                `goi_tileContainer-${tileCard.location_arg}`
+              ),
+            }
+          );
+          this.goi.stocks.tiles.barricade.setCardVisible(tileCard, !!tileCard.type_arg);
+        }
+      }
+
+      /* EXPLORERS */
+
       this.goi.stocks.explorers.board = new CardStock(
         this.goi.managers.explorers,
         document.getElementById("goi_explorersBoard"),
@@ -944,8 +976,6 @@ define([
         };
 
         const rolledDice = this.goi.globals.rolledDice;
-
-        console.log(rolledDice, "rolledDice");
 
         const mininigDie1_id = `1-${player_id}`;
         const mininigDie2_id = `2-${player_id}`;
@@ -3332,6 +3362,7 @@ define([
         { event: "zombieQuit" },
         { event: "rhomDrawCard" },
         { event: "reshuffleRhomDeck", duration: 1000 },
+        { event: "rhomBarricade" },
       ];
 
       notifications.forEach((notif) => {
@@ -3971,6 +4002,22 @@ define([
       this.goi.stocks.rhom.deck.shuffle();
       this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
       this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+    },
+
+    notif_rhomBarricade: function (notif) {
+      const tileCard = notif.args.tileCard;
+
+      this.goi.stocks.tiles.board.removeCard(tileCard);
+      this.goi.stocks.tiles.barricade.addCard(
+        tileCard,
+        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${tileCard.location_arg}`
+          ),
+        }
+      );
+      this.goi.stocks.tiles.barricade.setCardVisible(tileCard, !!tileCard.type_arg);
     },
 
     /* LOGS MANIPULATION */

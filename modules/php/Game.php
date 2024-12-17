@@ -91,9 +91,6 @@ class Game extends \Table
         $this->rhom_cards->autoreshuffle = true;
         $this->rhom_cards->autoreshuffle_trigger = ["obj" => $this, "method", "reshuffleRhomDeck"];
 
-        $this->barrier_cards = $this->getNew("module.common.deck");
-        $this->barrier_cards->init("barrier");
-
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
     }
@@ -2565,7 +2562,7 @@ class Game extends \Table
         if ($player_id === 1) {
             $this->dbQuery("UPDATE robot SET score=score+$delta WHERE id=1");
         }
- 
+
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
             $silent ? "" : clienttranslate('${player_name} scores ${points_log} point(s)'),
@@ -3494,6 +3491,12 @@ class Game extends \Table
         return $this->rhom_cards->getCardsInLocation("discard");
     }
 
+    public function weathervaneDirection(): string
+    {
+        $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
+        return $rhomDeckTop["type"];
+    }
+
     public function rhomDrawCard(): array
     {
         $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard");
@@ -3519,7 +3522,7 @@ class Game extends \Table
         $effect = (int) $this->rhom_info[$rhom_id]["effect"];
 
         if ($effect === 1) {
-            $position = (int) $this->rollDie("1:1", 1, "mining");
+            $position = (int) $this->rollDie("1-1", 1, "mining");
             $itemsMarket = $this->getItemsMarket();
 
             $itemsMarket = array_values($itemsMarket);
@@ -3555,13 +3558,82 @@ class Game extends \Table
             $this->globals->set(RHOM_MULTIPLIER, $effect);
         }
 
+        if ($effect === 4) {
+            $this->rhomBarricade();
+        }
+
         return $rhomCard;
     }
 
-    public function weathervaneDirection(): string
+    public function getBarricadeTiles(): array
     {
-        $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
-        return $rhomDeckTop["type"];
+        $barricadeTiles = $this->tile_cards->getCardsInLocation("barricade");
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        foreach ($barricadeTiles as $tileCard_id => $tileCard) {
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
+                $barricadeTiles[$tileCard_id] = $this->hideCard($tileCard);
+            }
+        }
+
+        return $barricadeTiles;
+    }
+
+    public function rhomBarricade(): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+        $hex = (int) $explorerCard["location_arg"];
+
+        $row = $this->hexRow($hex) + 1;
+        $hexesInRow = $this->rows_info[$row];
+
+        $weathervaneDirection = $this->weathervaneDirection();
+        if ($weathervaneDirection === "right") {
+            array_reverse($hexesInRow);
+        }
+
+        $shift = (int) $this->rollDie("1-1", 1, "mining") - 1;
+        $this->placeBarricade($shift, $hexesInRow);
+    }
+
+    public function placeBarricade(int $shift, array $hexesInRow): void
+    {
+        if (!array_key_exists($shift, $hexesInRow)) {
+            $shift = 0;
+        }
+
+        $hex = $hexesInRow[$shift];
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery from tile WHERE card_location='board' AND card_location_arg=$hex");
+
+        if ($tileCard === null) {
+            $shift++;
+            $this->placeBarricade($shift, $hexesInRow);
+            return;
+        }
+
+        $tileCard_id = (int) $tileCard["id"];
+        $this->tile_cards->moveCard($tileCard_id, "barricade", $hex);
+
+
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        if (!array_key_exists($tileCard_id, $revealedTiles)) {
+           $tileCard = $this->hideCard($tileCard);
+        }
+
+        $this->notifyAllPlayers(
+            "rhomBarricade",
+            clienttranslate('${player_name} places a barricade (hex ${hex})'),
+            [
+                "player_id" => 1,
+                "player_name" => $this->getPlayerOrRhomNameById(1),
+                "hex" => $hex,
+                "tileCard" => $tileCard,
+            ]
+        );
     }
 
     public function gemsDemand(): array
@@ -3756,7 +3828,7 @@ class Game extends \Table
                     );
                     return;
                 }
-                $points = $this->rollDie("1:1", 1, "mining");
+                $points = $this->rollDie("1-1", 1, "mining");
             }
 
             $this->incRoyaltyPoints($points, 1);
@@ -3985,6 +4057,7 @@ class Game extends \Table
             $result["rhomDeck"] = $this->getRhomDeck();
             $result["rhomDeckTop"] = $this->getRhomDeck(true);
             $result["rhomDiscard"] = $this->getRhomDiscard();
+            $result["barricadeTiles"] = $this->getBarricadeTiles();
         }
 
         return $result;

@@ -50,6 +50,7 @@ html {
   --dieSize: 45px;
   --scoringMarkerSize: 22.5px;
   --royaltyTokenSize: 112.8px;
+  --barricadeSize: 75px;
 }
 
 .goi_gameArea {
@@ -384,18 +385,6 @@ html {
   flex-shrink: 0;
 }
 
-.goi_merchant.goi_solo {
-  grid-area: f;
-  justify-content: center;
-  margin: 0 auto;
-  width: var(--boardSize);
-}
-
-.goi_merchant.goi_solo .goi_itemsMarket {
-  display: flex;
-  justify-content: space-between;
-}
-
 .goi_itemsDeck {
   position: absolute !important;
   top: 5px !important;
@@ -597,6 +586,31 @@ html {
 
 .goi_rhomDiscard .goi_rhom:not(:first-child) {
   margin-top: calc(-1 * var(--cardHeight));
+}
+
+.goi_merchant.goi_solo {
+  grid-area: f;
+  justify-content: center;
+  margin: 0 auto;
+  width: var(--boardSize);
+}
+
+.goi_merchant.goi_solo .goi_itemsMarket {
+  display: flex;
+  justify-content: space-between;
+}
+
+.goi_barricade {
+  position: absolute;
+  top: 15%;
+  left: 10%;
+  background-image: url("img/solo/barricade.png");
+  border-radius: 100%;
+  box-shadow: 0.5625px 0.5625px 1.125px 0.5625px rgba(0, 0, 0, 0.5);
+  cursor: not-allowed;
+  height: var(--barricadeSize);
+  width: var(--barricadeSize);
+  z-index: 9;
 }
 
 @keyframes pickaxe {
