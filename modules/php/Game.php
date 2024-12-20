@@ -1155,7 +1155,7 @@ class Game extends \Table
 
             $this->notifyAllPlayers(
                 "passTurn",
-                clienttranslate('${player_name} passes'),
+                clienttranslate('${player_name} ends his turn'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerNameById($player_id),

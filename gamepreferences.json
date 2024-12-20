@@ -26,5 +26,13 @@
       "1": { "name": "Enabled", "default": true }
     },
     "needReload": true
+  },
+  "103": {
+    "name": "Sort tiles in victory pile by",
+    "values": {
+      "1": { "name": "Gem", "default": true },
+      "2": { "name": "Region" }
+    },
+    "needReload": true
   }
 }

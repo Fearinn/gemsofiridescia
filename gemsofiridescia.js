@@ -325,7 +325,7 @@ define([
             div.classList.add("goi_tooltip");
             div.style.visibility = "hidden";
           }
-          
+
           div.classList.add("goi_card");
           div.classList.add("goi_relic");
           div.style.position = "relative";
@@ -416,9 +416,15 @@ define([
           }
 
           if (div.childElementCount === 1) {
-              const fontSize = card.type == -99 ? 24 : undefined;
-              const cardHeight = card.type == -99 ? 409 : undefined;
-              this.addObjectiveContent(objective_id, div, null, fontSize, cardHeight);  
+            const fontSize = card.type == -99 ? 24 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+            this.addObjectiveContent(
+              objective_id,
+              div,
+              null,
+              fontSize,
+              cardHeight
+            );
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
@@ -1162,6 +1168,15 @@ define([
           document.getElementById(`goi_tilesPile:${player_id}`),
           {
             sort: (tile, otherTile) => {
+              if (this.getGameUserPreference(103) == 1) {
+                const tileInfo = this.goi.info.tiles[tile.type_arg];
+                const otherTileInfo = this.goi.info.tiles[otherTile.type_arg];
+
+                if (tileInfo != otherTileInfo["gem"]) {
+                  return tileInfo["gem"] - otherTileInfo["gem"];
+                }
+              }
+
               return tile.type_arg - otherTile.type_arg;
             },
           }
