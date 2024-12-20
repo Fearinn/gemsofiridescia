@@ -460,7 +460,7 @@ define([
           });
         },
         setupBackDiv: (card, div) => {
-          const background = `url(${g_gamethemeurl}img/objectives-1.png)`;
+          const background = `url(${g_gamethemeurl}img/objectives-1.jpg)`;
           const backgroundPosition = this.calcBackgroundPosition(0);
 
           div.style.background = background;
