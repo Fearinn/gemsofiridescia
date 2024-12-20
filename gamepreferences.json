@@ -34,5 +34,13 @@
       "2": { "name": "Region" }
     },
     "needReload": true
+  },
+  "104": {
+    "name": "Sort relics in victory pile by",
+    "values": {
+      "1": { "name": "Gem type", "default": true },
+      "2": { "name": "Category" }
+    },
+    "needReload": true
   }
 }

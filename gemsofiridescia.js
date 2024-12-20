@@ -1241,9 +1241,21 @@ define([
           document.getElementById(`goi_relicsPile:${player_id}`),
           {
             sort: (relic, otherRelic) => {
-              const relicType = this.goi.info.relics[relic.type_arg]["type"];
-              const otherRelicType =
-                this.goi.info.relics[otherRelic.type_arg]["type"];
+              const relicInfo = this.goi.info.relics[relic.type_arg];
+              const relicType = relicInfo["type"];
+
+              const otherRelicInfo = this.goi.info.relics[otherRelic.type_arg];
+              const otherRelicType = otherRelicInfo["type"];
+
+              const leadGem = relicInfo["leadGem"];
+              const otherLeadGem = relicInfo["leadGem"];
+
+              if (this.getGameUserPreference(104) == 1) {
+                if (leadGem != otherLeadGem) {
+                  return leadGem - otherLeadGem;
+                }
+              }
+
               return relicType - otherRelicType;
             },
           }
