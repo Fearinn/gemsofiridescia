@@ -730,7 +730,7 @@ define([
         this.goi.stocks.tiles.board.unselectAll(true);
         document.getElementById("goi_confirm_btn")?.remove();
 
-        const stateName = this.getStateName();
+        const stateName = this.getStatWithRhomeName();
 
         if (stateName === "client_pickEmptyTile") {
           if (selection.length === 0) {
@@ -824,7 +824,7 @@ define([
         selection,
         lastChange
       ) => {
-        const stateName = this.getStateName();
+        const stateName = this.getStatWithRhomeName();
 
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("none");
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("multiple");
@@ -957,7 +957,7 @@ define([
         ) => {
           this.goi.stocks.dice.market.setSelectionMode("none");
 
-          const stateName = this.getStateName();
+          const stateName = this.getStatWithRhomeName();
           if (stateName === "client_luckyLibation") {
             this.goi.stocks.dice.market.setSelectionMode("multiple");
           } else {
@@ -1025,7 +1025,7 @@ define([
           selection,
           lastChange
         ) => {
-          const stateName = this.getStateName();
+          const stateName = this.getStatWithRhomeName();
 
           if (stateName === "client_sellGems") {
             if (selection.length > 0) {
@@ -2460,7 +2460,7 @@ define([
 
     ///////////////////////////////////////////////////
     //// Utility methods
-    getStateName: function () {
+    getStatWithRhomeName: function () {
       return this.gamedatas.gamestate.name;
     },
 
@@ -2685,7 +2685,7 @@ define([
       message = _("Confirm selection")
     ) {
       document.getElementById(elementId)?.remove();
-      const stateName = this.getStateName();
+      const stateName = this.getStatWithRhomeName();
 
       if (stateName === "revealTile") {
         if (this.goi.selections.tile) {

@@ -40,8 +40,8 @@ class ObjectiveManager
         if ($this->id >= 2 && $this->id <= 5) {
             $gem_id = $this->variable;
 
-            $currentTiles = $this->game->getStat("$gem_id:GemTiles", $current_player_id);
-            $rainbowTiles = $this->game->getStat("rainbow:Tiles", $current_player_id);
+            $currentTiles = $this->game->getStatWithRhom("$gem_id:GemTiles", $current_player_id);
+            $rainbowTiles = $this->game->getStatWithRhom("rainbow:Tiles", $current_player_id);
 
             $maxTiles = 0;
             foreach ($players as $player_id => $player) {
@@ -49,7 +49,7 @@ class ObjectiveManager
                     continue;
                 }
 
-                $tilesCount = $this->game->getStat("$gem_id:GemTiles", $player_id);
+                $tilesCount = $this->game->getStatWithRhom("$gem_id:GemTiles", $player_id);
 
                 if ($tilesCount >= $maxTiles) {
                     $maxTiles = $tilesCount;
@@ -64,8 +64,8 @@ class ObjectiveManager
         if ($this->id >= 7 && $this->id <= 10) {
             $gem_id = $this->variable;
 
-            $currentRelics = $relicsCount = $this->game->getStat("$gem_id:GemRelics", $current_player_id);
-            $iridiaRelics = $this->game->getStat("iridia:Relics", $current_player_id);
+            $currentRelics = $relicsCount = $this->game->getStatWithRhom("$gem_id:GemRelics", $current_player_id);
+            $iridiaRelics = $this->game->getStatWithRhom("iridia:Relics", $current_player_id);
 
             $maxRelics = 0;
             foreach ($players as $player_id => $player) {
@@ -73,7 +73,7 @@ class ObjectiveManager
                     continue;
                 }
 
-                $relicsCount = $this->game->getStat("$gem_id:GemRelics", $player_id);
+                $relicsCount = $this->game->getStatWithRhom("$gem_id:GemRelics", $player_id);
 
                 if ($relicsCount >= $maxRelics) {
                     $maxRelics = $relicsCount;
@@ -87,8 +87,8 @@ class ObjectiveManager
         if ($this->id >= 12 && $this->id <= 14) {
             $relicType = (int) $this->variable;
 
-            $currentRelics = $relicsCount = $this->game->getStat("$relicType:TypeRelics", $current_player_id);
-            $iridiaRelics = $this->game->getStat("iridia:Relics", $current_player_id);
+            $currentRelics = $relicsCount = $this->game->getStatWithRhom("$relicType:TypeRelics", $current_player_id);
+            $iridiaRelics = $this->game->getStatWithRhom("iridia:Relics", $current_player_id);
 
             $maxRelics = 0;
             foreach ($players as $player_id => $player) {
@@ -96,7 +96,7 @@ class ObjectiveManager
                     continue;
                 }
 
-                $relicsCount = (int) $this->game->getStat("$relicType:TypeRelics", $player_id);
+                $relicsCount = (int) $this->game->getStatWithRhom("$relicType:TypeRelics", $player_id);
 
                 if ($relicsCount >= $maxRelics) {
                     $maxRelics = $relicsCount;
@@ -160,13 +160,13 @@ class ObjectiveManager
 
         if ($this->id === 6) {
             $gemsRelics = [
-                "amethyst" => $this->game->getStat("1:GemRelics", $current_player_id),
-                "citrine" => $this->game->getStat("2:GemRelics", $current_player_id),
-                "emerald" => $this->game->getStat("3:GemRelics", $current_player_id),
-                "sapphire" => $this->game->getStat("4:GemRelics", $current_player_id),
+                "amethyst" => $this->game->getStatWithRhom("1:GemRelics", $current_player_id),
+                "citrine" => $this->game->getStatWithRhom("2:GemRelics", $current_player_id),
+                "emerald" => $this->game->getStatWithRhom("3:GemRelics", $current_player_id),
+                "sapphire" => $this->game->getStatWithRhom("4:GemRelics", $current_player_id),
             ];
 
-            $iridiaRelics = $this->game->getStat("iridia:Relics", $current_player_id);
+            $iridiaRelics = $this->game->getStatWithRhom("iridia:Relics", $current_player_id);
 
             $differentGems = 0;
             foreach ($gemsRelics as $relicsCount) {
