@@ -793,6 +793,10 @@ html {
   box-shadow: none !important;
 }
 
+.goi_relic .goi_cardTitle {
+  transform: translateY(25%);
+}
+
 .goi_relicsContainer {
   grid-area: d;
   display: flex;

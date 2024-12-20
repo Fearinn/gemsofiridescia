@@ -321,12 +321,19 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
+          if (card.type == -99) {
+            div.classList.add("goi_tooltip");
+            div.style.visibility = "hidden";
+          }
+          
           div.classList.add("goi_card");
           div.classList.add("goi_relic");
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          if (!card.type_arg || card.id === "fake") {
+          const relic_id = Number(card.type_arg);
+
+          if (!relic_id || card.id === "fake") {
             div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
             const backgroundPosition = this.calcBackgroundPosition(card.type);
 
@@ -334,11 +341,15 @@ define([
             return;
           }
 
-          const backgroundCode = Math.ceil(card.type_arg / 12);
-          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+          const backgroundCode = Math.ceil(relic_id / 12);
+          let background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+
+          if (card.type == -99) {
+            background = background.replace("img/", "img/tooltips/");
+          }
 
           const spritePosition =
-            backgroundCode === 1 ? card.type_arg - 1 : card.type_arg - 13;
+            backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
 
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
@@ -346,7 +357,7 @@ define([
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
 
-          const relicName = this.goi.info.relics[card.type_arg].tr_name;
+          const relicName = this.goi.info.relics[relic_id].tr_name;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(relicName);
@@ -355,6 +366,13 @@ define([
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
           }
+
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createRelicTooltip(relic_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {
           div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
@@ -438,15 +456,12 @@ define([
         setupDiv: (card, div) => {
           if (card.type == -99) {
             div.style.visibility = "hidden";
+            div.classList.add("goi_tooltip");
           }
 
           div.classList.add("goi_card");
           div.classList.add("goi_item");
           div.style.position = "relative";
-
-          if (card.type == -99) {
-            div.classList.add("goi_tooltip");
-          }
         },
         setupFrontDiv: (card, div) => {
           const item_id = Number(card.type_arg);
@@ -918,8 +933,6 @@ define([
 
         const rolledDice = this.goi.globals.rolledDice;
 
-        console.log(rolledDice, "rolledDice");
-
         const mininigDie1_id = `1-${player_id}`;
         const mininigDie2_id = `2-${player_id}`;
 
@@ -1291,6 +1304,19 @@ define([
       }
 
       /* RELICS */
+      this.goi.stocks.relics.tooltips = new CardStock(
+        this.goi.managers.relics,
+        document.getElementById("goi_void")
+      );
+
+      for (const relic_id in this.goi.info.relics) {
+        this.goi.stocks.relics.tooltips.addCard({
+          id: `tooltip-${relic_id}`,
+          type: -99,
+          type_arg: relic_id,
+        });
+      }
+
       this.goi.stocks.relics.deck = new Deck(
         this.goi.managers.relics,
         document.getElementById("goi_relicsDeck"),
@@ -3821,32 +3847,27 @@ define([
         tile_id - 13 * (region_id - 1) - 1
       );
 
-      const hexElement = tileCard.location === "board" ? `<span style="font-size: 16px">Hex: <span style="font-weight: bold;">${hex}</span></span>` : "";
+      const hexElement =
+        tileCard.location === "board"
+          ? `<span style="font-size: 16px">Hex: <span style="font-weight: bold;">${hex}</span></span>`
+          : "";
 
       const tooltip = `<div>
       <div class="goi_tooltip goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>
       ${hexElement}
       </div>`;
-      
+
       return tooltip;
     },
 
-    getRelicTooltip: function (relic_id) {
-      const backgroundCode = Math.ceil(relic_id / 12);
-      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+    createRelicTooltip: function (relic_id) {
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#relic-tooltip-${relic_id}`);
 
-      const spritePosition =
-        backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
-      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
-
-      const relicName = this.goi.info.relics[relic_id].tr_name;
-
-      const tooltip = `<div class="goi_logImage goi_card" 
-      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(relicName)}</span>
-      </div>`;
-
-      return tooltip;
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
     createItemTooltip: function (item_id) {
@@ -3956,7 +3977,7 @@ define([
               args.relic_name
             )}</span>`;
 
-            const tooltip = this.getRelicTooltip(relic_id);
+            const tooltip = this.createRelicTooltip(relic_id);
             this.registerCustomTooltip(tooltip, elementId);
           }
 
