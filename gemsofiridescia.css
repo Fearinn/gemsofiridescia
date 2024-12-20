@@ -575,11 +575,13 @@ html {
 .goi_tooltip {
   height: var(--cardTooltipHeight);
   width: var(--cardTooltipWidth);
+  box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
 }
 
 .goi_tooltip.goi_tile {
   height: var(--tileTooltipHeight);
   width: var(--tileTooltipWidth);
+  box-shadow: none;
 }
 
 .goi_tooltip .goi_cardTitle {

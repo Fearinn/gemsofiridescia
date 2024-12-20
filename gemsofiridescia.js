@@ -390,6 +390,7 @@ define([
         setupDiv: (card, div) => {
           if (card.type == -99) {
             div.style.visibility = "hidden";
+            div.classList.add("goi_tooltip");
           }
 
           div.classList.add("goi_card");
@@ -405,7 +406,6 @@ define([
 
           const objectiveInfo = this.goi.info.objectives[objective_id];
           const objectiveName = objectiveInfo.tr_name;
-          const objectiveContent = objectiveInfo.content;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(objectiveName);
@@ -416,11 +416,17 @@ define([
           }
 
           if (div.childElementCount === 1) {
-            this.addObjectiveContent(objective_id, div);
+              const fontSize = card.type == -99 ? 24 : undefined;
+              const cardHeight = card.type == -99 ? 409 : undefined;
+              this.addObjectiveContent(objective_id, div, null, fontSize, cardHeight);  
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
-          const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
+          let background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.jpg)`;
+
+          if (card.type == -99) {
+            background = background.replace("img/", "img/tooltips/");
+          }
 
           let spritePosition = objective_id - 8 * (backgroundCode - 1);
 
@@ -430,14 +436,12 @@ define([
           div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
 
-          this.addTooltip(
-            div.id,
-            this.format_string(_("${objectiveName}: ${objectiveContent}"), {
-              objectiveName: _(objectiveName),
-              objectiveContent: _(objectiveContent),
-            }),
-            ""
-          );
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createObjectiveTooltip(objective_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {
           const background = `url(${g_gamethemeurl}img/objectives-1.png)`;
