@@ -1743,6 +1743,8 @@ class Game extends \Table
         $this->incStat(1, $statName, $player_id);
         $this->incStat(1, "tilesCollected", $player_id);
 
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
         $this->notifyAllPlayers(
             "collectTile",
             "",

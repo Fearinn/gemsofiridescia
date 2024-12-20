@@ -45,6 +45,8 @@ html {
   --cardTooltipWidth: 300px;
   --tileHeight: 104px;
   --tileSize: 90px;
+  --tileTooltipHeight: 230px;
+  --tileTooltipWidth: 200px;
   --tileSpacing: 1.6px;
   --explorerSize: 78.4px;
   --gemSize: 40px;
@@ -573,6 +575,11 @@ html {
 .goi_tooltip {
   height: var(--cardTooltipHeight);
   width: var(--cardTooltipWidth);
+}
+
+.goi_tooltip.goi_tile {
+  height: var(--tileTooltipHeight);
+  width: var(--tileTooltipWidth);
 }
 
 .goi_tooltip .goi_cardTitle {

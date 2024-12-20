@@ -250,7 +250,7 @@ define([
           }
         },
         setupFrontDiv: (card, div) => {
-          if (card.id < 0) {
+          if (card.id < 0 || !card.type_arg) {
             return;
           }
 
@@ -263,6 +263,10 @@ define([
 
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          const tooltip = this.createTileTooltip(card);
+
+          this.addTooltipHtml(div.id, tooltip);
         },
         setupBackDiv: (card, div) => {
           if (card.id < 0) {
@@ -2780,7 +2784,13 @@ define([
       }
     },
 
-    addItemContent: function (item_id, cardContent, contentElement, initialFont = 14, cardHeight = 230) {
+    addItemContent: function (
+      item_id,
+      cardContent,
+      contentElement,
+      initialFont = 14,
+      cardHeight = 230
+    ) {
       if (!contentElement) {
         const itemInfo = this.goi.info.items[item_id];
         const itemContent = itemInfo.content;
@@ -2802,7 +2812,13 @@ define([
         contentElement.style.fontSize = `${fontSize}px`;
 
         requestAnimationFrame(() => {
-          this.addItemContent(item_id, cardContent, contentElement, fontSize, cardHeight);
+          this.addItemContent(
+            item_id,
+            cardContent,
+            contentElement,
+            fontSize,
+            cardHeight
+          );
         }, 0);
       }
     },
@@ -3794,14 +3810,24 @@ define([
 
     /* LOGS MANIPULATION */
 
-    getTileTooltip: function (tile_id, region_id) {
-      const background = `url(${g_gamethemeurl}/img/tiles-${region_id}.png)`;
+    createTileTooltip: function (tileCard) {
+      const tile_id = Number(tileCard.type_arg);
+      const region_id = Number(tileCard.type);
+      const hex = Number(tileCard.location_arg);
+
+      const background = `url(${g_gamethemeurl}/img/tooltips/tiles-${region_id}.png)`;
 
       const backgroundPosition = this.calcBackgroundPosition(
         tile_id - 13 * (region_id - 1) - 1
       );
 
-      const tooltip = `<div class="goi_logImage goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
+      const hexElement = tileCard.location === "board" ? `<span style="font-size: 16px">Hex: <span style="font-weight: bold;">${hex}</span></span>` : "";
+
+      const tooltip = `<div>
+      <div class="goi_tooltip goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>
+      ${hexElement}
+      </div>`;
+      
       return tooltip;
     },
 
@@ -3907,7 +3933,6 @@ define([
             const tileCard = args.tileCard;
 
             const tile_id = Number(tileCard.type_arg);
-            const region_id = Number(tileCard.type);
 
             const uid = `${Date.now()}${tile_id}`;
             const elementId = `goi_tileLog:${uid}`;
@@ -3916,7 +3941,7 @@ define([
               args.tile
             )}</span>`;
 
-            const tooltip = this.getTileTooltip(tile_id, region_id);
+            const tooltip = this.createTileTooltip(tileCard);
             this.registerCustomTooltip(tooltip, elementId);
           }
 
