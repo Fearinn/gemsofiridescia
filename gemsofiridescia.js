@@ -435,11 +435,14 @@ define([
           if (card.type == -99) {
             div.style.visibility = "hidden";
           }
-          const item_id = Number(card.type_arg);
 
           div.classList.add("goi_card");
           div.classList.add("goi_item");
           div.style.position = "relative";
+
+          if (card.type == -99) {
+            div.classList.add("goi_tooltip");
+          }
         },
         setupFrontDiv: (card, div) => {
           const item_id = Number(card.type_arg);
@@ -450,7 +453,6 @@ define([
 
           const itemInfo = this.goi.info.items[item_id];
           const itemName = itemInfo.tr_name;
-          const itemContent = itemInfo.content;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(itemName);
@@ -461,20 +463,20 @@ define([
           }
 
           if (div.childElementCount === 1) {
-            this.addItemContent(item_id, div);
+            const fontSize = card.type == -99 ? 24 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+            this.addItemContent(item_id, div, null, fontSize, cardHeight);
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
           div.style.backgroundPosition = backgroundPosition;
 
-          this.addTooltip(
-            div.id,
-            this.format_string(_("${itemName}: ${itemContent}"), {
-              itemName: _(itemName),
-              itemContent: _(itemContent),
-            }),
-            ""
-          );
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createItemTooltip(item_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {},
       });
@@ -1541,21 +1543,21 @@ define([
             this.updatePageTitle();
           }
 
-          if (usableItems.length > 0 && usableItems.length !== usableEpicElixir.length) {
+          if (
+            usableItems.length > 0 &&
+            usableItems.length !== usableEpicElixir.length
+          ) {
             let description = _(
               "${you} may reveal a tile or use an Item with the ${green_flag}"
             );
 
             this.gamedatas.gamestate.descriptionmyturn =
-              this.format_string_recursive(
-                description,
-                {
-                  you: _("${you}"),
-                  green_flag: _("green flag"),
-                  item_name: _("Epic Elixir"),
-                  item_id: 4,
-                }
-              );
+              this.format_string_recursive(description, {
+                you: _("${you}"),
+                green_flag: _("green flag"),
+                item_name: _("Epic Elixir"),
+                item_id: 4,
+              });
             this.updatePageTitle();
           }
 
@@ -1913,7 +1915,11 @@ define([
             rerollableDice.push(die);
           }
 
-          console.log(rerollableDice, this.goi.stocks[this.player_id].dice.scene.getDice(), "rerollable");
+          console.log(
+            rerollableDice,
+            this.goi.stocks[this.player_id].dice.scene.getDice(),
+            "rerollable"
+          );
 
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
@@ -1975,7 +1981,9 @@ define([
           const pickableGems = args.args.pickableGems;
 
           if (usableItems.length > usableEpicElixir.length) {
-            this.gamedatas.gamestate.descriptionmyturn = _("${you} must select a Gem for the Wishing Well or use an Item");
+            this.gamedatas.gamestate.descriptionmyturn = _(
+              "${you} must select a Gem for the Wishing Well or use an Item"
+            );
             this.updatePageTitle();
           }
 
@@ -1983,9 +1991,12 @@ define([
             this.actPickWellGem();
           }, pickableGems);
 
-          this.goi.stocks[this.player_id].items.hand.setSelectionMode("single", usableItems);
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
         }
-        
+
         if (stateName === "client_cleverCatapult") {
           const catapultableTiles = args.args.catapultableTiles;
           const catapultableEmpty = catapultableTiles.empty;
@@ -2153,7 +2164,6 @@ define([
       if (stateName === "revealTile") {
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
-
 
       if (stateName === "discardCollectedTile") {
         this.goi.stocks[this.player_id].items.hand.setSelectionMode("none");
@@ -2323,7 +2333,7 @@ define([
 
     generateRainbowOptions: function (callback, pickableGems) {
       if (!pickableGems) {
-         pickableGems = this.goi.globals.gemsCounts[this.player_id];
+        pickableGems = this.goi.globals.gemsCounts[this.player_id];
       }
 
       for (const gemName in pickableGems) {
@@ -2770,7 +2780,7 @@ define([
       }
     },
 
-    addItemContent: function (item_id, div, contentElement, initialFont = 14) {
+    addItemContent: function (item_id, cardContent, contentElement, initialFont = 14, cardHeight = 230) {
       if (!contentElement) {
         const itemInfo = this.goi.info.items[item_id];
         const itemContent = itemInfo.content;
@@ -2781,18 +2791,18 @@ define([
 
         contentElement.style.fontFamily = "'rooney-web', serif";
         contentElement.style.fontSize = `${initialFont}px`;
-        div.appendChild(contentElement);
+        cardContent.appendChild(contentElement);
       }
 
       const contentHeight = contentElement.offsetHeight;
-      const maxHeight = 230 * 0.15;
+      const maxHeight = cardHeight * 0.14;
 
       if (contentHeight > maxHeight) {
         const fontSize = initialFont * 0.98;
         contentElement.style.fontSize = `${fontSize}px`;
 
         requestAnimationFrame(() => {
-          this.addItemContent(item_id, div, contentElement, fontSize);
+          this.addItemContent(item_id, cardContent, contentElement, fontSize, cardHeight);
         }, 0);
       }
     },
@@ -3060,7 +3070,7 @@ define([
       }
 
       if (item_id === 12) {
-        args = {}
+        args = {};
       }
 
       this.performAction("actUseItem", {
@@ -3091,7 +3101,7 @@ define([
 
     actPickWellGem: function () {
       this.bgaPerformAction("actPickWellGem", {
-        gem_id: this.goi.selections.gem
+        gem_id: this.goi.selections.gem,
       });
     },
 
