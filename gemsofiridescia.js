@@ -278,6 +278,16 @@ define([
 
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          if (card.location === "board") {
+            this.addTooltip(
+              div.id,
+              this.format_string_recursive(_("Hex: ${hex}"), {
+                hex: card.location_arg,
+              }),
+              "",
+            );
+          }
         },
       });
 
@@ -3878,9 +3888,13 @@ define([
         tile_id - 13 * (region_id - 1) - 1
       );
 
+      const hexText = this.format_string_recursive(_("Hex: ${hex}"), {
+        hex: hex,
+      });
+
       const hexElement =
         tileCard.location === "board"
-          ? `<span style="font-size: 16px">Hex: <span style="font-weight: bold;">${hex}</span></span>`
+          ? `<span style="font-size: 16px">${hexText}</span></span>`
           : "";
 
       const tooltip = `<div>
@@ -3995,6 +4009,10 @@ define([
 
             const tooltip = this.createTileTooltip(tileCard);
             this.registerCustomTooltip(tooltip, elementId);
+          }
+
+          if (args.hex) {
+            args.hex = `<span style="font-weight: bold;">${args.hex}</span>`;
           }
 
           if (args.relicCard && args.relic_name) {
