@@ -366,7 +366,7 @@ html {
   position: absolute !important;
   top: 0;
   left: 70%;
-  max-height: var(--cardSize);
+  max-height: var(--cardHeight);
 }
 
 .goi_void {
@@ -584,6 +584,7 @@ html {
   position: absolute;
   visibility: hidden;
   overflow: hidden;
+  max-height: var(--cardHeight);
 }
 
 .goi_tooltip {
