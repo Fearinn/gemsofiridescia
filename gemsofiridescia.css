@@ -41,8 +41,12 @@ html {
   --playerBoardSize: 270px;
   --cardHeight: 230px;
   --cardSize: 168.75px;
+  --cardTooltipHeight: 409px;
+  --cardTooltipWidth: 300px;
   --tileHeight: 104px;
   --tileSize: 90px;
+  --tileTooltipHeight: 230px;
+  --tileTooltipWidth: 200px;
   --tileSpacing: 1.6px;
   --explorerSize: 78.4px;
   --gemSize: 40px;
@@ -132,12 +136,23 @@ html {
   text-align: center;
 
   position: absolute;
-  top: 2%;
+  top: 0;
   left: 0;
+  transform: translateY(50%);
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   z-index: 1;
+}
+
+.goi_deckCounter {
+  font-family: "sketchnote-square", sans-serif;
+  background-color: white;
+  border-radius: 100%;
+  font-size: 12px !important;
+  padding: 1px;
+  height: auto !important;
+  width: 15% !important;
 }
 
 .bga-help_button .goi_cardTitle {
@@ -162,16 +177,6 @@ html {
 .goi_helpCard .goi_cardContent > div {
   display: flex;
   flex-direction: column;
-}
-
-.goi_deckCounter {
-  font-family: "sketchnote-square", sans-serif;
-  background-color: white;
-  border-radius: 100%;
-  font-size: 12px !important;
-  padding: 1px;
-  height: auto !important;
-  width: 15% !important;
 }
 
 .goi_helpFolded {
@@ -569,11 +574,31 @@ html {
 
   animation: pickaxe infinite 2s;
   content: "";
-  background: url("img/pickaxe.png");
+  background-image: url("img/pickaxe.png");
   background-size: cover;
   height: calc(var(--tileSize) / 4);
   width: calc(var(--tileSize) / 4);
   z-index: 1;
+}
+
+.goi_tooltip {
+  height: var(--cardTooltipHeight);
+  width: var(--cardTooltipWidth);
+  box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
+}
+
+.goi_tooltip.goi_tile {
+  height: var(--tileTooltipHeight);
+  width: var(--tileTooltipWidth);
+  box-shadow: none;
+}
+
+.goi_tooltip .goi_cardTitle {
+  font-size: 24px;
+}
+
+.goi_tooltip.goi_item .card-side {
+  background-image: url("img/tooltips/items.jpg") !important;
 }
 
 .goi_rhom .card-side {
@@ -814,6 +839,10 @@ html {
 
 .goi_explorer .card-side {
   box-shadow: none !important;
+}
+
+.goi_relic .goi_cardTitle {
+  transform: translateY(25%);
 }
 
 .goi_relicsContainer {

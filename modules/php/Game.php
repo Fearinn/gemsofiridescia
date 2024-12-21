@@ -203,7 +203,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex}) '),
+            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -237,7 +237,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardTile",
-            clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex}) '),
+            clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -1936,6 +1936,8 @@ class Game extends \Table
         $statName = $gem_id % 10 === 0 ? "rainbow:Tiles" : "$gem_id:GemTiles";
         $this->incStatWithRhom(1, $statName, $player_id);
         $this->incStatWithRhom(1, "tilesCollected", $player_id);
+
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
 
         $this->notifyAllPlayers(
             "collectTile",

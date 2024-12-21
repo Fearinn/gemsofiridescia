@@ -265,7 +265,7 @@ define([
           }
         },
         setupFrontDiv: (card, div) => {
-          if (card.id < 0) {
+          if (card.id < 0 || !card.type_arg) {
             return;
           }
 
@@ -278,6 +278,10 @@ define([
 
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          const tooltip = this.createTileTooltip(card);
+
+          this.addTooltipHtml(div.id, tooltip);
         },
         setupBackDiv: (card, div) => {
           if (card.id < 0) {
@@ -289,6 +293,16 @@ define([
 
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
+
+          if (card.location === "board") {
+            this.addTooltip(
+              div.id,
+              this.format_string_recursive(_("Hex: ${hex}"), {
+                hex: card.location_arg,
+              }),
+              "",
+            );
+          }
         },
       });
 
@@ -332,12 +346,19 @@ define([
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
+          if (card.type == -99) {
+            div.classList.add("goi_tooltip");
+            div.style.visibility = "hidden";
+          }
+
           div.classList.add("goi_card");
           div.classList.add("goi_relic");
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          if (!card.type_arg || card.id === "fake") {
+          const relic_id = Number(card.type_arg);
+
+          if (!relic_id || card.id === "fake") {
             div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
             const backgroundPosition = this.calcBackgroundPosition(card.type);
 
@@ -345,11 +366,15 @@ define([
             return;
           }
 
-          const backgroundCode = Math.ceil(card.type_arg / 12);
-          const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+          const backgroundCode = Math.ceil(relic_id / 12);
+          let background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+
+          if (card.type == -99) {
+            background = background.replace("img/", "img/tooltips/");
+          }
 
           const spritePosition =
-            backgroundCode === 1 ? card.type_arg - 1 : card.type_arg - 13;
+            backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
 
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
@@ -357,7 +382,7 @@ define([
           div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
 
-          const relicName = this.goi.info.relics[card.type_arg].tr_name;
+          const relicName = this.goi.info.relics[relic_id].tr_name;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(relicName);
@@ -366,6 +391,13 @@ define([
           if (div.childElementCount === 0) {
             div.appendChild(cardTitle);
           }
+
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createRelicTooltip(relic_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {
           div.style.backgroundImage = `url(${g_gamethemeurl}img/relicsBacks.jpg)`;
@@ -383,6 +415,7 @@ define([
         setupDiv: (card, div) => {
           if (card.type == -99) {
             div.style.visibility = "hidden";
+            div.classList.add("goi_tooltip");
           }
 
           div.classList.add("goi_card");
@@ -398,7 +431,6 @@ define([
 
           const objectiveInfo = this.goi.info.objectives[objective_id];
           const objectiveName = objectiveInfo.tr_name;
-          const objectiveContent = objectiveInfo.content;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(objectiveName);
@@ -409,11 +441,23 @@ define([
           }
 
           if (div.childElementCount === 1) {
-            this.addObjectiveContent(objective_id, div);
+            const fontSize = card.type == -99 ? 24 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+            this.addObjectiveContent(
+              objective_id,
+              div,
+              null,
+              fontSize,
+              cardHeight
+            );
           }
 
           const backgroundCode = objective_id <= 7 ? 1 : 2;
-          const background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.png)`;
+          let background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.jpg)`;
+
+          if (card.type == -99) {
+            background = background.replace("img/", "img/tooltips/");
+          }
 
           let spritePosition = objective_id - 8 * (backgroundCode - 1);
 
@@ -423,17 +467,15 @@ define([
           div.style.background = background;
           div.style.backgroundPosition = backgroundPosition;
 
-          this.addTooltip(
-            div.id,
-            this.format_string(_("${objectiveName}: ${objectiveContent}"), {
-              objectiveName: _(objectiveName),
-              objectiveContent: _(objectiveContent),
-            }),
-            ""
-          );
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createObjectiveTooltip(objective_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {
-          const background = `url(${g_gamethemeurl}img/objectives-1.png)`;
+          const background = `url(${g_gamethemeurl}img/objectives-1.jpg)`;
           const backgroundPosition = this.calcBackgroundPosition(0);
 
           div.style.background = background;
@@ -449,8 +491,8 @@ define([
         setupDiv: (card, div) => {
           if (card.type == -99) {
             div.style.visibility = "hidden";
+            div.classList.add("goi_tooltip");
           }
-          const item_id = Number(card.type_arg);
 
           div.classList.add("goi_card");
           div.classList.add("goi_item");
@@ -465,7 +507,6 @@ define([
 
           const itemInfo = this.goi.info.items[item_id];
           const itemName = itemInfo.tr_name;
-          const itemContent = itemInfo.content;
 
           const cardTitle = document.createElement("span");
           cardTitle.textContent = _(itemName);
@@ -476,20 +517,20 @@ define([
           }
 
           if (div.childElementCount === 1) {
-            this.addItemContent(item_id, div);
+            const fontSize = card.type == -99 ? 24 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+            this.addItemContent(item_id, div, null, fontSize, cardHeight);
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
           div.style.backgroundPosition = backgroundPosition;
 
-          this.addTooltip(
-            div.id,
-            this.format_string(_("${itemName}: ${itemContent}"), {
-              itemName: _(itemName),
-              itemContent: _(itemContent),
-            }),
-            ""
-          );
+          new dijit.Tooltip({
+            connectId: [div.id],
+            getContent: (matchedNode) => {
+              return this.createItemTooltip(item_id);
+            },
+          });
         },
         setupBackDiv: (card, div) => {},
       });
@@ -1202,6 +1243,15 @@ define([
           document.getElementById(`goi_tilesPile:${player_id}`),
           {
             sort: (tile, otherTile) => {
+              if (this.getGameUserPreference(103) == 1) {
+                const tileInfo = this.goi.info.tiles[tile.type_arg];
+                const otherTileInfo = this.goi.info.tiles[otherTile.type_arg];
+
+                if (tileInfo != otherTileInfo["gem"]) {
+                  return tileInfo["gem"] - otherTileInfo["gem"];
+                }
+              }
+
               return tile.type_arg - otherTile.type_arg;
             },
           }
@@ -1266,9 +1316,21 @@ define([
           document.getElementById(`goi_relicsPile:${player_id}`),
           {
             sort: (relic, otherRelic) => {
-              const relicType = this.goi.info.relics[relic.type_arg]["type"];
-              const otherRelicType =
-                this.goi.info.relics[otherRelic.type_arg]["type"];
+              const relicInfo = this.goi.info.relics[relic.type_arg];
+              const relicType = relicInfo["type"];
+
+              const otherRelicInfo = this.goi.info.relics[otherRelic.type_arg];
+              const otherRelicType = otherRelicInfo["type"];
+
+              const leadGem = relicInfo["leadGem"];
+              const otherLeadGem = relicInfo["leadGem"];
+
+              if (this.getGameUserPreference(104) == 1) {
+                if (leadGem != otherLeadGem) {
+                  return leadGem - otherLeadGem;
+                }
+              }
+
               return relicType - otherRelicType;
             },
           }
@@ -1348,6 +1410,19 @@ define([
       }
 
       /* RELICS */
+      this.goi.stocks.relics.tooltips = new CardStock(
+        this.goi.managers.relics,
+        document.getElementById("goi_void")
+      );
+
+      for (const relic_id in this.goi.info.relics) {
+        this.goi.stocks.relics.tooltips.addCard({
+          id: `tooltip-${relic_id}`,
+          type: -99,
+          type_arg: relic_id,
+        });
+      }
+
       this.goi.stocks.relics.deck = new Deck(
         this.goi.managers.relics,
         document.getElementById("goi_relicsDeck"),
@@ -2947,7 +3022,13 @@ define([
       }
     },
 
-    addItemContent: function (item_id, div, contentElement, initialFont = 14) {
+    addItemContent: function (
+      item_id,
+      cardContent,
+      contentElement,
+      initialFont = 14,
+      cardHeight = 230
+    ) {
       if (!contentElement) {
         const itemInfo = this.goi.info.items[item_id];
         const itemContent = itemInfo.content;
@@ -2958,18 +3039,24 @@ define([
 
         contentElement.style.fontFamily = "'rooney-web', serif";
         contentElement.style.fontSize = `${initialFont}px`;
-        div.appendChild(contentElement);
+        cardContent.appendChild(contentElement);
       }
 
       const contentHeight = contentElement.offsetHeight;
-      const maxHeight = 230 * 0.15;
+      const maxHeight = cardHeight * 0.14;
 
       if (contentHeight > maxHeight) {
         const fontSize = initialFont * 0.98;
         contentElement.style.fontSize = `${fontSize}px`;
 
         requestAnimationFrame(() => {
-          this.addItemContent(item_id, div, contentElement, fontSize);
+          this.addItemContent(
+            item_id,
+            cardContent,
+            contentElement,
+            fontSize,
+            cardHeight
+          );
         }, 0);
       }
     },
@@ -4022,33 +4109,42 @@ define([
 
     /* LOGS MANIPULATION */
 
-    getTileTooltip: function (tile_id, region_id) {
-      const background = `url(${g_gamethemeurl}/img/tiles-${region_id}.png)`;
+    createTileTooltip: function (tileCard) {
+      const tile_id = Number(tileCard.type_arg);
+      const region_id = Number(tileCard.type);
+      const hex = Number(tileCard.location_arg);
+
+      const background = `url(${g_gamethemeurl}/img/tooltips/tiles-${region_id}.png)`;
 
       const backgroundPosition = this.calcBackgroundPosition(
         tile_id - 13 * (region_id - 1) - 1
       );
 
-      const tooltip = `<div class="goi_logImage goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>`;
-      return tooltip;
-    },
+      const hexText = this.format_string_recursive(_("Hex: ${hex}"), {
+        hex: hex,
+      });
 
-    getRelicTooltip: function (relic_id) {
-      const backgroundCode = Math.ceil(relic_id / 12);
-      const background = `url(${g_gamethemeurl}img/relics-${backgroundCode}.jpg)`;
+      const hexElement =
+        tileCard.location === "board"
+          ? `<span style="font-size: 16px">${hexText}</span></span>`
+          : "";
 
-      const spritePosition =
-        backgroundCode === 1 ? relic_id - 1 : relic_id - 13;
-      const backgroundPosition = this.calcBackgroundPosition(spritePosition);
-
-      const relicName = this.goi.info.relics[relic_id].tr_name;
-
-      const tooltip = `<div class="goi_logImage goi_card" 
-      style="position: relative; background-image: ${background}; background-position: ${backgroundPosition}">
-        <span class="goi_cardTitle">${_(relicName)}</span>
+      const tooltip = `<div>
+      <div class="goi_tooltip goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>
+      ${hexElement}
       </div>`;
 
       return tooltip;
+    },
+
+    createRelicTooltip: function (relic_id) {
+      const realCard = document
+        .getElementById("goi_gameArea")
+        .querySelector(`#relic-tooltip-${relic_id}`);
+
+      const clone = realCard.cloneNode(true);
+      clone.style.visibility = "visible";
+      return clone.outerHTML;
     },
 
     createItemTooltip: function (item_id) {
@@ -4148,7 +4244,6 @@ define([
             const tileCard = args.tileCard;
 
             const tile_id = Number(tileCard.type_arg);
-            const region_id = Number(tileCard.type);
 
             const uid = `${Date.now()}${tile_id}`;
             const elementId = `goi_tileLog:${uid}`;
@@ -4157,8 +4252,12 @@ define([
               args.tile
             )}</span>`;
 
-            const tooltip = this.getTileTooltip(tile_id, region_id);
+            const tooltip = this.createTileTooltip(tileCard);
             this.registerCustomTooltip(tooltip, elementId);
+          }
+
+          if (args.hex) {
+            args.hex = `<span style="font-weight: bold;">${args.hex}</span>`;
           }
 
           if (args.relicCard && args.relic_name) {
@@ -4172,7 +4271,7 @@ define([
               args.relic_name
             )}</span>`;
 
-            const tooltip = this.getRelicTooltip(relic_id);
+            const tooltip = this.createRelicTooltip(relic_id);
             this.registerCustomTooltip(tooltip, elementId);
           }
 
