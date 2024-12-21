@@ -282,8 +282,8 @@ define([
           if (card.location === "board") {
             this.addTooltip(
               div.id,
-              this.format_string_recursive(_("Hex: ${hex}"), {
-                hex: card.location_arg,
+              this.format_string_recursive(_("Hex: ${log_hex}"), {
+                log_hex: card.location_arg,
               }),
               "",
             );
@@ -3888,8 +3888,8 @@ define([
         tile_id - 13 * (region_id - 1) - 1
       );
 
-      const hexText = this.format_string_recursive(_("Hex: ${hex}"), {
-        hex: hex,
+      const hexText = this.format_string_recursive(_("Hex: ${log_hex}"), {
+        log_hex: hex,
       });
 
       const hexElement =
@@ -4011,8 +4011,8 @@ define([
             this.registerCustomTooltip(tooltip, elementId);
           }
 
-          if (args.hex) {
-            args.hex = `<span style="font-weight: bold;">${args.hex}</span>`;
+          if (args.log_hex) {
+            args.log_hex = `<span style="font-weight: bold;">${args.log_hex}</span>`;
           }
 
           if (args.relicCard && args.relic_name) {

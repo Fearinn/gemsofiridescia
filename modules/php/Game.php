@@ -122,13 +122,16 @@ class Game extends \Table
         $revealedTiles[$tileCard_id] = $tileCard;
         $this->globals->set(REVEALED_TILES, $revealedTiles);
 
+        $hex = (int) $tileCard["location_arg"];
+
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
+            clienttranslate('${player_name} reveals a ${tile} (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
-                "hex" => $tileCard["location_arg"],
+                "log_hex" => $hex,
+                "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
                 "i18n" => ["tile"],
@@ -220,10 +223,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex})'),
+            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "log_hex" => $emptyHex,
                 "hex" => $emptyHex,
                 "explorerCard" => $explorerCard,
             ]
@@ -254,10 +258,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardTile",
-            clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex})'),
+            clienttranslate('${player_name} discards a ${tile} from the board (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
@@ -291,10 +296,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${hex})'),
+            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerNameById($player_id),
+                "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
