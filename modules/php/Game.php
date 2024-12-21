@@ -3841,10 +3841,54 @@ class Game extends \Table
         return $gemsDemand;
     }
 
+    public function rhomDiscardGems(int $newGem): void {
+        $excessGems = $this->getTotalGemsCount(1) - 7;
+        $gemsCounts = $this->getGemsCounts(1, true);
+
+        $hasGem = $gemsCounts[$newGem] > $excessGems;
+
+        if ($hasGem) {
+            $marketValue = $this->getMarketValues($newGem);
+            $points = $marketValue * $excessGems;
+
+            $this->discardGems(1, null, $newGem, $excessGems);
+            $this->incRoyaltyPoints($points, 1);
+            return;
+        }
+
+        $gemsDemand = $this->gemsDemand();
+        arsort($gemsDemand);
+
+        foreach ($gemsDemand as $gem_id => $demand) {
+            $gemCount = $gemsCounts[$gem_id];
+
+            if ($gemCount === 0 || $gem_id === $newGem) {
+                continue;
+            }
+
+            $discardedCount = $excessGems - $gemCount;
+
+            if ($discardedCount <= 0) {
+                $discardedCount = $excessGems;
+            }
+
+            $marketValue = $this->getMarketValues($gem_id);
+            $points = $marketValue * $discardedCount;
+
+            $this->discardGems(1, null, $gem_id, $discardedCount);
+            $this->incRoyaltyPoints($points, 1);
+            
+            $excessGems -= $discardedCount;
+
+            if ($excessGems === 0) {
+                break;
+            }
+        }
+    }
+
     public function mostDemandingTiles(array $tileCards): array
     {
         $mostDemandingTiles = [];
-
 
         $includesRainbow = false;
         $gemsDemand = $this->gemsDemand();
@@ -4009,7 +4053,11 @@ class Game extends \Table
         }
 
         $rhomMultiplier = $this->globals->get(RHOM_MULTIPLIER, 1);
-        $this->incGem($rhomMultiplier, $gem_id, 1, $tileCard);
+        $fullCargo = !$this->incGem($rhomMultiplier, $gem_id, 1, $tileCard);
+
+        if ($fullCargo) {
+            $this->rhomDiscardGems($gem_id);
+        }
 
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];
