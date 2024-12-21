@@ -208,7 +208,7 @@ $machinestates = [
         "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo expedition'),
         "type" => "activeplayer",
         "possibleactions" => ["actStartSolo"],
-        "transitions" => ["rhomFirstTurn" => 81],
+        "transitions" => ["rhomFirstTurn" => 81, "pickRainbowForRhom" => 82],
     ],
 
     81 => [
@@ -217,17 +217,17 @@ $machinestates = [
         "type" => "game",
         "args" => "argRhomTurn",
         "action" => "stRhomFirstTurn",
-        "transitions" => ["realTurn" => 2],
+        "transitions" => ["realTurn" => 2, "pickRainbowForRhom" => 82],
     ],
 
     82 => [
         "name" => "pickRainbowForRhom",
-        "description" => clienttranslate('${actplayer} must pick a gem for the ${rhom}'),
-        "descriptionmyturn" => clienttranslate('${you} must pick a gem for the ${rhom}'),
+        "description" => clienttranslate('${actplayer} must pick a Gem for the ${rhom}'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the ${rhom}'),
         "type" => "activeplayer",
-        "args" => "argRhomTurn",
-        "action" => "stRhomFirstTurn",
-        "transitions" => ["realTurn" => 2],
+        "args" => "argPickRainbowForRhom",
+        "possibleactions" => ["actPickRainbowForRhom"],
+        "transitions" => ["realTurn" => 2, "rhomTurn" => 8],
     ],
 
     // Final state.

@@ -297,10 +297,10 @@ define([
           if (card.location === "board") {
             this.addTooltip(
               div.id,
-              this.format_string_recursive(_("Hex: ${hex}"), {
-                hex: card.location_arg,
+              this.format_string_recursive(_("Hex: ${log_hex}"), {
+                log_hex: card.location_arg,
               }),
-              "",
+              ""
             );
           }
         },
@@ -809,7 +809,10 @@ define([
               ),
             }
           );
-          this.goi.stocks.tiles.barricade.setCardVisible(tileCard, !!tileCard.type_arg);
+          this.goi.stocks.tiles.barricade.setCardVisible(
+            tileCard,
+            !!tileCard.type_arg
+          );
         }
       }
 
@@ -2371,6 +2374,15 @@ define([
           this.addActionButton("goi_startSolo_btn", _("Start"), "actStartSolo");
         }
 
+        if (stateName === "pickRainbowForRhom") {
+          const pickableGems = args.args.pickableGems;
+          console.log(pickableGems, "pickable");
+  
+          this.generateRainbowOptions(() => {
+            this.actPickRainbowForRhom();
+          }, pickableGems);
+        }
+
         return;
       }
 
@@ -2391,6 +2403,7 @@ define([
             );
           this.updatePageTitle();
         }
+        return;
       }
     },
 
@@ -3394,6 +3407,12 @@ define([
       this.performAction("actStartSolo");
     },
 
+    actPickRainbowForRhom: function () {
+      this.performAction("actPickRainbowForRhom", {
+        gem_id: this.goi.selections.gem,
+      });
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -4104,7 +4123,10 @@ define([
           ),
         }
       );
-      this.goi.stocks.tiles.barricade.setCardVisible(tileCard, !!tileCard.type_arg);
+      this.goi.stocks.tiles.barricade.setCardVisible(
+        tileCard,
+        !!tileCard.type_arg
+      );
     },
 
     /* LOGS MANIPULATION */
@@ -4120,8 +4142,8 @@ define([
         tile_id - 13 * (region_id - 1) - 1
       );
 
-      const hexText = this.format_string_recursive(_("Hex: ${hex}"), {
-        hex: hex,
+      const hexText = this.format_string_recursive(_("Hex: ${log_hex}"), {
+        log_hex: hex,
       });
 
       const hexElement =
@@ -4256,8 +4278,8 @@ define([
             this.registerCustomTooltip(tooltip, elementId);
           }
 
-          if (args.hex) {
-            args.hex = `<span style="font-weight: bold;">${args.hex}</span>`;
+          if (args.log_hex) {
+            args.log_hex = `<span style="font-weight: bold;">${args.log_hex}</span>`;
           }
 
           if (args.relicCard && args.relic_name) {

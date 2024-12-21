@@ -25,6 +25,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
+use BgaUserException;
 
 const ST_PICK_WELL_GEM = 40;
 const ST_TRANSFER_GEM = 31;
@@ -54,6 +55,7 @@ const PROSPEROUS_PICKAXE = "prosperousPickaxe";
 const WISHING_WELL = "wishingWell";
 
 const REAL_TURN = "realTurn";
+const RHOM_FIRST_TURN = "rhomFirstTurn";
 const RHOM_MULTIPLIER = "rhomMultiplier";
 const RHOM_STATS = "rhomStats";
 const RHOM_POSSIBLE_RAINBOW = "rhomPossibleRainbow";
@@ -205,10 +207,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${hex})'),
+            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $emptyHex,
                 "hex" => $emptyHex,
                 "explorerCard" => $explorerCard,
             ]
@@ -239,10 +242,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardTile",
-            clienttranslate('${player_name} discards a ${tile} from the board (hex ${hex})'),
+            clienttranslate('${player_name} discards a ${tile} from the board (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
@@ -667,18 +671,25 @@ class Game extends \Table
         $this->gamestate->nextState("rhomFirstTurn");
     }
 
-    public function actPickRainbowForRhom(?int $clientVersion, #[JsonParam(min: 1, max: 4)] int $gem_id): void
+    public function actPickRainbowForRhom(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id): void
     {
         $this->checkVersion($clientVersion);
 
-        $possibleRainbow = $this->globals->get(RHOM_POSSIBLE_RAINBOW, []);
+        $pickableGems = $this->globals->get(RHOM_POSSIBLE_RAINBOW, []);
 
-        if (!in_array($gem_id, $possibleRainbow)) {
+        if (!in_array($gem_id, $pickableGems)) {
             throw new \BgaVisibleSystemException("You can't pick this gem for the Rhom: $gem_id");
         }
 
         $this->globals->set(RAINBOW_GEM, $gem_id);
         $this->globals->set(RHOM_SKIP, 2);
+        $this->globals->set(RHOM_POSSIBLE_RAINBOW, null);
+
+        if ($this->globals->get(RHOM_FIRST_TURN, true)) {
+            $this->stRhomFirstTurn();
+            return;
+        }
+
         $this->gamestate->nextState("rhomTurn");
     }
 
@@ -746,7 +757,8 @@ class Game extends \Table
 
     public function stRevealTile(): void
     {
-        if ($this->isSolo() && $this->globals->get("rhomFirstTurn", true)) {
+        $rhomFirstTurn = $this->globals->get(RHOM_FIRST_TURN, true) && $this->isSolo();
+        if ($rhomFirstTurn) {
             $this->gamestate->nextState("startSolo");
             return;
         }
@@ -1162,78 +1174,91 @@ class Game extends \Table
 
     public function stRhomFirstTurn(): void
     {
-        $hex_1 = $this->rollDie("1-1", 1, "mining");
-        $hex_2 = $this->rollDie("2-1", 1, "mining");
+        $rhomSkip = $this->globals->get(RHOM_SKIP, 0);
 
-        $weathervaneDirection = $this->weathervaneDirection();
+        if ($rhomSkip === 0) {
+            $hex_1 = $this->rollDie("1-1", 1, "mining");
+            $hex_2 = $this->rollDie("2-1", 1, "mining");
 
-        if ($weathervaneDirection === "right") {
-            if ($hex_1 === 1 || $hex_1 === 6) {
-                $hex_1 = 2;
-            }
+            $weathervaneDirection = $this->weathervaneDirection();
 
-            if ($hex_2 === 1 || $hex_2 === 6) {
-                $hex_2 = 2;
-            }
-        }
-
-        if ($weathervaneDirection === "left") {
-            if ($hex_1 === 1 || $hex_1 === 6) {
-                $hex_1 = 5;
-            }
-
-            if ($hex_2 === 1 || $hex_2 === 6) {
-                $hex_2 = 5;
-            }
-        }
-
-        if ($hex_1 === $hex_2) {
             if ($weathervaneDirection === "right") {
-                $hex_2++;
+                if ($hex_1 === 1 || $hex_1 === 6) {
+                    $hex_1 = 2;
+                }
 
-                if ($hex_2 === 6) {
+                if ($hex_2 === 1 || $hex_2 === 6) {
                     $hex_2 = 2;
                 }
             }
 
             if ($weathervaneDirection === "left") {
-                $hex_2--;
+                if ($hex_1 === 1 || $hex_1 === 6) {
+                    $hex_1 = 5;
+                }
 
-                if ($hex_2 === 1) {
+                if ($hex_2 === 1 || $hex_2 === 6) {
                     $hex_2 = 5;
                 }
             }
+
+            if ($hex_1 === $hex_2) {
+                if ($weathervaneDirection === "right") {
+                    $hex_2++;
+
+                    if ($hex_2 === 6) {
+                        $hex_2 = 2;
+                    }
+                }
+
+                if ($weathervaneDirection === "left") {
+                    $hex_2--;
+
+                    if ($hex_2 === 1) {
+                        $hex_2 = 5;
+                    }
+                }
+            }
+
+            $this->notifyAllPlayers(
+                "syncDieRolls",
+                "",
+                []
+            );
+
+            $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_1");
+            $this->revealTile($tileCard_id, 1);
+
+            $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_2");
+            $this->revealTile($tileCard_id, 1);
         }
-
-        $this->notifyAllPlayers(
-            "syncDieRolls",
-            "",
-            []
-        );
-
-        $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_1");
-        $this->revealTile($tileCard_id, 1);
-
-        $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_2");
-        $this->revealTile($tileCard_id, 1);
 
         $revealedTiles = $this->globals->get(REVEALED_TILES);
         $mostDemandingTiles = $this->mostDemandingTiles($revealedTiles);
 
         $tileCard = reset($mostDemandingTiles);
         $tileCard_id = (int) $tileCard["id"];
-        $this->moveExplorer($tileCard_id, 1);
+
+        if ($rhomSkip <= 1) {
+            $this->moveExplorer($tileCard_id, 1);
+        } else {
+            $this->rhomResolveTileEffect($tileCard);
+        }
+
+        if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
+            return;
+        }
 
         $this->collectTile(1);
 
-        $this->globals->set("rhomFirstTurn", false);
+        $this->globals->set(RHOM_FIRST_TURN, false);
+        $this->globals->set(RHOM_SKIP, 0);
         $this->globals->set(REAL_TURN, true);
         $this->gamestate->nextState("realTurn");
     }
 
     public function stRhomTurn(): void
     {
-
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
         if ($hasReachedCastle) {
             $this->globals->set(REAL_TURN, true);
@@ -1247,21 +1272,23 @@ class Game extends \Table
             $this->rhomRevealTiles();
         }
 
-        if ($rhomSkip <= 1) {
-            $explorableTiles = $this->explorableTiles(1);
-            $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+        $explorableTiles = $this->explorableTiles(1);
+        $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
 
-            foreach ($mostDemandingTiles as $tileCard) {
-                $tileCard_id = (int) $tileCard["id"];
-                $this->moveExplorer($tileCard_id, 1);
-                break;
-            }
+        $tileCard = reset($mostDemandingTiles);
+        $tileCard_id = (int) $tileCard["id"];
+
+        if ($rhomSkip <= 1) {
+            $this->moveExplorer($tileCard_id, 1);
+        } else {
+            $this->rhomResolveTileEffect($tileCard);
         }
 
         $this->rhomRestoreRelic();
         $this->collectTile(1);
         $this->resetExplorer(1);
 
+        $this->globals->set(RHOM_SKIP, 0);
         $this->globals->set(REAL_TURN, true);
         $this->gamestate->nextState("realTurn");
     }
@@ -1270,6 +1297,17 @@ class Game extends \Table
     {
         return [
             "rhom" => "Rhom"
+        ];
+    }
+
+    public function argPickRainbowForRhom(): array
+    {
+        $pickableGems = $this->globals->get(RHOM_POSSIBLE_RAINBOW);
+        asort($pickableGems);
+
+        return [
+            "rhom" => "Rhom",
+            "pickableGems" => $pickableGems,
         ];
     }
 
@@ -1807,13 +1845,16 @@ class Game extends \Table
         $revealedTiles[$tileCard_id] = $tileCard;
         $this->globals->set(REVEALED_TILES, $revealedTiles);
 
+        $hex = (int) $tileCard["location_arg"];
+
         $this->notifyAllPlayers(
             "revealTile",
-            clienttranslate('${player_name} reveals a ${tile} (hex ${hex})'),
+            clienttranslate('${player_name} reveals a ${tile} (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "hex" => $tileCard["location_arg"],
+                "log_hex" => $hex,
+                "hex" => $hex,
                 "tileCard" => $tileCard,
                 "preserve" => ["tileCard"],
                 "i18n" => ["tile"],
@@ -1838,10 +1879,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${hex}) '),
+            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${log_hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
@@ -3763,10 +3805,11 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "rhomBarricade",
-            clienttranslate('${player_name} places a barricade (hex ${hex})'),
+            clienttranslate('${player_name} places a barricade (hex ${log_hex})'),
             [
                 "player_id" => 1,
                 "player_name" => $this->getPlayerOrRhomNameById(1),
+                "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
             ]
@@ -3948,7 +3991,8 @@ class Game extends \Table
 
                 foreach ($gemsDemand as $gem_id => $demand) {
                     if ($demand === $maxDemand) {
-                        $mostDemandingGems[] = $gem_id;
+                        $gemName = $this->gems_info[$gem_id]["name"];
+                        $mostDemandingGems[$gemName] = $gem_id;
                     }
                 }
 
