@@ -936,7 +936,7 @@ $this->items_info = [
     ],
     12 => [
         "name" => "Wishing Well",
-        "tr_name" => clienttranslate("Whising Well"),
+        "tr_name" => clienttranslate("Wishing Well"),
         "content" => clienttranslate("Roll your mining dice. Gain one gem with market value equal to or lower than one of your dice."),
         "cost" => 5,
     ]
