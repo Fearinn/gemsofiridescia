@@ -113,6 +113,7 @@
   </div>
   <div id="goi_itemsZone" class="goi_itemsZone whiteblock">
     <div id="goi_void" class="goi_void"></div>
+    <div id="goi_tooltips" class="goi_tooltips"></div>
     <div class="goi_itemsContainer">
       <h3 id="goi_activeItemsTitle" class="goi_zoneTitle"></h3>
       <div id="goi_activeItems" class="goi_activeItems"></div>
