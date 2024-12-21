@@ -3619,6 +3619,7 @@ class Game extends \Table
             }
 
             $rhomStats[$statName] += $delta;
+            $this->globals->set(RHOM_STATS, $rhomStats);
             return;
         }
 
@@ -3630,6 +3631,7 @@ class Game extends \Table
         if ($this->isSolo() && $player_id === 1) {
             $rhomStats = $this->globals->get(RHOM_STATS, []);
             $rhomStats[$statName] = $value;
+            $this->globals->set(RHOM_STATS, $rhomStats);
             return;
         }
 
