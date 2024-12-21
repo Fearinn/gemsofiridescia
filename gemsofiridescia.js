@@ -668,6 +668,11 @@ define([
       /* BOARDS */
 
       /* tiles */
+      this.goi.stocks.tiles.void = new VoidStock(
+        this.goi.managers.tiles,
+        document.getElementById("goi_void")
+      );
+      
       this.goi.stocks.tiles.board = new CardStock(
         this.goi.managers.tiles,
         document.getElementById("goi_board"),
@@ -1211,11 +1216,6 @@ define([
           this.goi.stocks[player_id].tiles.victoryPile.addCard(tileCard);
         }
 
-        this.goi.stocks[player_id].tiles.void = new VoidStock(
-          this.goi.managers.tiles,
-          document.getElementById("goi_void")
-        );
-
         /* ROYALTY TOKENS */
 
         this.goi.stocks[player_id].gems.iridiaStone = new CardStock(
@@ -1347,7 +1347,7 @@ define([
       /* RELICS */
       this.goi.stocks.relics.tooltips = new CardStock(
         this.goi.managers.relics,
-        document.getElementById("goi_void")
+        document.getElementById("goi_tooltips")
       );
 
       for (const relic_id in this.goi.info.relics) {
@@ -1418,7 +1418,7 @@ define([
 
       this.goi.stocks.objectives.tooltips = new CardStock(
         this.goi.managers.objectives,
-        document.getElementById("goi_void")
+        document.getElementById("goi_tooltips")
       );
 
       for (const objective_id in this.goi.info.objectives) {
@@ -1442,7 +1442,7 @@ define([
 
       this.goi.stocks.items.tooltips = new CardStock(
         this.goi.managers.items,
-        document.getElementById("goi_void")
+        document.getElementById("goi_tooltips")
       );
 
       for (const item_id in this.goi.info.items) {
@@ -3307,10 +3307,9 @@ define([
     },
 
     notif_discardCollectedTile: function (notif) {
-      const player_id = notif.args.player_id;
       const tileCard = notif.args.tileCard;
 
-      this.goi.stocks[player_id].tiles.void.addCard(tileCard);
+      this.goi.stocks.tiles.void.addCard(tileCard);
     },
 
     notif_discardTile: function (notif) {
