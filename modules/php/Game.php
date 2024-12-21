@@ -56,6 +56,8 @@ const WISHING_WELL = "wishingWell";
 const REAL_TURN = "realTurn";
 const RHOM_MULTIPLIER = "rhomMultiplier";
 const RHOM_STATS = "rhomStats";
+const RHOM_POSSIBLE_RAINBOW = "rhomPossibleRainbow";
+const RHOM_SKIP = "rhomSkip";
 
 class Game extends \Table
 {
@@ -658,9 +660,26 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
+    /* SOLO MODE */
+
     public function actStartSolo(): void
     {
         $this->gamestate->nextState("rhomFirstTurn");
+    }
+
+    public function actPickRainbowForRhom(?int $clientVersion, #[JsonParam(min: 1, max: 4)] int $gem_id): void
+    {
+        $this->checkVersion($clientVersion);
+
+        $possibleRainbow = $this->globals->get(RHOM_POSSIBLE_RAINBOW, []);
+
+        if (!in_array($gem_id, $possibleRainbow)) {
+            throw new \BgaVisibleSystemException("You can't pick this gem for the Rhom: $gem_id");
+        }
+
+        $this->globals->set(RAINBOW_GEM, $gem_id);
+        $this->globals->set(RHOM_SKIP, 2);
+        $this->gamestate->nextState("rhomTurn");
     }
 
     /**
@@ -1201,11 +1220,9 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES);
         $mostDemandingTiles = $this->mostDemandingTiles($revealedTiles);
 
-        foreach ($mostDemandingTiles as $tileCard) {
-            $tileCard_id = (int) $tileCard["id"];
-            $this->moveExplorer($tileCard_id, 1);
-            break;
-        }
+        $tileCard = reset($mostDemandingTiles);
+        $tileCard_id = (int) $tileCard["id"];
+        $this->moveExplorer($tileCard_id, 1);
 
         $this->collectTile(1);
 
@@ -1216,6 +1233,7 @@ class Game extends \Table
 
     public function stRhomTurn(): void
     {
+
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
         if ($hasReachedCastle) {
             $this->globals->set(REAL_TURN, true);
@@ -1223,15 +1241,21 @@ class Game extends \Table
             return;
         }
 
-        $this->rhomRevealTiles();
+        $rhomSkip = $this->globals->get(RHOM_SKIP, 0);
 
-        $explorableTiles = $this->explorableTiles(1);
-        $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+        if ($rhomSkip === 0) {
+            $this->rhomRevealTiles();
+        }
 
-        foreach ($mostDemandingTiles as $tileCard) {
-            $tileCard_id = (int) $tileCard["id"];
-            $this->moveExplorer($tileCard_id, 1);
-            break;
+        if ($rhomSkip <= 1) {
+            $explorableTiles = $this->explorableTiles(1);
+            $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+
+            foreach ($mostDemandingTiles as $tileCard) {
+                $tileCard_id = (int) $tileCard["id"];
+                $this->moveExplorer($tileCard_id, 1);
+                break;
+            }
         }
 
         $this->rhomRestoreRelic();
@@ -1809,7 +1833,8 @@ class Game extends \Table
         $hex = (int) $tileCard["location_arg"];
 
         $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $this->explorer_cards->moveCard($explorerCard["id"], "board", $hex);
+        $explorerCard_id = (int) $explorerCard["id"];
+        $this->explorer_cards->moveCard($explorerCard_id, "board", $hex);
 
         $this->notifyAllPlayers(
             "moveExplorer",
@@ -3910,10 +3935,31 @@ class Game extends \Table
         $gem_id = $tile_info["gem"];
         $tileEffect_id = $tile_info["effect"];
 
+        $rainbowGem = $this->globals->get(RAINBOW_GEM);
+
         if ($gem_id % 10 === 0) {
-            $gemsDemand = $this->gemsDemand();
-            $k_gemsDemand = array_keys($gemsDemand);
-            $gem_id = reset($k_gemsDemand);
+            if ($rainbowGem) {
+                $gem_id = $rainbowGem;
+            } else {
+                $gemsDemand = $this->gemsDemand();
+
+                $maxDemand = max($gemsDemand);
+                $mostDemandingGems = [];
+
+                foreach ($gemsDemand as $gem_id => $demand) {
+                    if ($demand === $maxDemand) {
+                        $mostDemandingGems[] = $gem_id;
+                    }
+                }
+
+                if (count($mostDemandingGems) === 1) {
+                    $gem_id = reset($mostDemandingGems);
+                } else {
+                    $this->globals->set(RHOM_POSSIBLE_RAINBOW, $mostDemandingGems);
+                    $this->gamestate->nextState("pickRainbowForRhom");
+                    return;
+                }
+            }
         }
 
         $rhomMultiplier = $this->globals->get(RHOM_MULTIPLIER, 1);

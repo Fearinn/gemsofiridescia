@@ -195,7 +195,7 @@ $machinestates = [
 
     8 => [
         "name" => "rhomTurn",
-        "description" => clienttranslate('${rhom} is playing its turn'),
+        "description" => clienttranslate('The ${rhom} is playing its turn'),
         "type" => "game",
         "args" => "argRhomTurn",
         "action" => "stRhomTurn",
@@ -213,8 +213,18 @@ $machinestates = [
 
     81 => [
         "name" => "rhomFirstTurn",
-        "description" => clienttranslate('${rhom} is playing its first turn'),
+        "description" => clienttranslate('The ${rhom} is playing its first turn'),
         "type" => "game",
+        "args" => "argRhomTurn",
+        "action" => "stRhomFirstTurn",
+        "transitions" => ["realTurn" => 2],
+    ],
+
+    82 => [
+        "name" => "pickRainbowForRhom",
+        "description" => clienttranslate('${actplayer} must pick a gem for the ${rhom}'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a gem for the ${rhom}'),
+        "type" => "activeplayer",
         "args" => "argRhomTurn",
         "action" => "stRhomFirstTurn",
         "transitions" => ["realTurn" => 2],

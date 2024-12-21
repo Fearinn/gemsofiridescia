@@ -3929,7 +3929,7 @@ define([
       this.goi.stocks.explorers.board.addCard(
         currentExplorerCard,
         {
-          forceToElement: document.getElementById(
+          fromElement: document.getElementById(
             `goi_tileContainer-${currentHex}`
           ),
         },
@@ -3943,7 +3943,7 @@ define([
       this.goi.stocks.explorers.board.addCard(
         opponentExplorerCard,
         {
-          forceToElement: document.getElementById(
+          fromElement: document.getElementById(
             `goi_tileContainer-${opponentHex}`
           ),
         },
