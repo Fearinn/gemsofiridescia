@@ -1242,7 +1242,7 @@ class Game extends \Table
         }
 
         $explorableTiles = $this->explorableTiles(1);
-        
+
         if (!$explorableTiles) {
             $this->gamestate->nextState("discardTileForRhom");
             return;
@@ -3929,6 +3929,20 @@ class Game extends \Table
         }
     }
 
+    public function compareHexesByWeathervane(int $hex, int $otherHex): int
+    {
+        $column = $this->hexes_info[$hex]["column"];
+        $otherColumn = $this->hexes_info[$otherHex]["column"];
+
+        $weathervaneDirection = $this->weathervaneDirection();
+
+        if ($weathervaneDirection === "left") {
+            return $column <=> $otherColumn;
+        }
+
+        return $otherColumn <=> $column;
+    }
+
     public function mostDemandingTiles(array $tileCards): array
     {
         $mostDemandingTiles = [];
@@ -3969,49 +3983,10 @@ class Game extends \Table
 
         if (count($mostDemandingTiles) > 1) {
             usort($mostDemandingTiles, function ($tileCard, $otherTileCard) {
-                $explorerCard = $this->getExplorerByPlayerId(1);
-
-                $currentHex = (int) $explorerCard["location_arg"];
                 $hex = (int) $tileCard["location_arg"];
                 $otherHex = (int) $otherTileCard["location_arg"];
 
-                $weathervaneDirection = $this->weathervaneDirection();
-
-                if ($explorerCard["location"] === "scene") {
-                    if ($weathervaneDirection === "left") {
-                        return $hex <=> $otherHex;
-                    }
-
-                    return $otherHex <=> $hex;
-                }
-
-                $ascending = $weathervaneDirection === "left" ? -1 : 1;
-                $descending = -$ascending;
-
-                if ($hex === $currentHex - 1) {
-                    return $ascending;
-                }
-
-                if ($hex === $currentHex + 1) {
-                    return $descending;
-                }
-
-                if ($hex === $currentHex + 6) {
-                    if ($otherHex === $currentHex - 1) {
-                        return $descending;
-                    }
-                    return $ascending;
-                }
-
-                if ($hex === $currentHex + 7) {
-                    if ($otherHex === $currentHex + 1) {
-                        return $ascending;
-                    }
-
-                    return $descending;
-                }
-
-                return 0;
+                return $this->compareHexesByWeathervane($hex, $otherHex);
             });
         }
 
