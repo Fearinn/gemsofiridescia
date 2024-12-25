@@ -183,39 +183,8 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("You can't move your explorer to this empty tile now: actDiscardCollectedTile, $emptyHex");
         }
 
-        $tileCard = $this->tile_cards->getCard($tileCard_id);
-
-        $this->checkCardLocation($tileCard, "hand", $player_id);
-
-        $this->tile_cards->moveCard($tileCard_id, "discard");
-
-        $this->notifyAllPlayers(
-            "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "tileCard" => $tileCard,
-                "preserve" => ["tileCard"],
-                "i18n" => ["tile"],
-                "tile" => clienttranslate("tile"),
-            ]
-        );
-
-        $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$emptyHex WHERE card_type_arg=$player_id");
-
-        $this->notifyAllPlayers(
-            "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "log_hex" => $emptyHex,
-                "hex" => $emptyHex,
-                "explorerCard" => $explorerCard,
-            ]
-        );
+        $this->discardCollectedTile($tileCard_id, $player_id);
+        $this->moveToEmptyHex($emptyHex, $player_id);
 
         $this->globals->set(HAS_EXPANDED_TILES, true);
         $this->gamestate->nextState("revealTile");
@@ -1273,6 +1242,12 @@ class Game extends \Table
         }
 
         $explorableTiles = $this->explorableTiles(1);
+        
+        if (!$explorableTiles) {
+            $this->gamestate->nextState("discardTileForRhom");
+            return;
+        }
+
         $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
 
         $tileCard = reset($mostDemandingTiles);
@@ -1309,6 +1284,38 @@ class Game extends \Table
             "rhom" => "Rhom",
             "pickableGems" => $pickableGems,
         ];
+    }
+
+    public function argDiscardTileForRhom(): array
+    {
+        $collectedTiles = $this->getCollectedTiles(1);
+        $auto = count($collectedTiles) === 1;
+
+        return [
+            "collectedTiles" => $collectedTiles,
+            "auto" => $auto,
+            "no_notify" => $auto,
+        ];
+    }
+
+    public function stDiscardTileForRhom(): void
+    {
+        $args = $this->argDiscardTileForRhom();
+
+        if ($args["no_notify"]) {
+            if ($args["auto"]) {
+                $collectedTiles = $args["collectedTiles"];
+
+                $tileCard = reset($collectedTiles);
+                $tileCard_id = (int) $tileCard["id"];
+
+                $this->discardCollectedTile($tileCard_id, 1);
+                $this->rhomMoveToEmptyHex();
+
+                $this->$this->gamestate->nextState("rhomTurn");
+                return;
+            }
+        }
     }
 
     /**
@@ -1749,6 +1756,26 @@ class Game extends \Table
         return $explorableTiles;
     }
 
+    public function discardCollectedTile(int $tileCard_id, int $player_id): void
+    {
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+        $this->checkCardLocation($tileCard, "hand", $player_id);
+        $this->tile_cards->moveCard($tileCard_id, "discard");
+
+        $this->notifyAllPlayers(
+            "discardCollectedTile",
+            clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard"],
+                "i18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
+            ]
+        );
+    }
+
     public function closestEmpty(int $player_id, array $adjacentHexes): array
     {
         $emptyWithAdjacent = [];
@@ -1782,6 +1809,24 @@ class Game extends \Table
     {
         $adjacentHexes = $this->adjacentTiles($player_id, null, true);
         return $this->closestEmpty($player_id, $adjacentHexes);
+    }
+
+    public function moveToEmptyHex(int $emptyHex, int $player_id)
+    {
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$emptyHex WHERE card_type_arg=$player_id");
+
+        $this->notifyAllPlayers(
+            "moveExplorer",
+            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $emptyHex,
+                "hex" => $emptyHex,
+                "explorerCard" => $explorerCard,
+            ]
+        );
     }
 
     public function expandedCatapultableHexes(int $player_id, array $adjacentHexes): array
@@ -3841,7 +3886,8 @@ class Game extends \Table
         return $gemsDemand;
     }
 
-    public function rhomDiscardGems(int $newGem): void {
+    public function rhomDiscardGems(int $newGem): void
+    {
         $excessGems = $this->getTotalGemsCount(1) - 7;
         $gemsCounts = $this->getGemsCounts(1, true);
 
@@ -3874,7 +3920,7 @@ class Game extends \Table
 
             $this->discardGems(1, null, $gem_id, $discardedCount);
             $this->incRoyaltyPoints($points, 1);
-            
+
             $excessGems -= $discardedCount;
 
             if ($excessGems === 0) {
@@ -4086,6 +4132,14 @@ class Game extends \Table
         if ($gem_id === 10) {
             $this->obtainIridiaStone(1);
         }
+    }
+
+    public function rhomMoveToEmptyHex(): void
+    {
+        $emptyHexes = $this->emptyHexes(1);
+        $emptyHex = reset($emptyHexes);
+
+        $this->moveToEmptyHex($emptyHex, 1);
     }
 
     public function rhomRestoreRelic(): void

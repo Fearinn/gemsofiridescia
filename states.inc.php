@@ -230,6 +230,17 @@ $machinestates = [
         "transitions" => ["realTurn" => 2, "rhomTurn" => 8],
     ],
 
+    83 => [
+        "name" => "discardTileForRhom",
+        "description" => clienttranslate('${actplayer} must discard a tile from the ${rhom}&apos;s victory pile'),
+        "descriptionmyturn" => clienttranslate('${you} must discard a tile from the ${rhom}&apos;s victory pile'),
+        "type" => "activeplayer",
+        "args" => "argDiscardTileForRhom",
+        "action" => "stDiscardTileForRhom",
+        "possibleactions" => ["actDiscardTileForRhom"],
+        "transitions" => ["realTurn" => 2, "rhomTurn" => 8],
+    ],
+
     // Final state.
     // Please do not modify (and do not overload action/args methods).
     99 => [
