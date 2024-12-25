@@ -633,7 +633,7 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
-    /* SOLO MODE */
+    /* SOLO ACTIONS */
 
     public function actStartSolo(): void
     {
@@ -658,6 +658,16 @@ class Game extends \Table
             $this->stRhomFirstTurn();
             return;
         }
+
+        $this->gamestate->nextState("rhomTurn");
+    }
+
+    public function actDiscardTileForRhom(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    {
+        $this->checkVersion($clientVersion);
+
+        $this->discardCollectedTile($tileCard_id, 1);
+        $this->rhomMoveToEmptyHex();
 
         $this->gamestate->nextState("rhomTurn");
     }
@@ -1292,6 +1302,7 @@ class Game extends \Table
         $auto = count($collectedTiles) === 1;
 
         return [
+            "rhom" => "Rhom",
             "collectedTiles" => $collectedTiles,
             "auto" => $auto,
             "no_notify" => $auto,
@@ -1309,10 +1320,7 @@ class Game extends \Table
                 $tileCard = reset($collectedTiles);
                 $tileCard_id = (int) $tileCard["id"];
 
-                $this->discardCollectedTile($tileCard_id, 1);
-                $this->rhomMoveToEmptyHex();
-
-                $this->$this->gamestate->nextState("rhomTurn");
+                $this->actDiscardTileForRhom(null, $tileCard_id);
                 return;
             }
         }
@@ -1814,7 +1822,8 @@ class Game extends \Table
     public function moveToEmptyHex(int $emptyHex, int $player_id)
     {
         $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$emptyHex WHERE card_type_arg=$player_id");
+        $explorerCard_id = (int) $explorerCard["id"];
+        $this->explorer_cards->moveCard($explorerCard_id, "board", $emptyHex);
 
         $this->notifyAllPlayers(
             "moveExplorer",
@@ -4112,8 +4121,11 @@ class Game extends \Table
     public function rhomMoveToEmptyHex(): void
     {
         $emptyHexes = $this->emptyHexes(1);
-        $emptyHex = reset($emptyHexes);
+        usort($emptyHexes, function (int $hex, int $otherHex) {
+            return $this->compareHexesByWeathervane($hex, $otherHex);
+        });
 
+        $emptyHex = reset($emptyHexes);
         $this->moveToEmptyHex($emptyHex, 1);
     }
 
@@ -4441,7 +4453,7 @@ class Game extends \Table
                     $playerBoards[$player_id] = (int) $explorerCard["type_arg"];
 
                     $this->explorer_cards->moveCard($explorerCard_id, "scene", $player_id);
-                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$explorerCard_id'");
+                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id=$explorerCard_id");
                 }
             }
         }
@@ -4451,7 +4463,7 @@ class Game extends \Table
             $playerBoards[1] = (int) $explorerCard["type_arg"];
 
             $this->explorer_cards->moveCard($explorerCard_id, "scene", 1);
-            $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id='$explorerCard_id'");
+            $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id=$explorerCard_id");
 
             $rhomCards = [];
             foreach ($this->rhom_info as $rhom_id => $rhom_info) {

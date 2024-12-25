@@ -199,7 +199,7 @@ $machinestates = [
         "type" => "game",
         "args" => "argRhomTurn",
         "action" => "stRhomTurn",
-        "transitions" => ["realTurn" => 2],
+        "transitions" => ["realTurn" => 2, "pickRainbowForRhom" => 82, "discardTileForRhom" => 83],
     ],
 
     80 => [

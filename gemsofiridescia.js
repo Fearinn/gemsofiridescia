@@ -712,7 +712,7 @@ define([
         this.goi.managers.tiles,
         document.getElementById("goi_void")
       );
-      
+
       this.goi.stocks.tiles.board = new CardStock(
         this.goi.managers.tiles,
         document.getElementById("goi_board"),
@@ -2376,11 +2376,15 @@ define([
 
         if (stateName === "pickRainbowForRhom") {
           const pickableGems = args.args.pickableGems;
-          console.log(pickableGems, "pickable");
-  
+
           this.generateRainbowOptions(() => {
             this.actPickRainbowForRhom();
           }, pickableGems);
+        }
+
+        if (stateName === "discardTileForRhom") {
+          const bot = this.goi.bot;
+          this.goi.stocks[bot.id].tiles.victoryPile.setSelectionMode("single");
         }
 
         return;
@@ -2534,6 +2538,11 @@ define([
       if (stateName === "restoreRelic") {
         this.goi.stocks.relics.market.setSelectionMode("none");
         this.goi.stocks[this.player_id].relics.book.setSelectionMode("none");
+      }
+
+      if (stateName === "discardTileForRhom") {
+        const bot = this.goi.bot;
+        this.goi.stocks[bot.id].tiles.victoryPile.setSelectionMode("none");
       }
     },
 
@@ -2790,6 +2799,12 @@ define([
             });
           });
           return;
+        }
+      }
+
+      if (stateName === "discardTileForRhom") {
+        if (this.goi.selections.tile) {
+          this.addActionButton(elementId, message, "actDiscardTileForRhom");
         }
       }
 
@@ -3410,6 +3425,12 @@ define([
     actPickRainbowForRhom: function () {
       this.performAction("actPickRainbowForRhom", {
         gem_id: this.goi.selections.gem,
+      });
+    },
+
+    actDiscardTileForRhom: function () {
+      this.performAction("actDiscardTileForRhom", {
+        tileCard_id: this.goi.selections.tile.id,
       });
     },
 
