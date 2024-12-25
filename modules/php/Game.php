@@ -3856,12 +3856,9 @@ class Game extends \Table
             return;
         }
 
-        $gemsDemand = $this->gemsDemand();
-        arsort($gemsDemand);
+        arsort($gemsCounts);
 
-        foreach ($gemsDemand as $gem_id => $demand) {
-            $gemCount = $gemsCounts[$gem_id];
-
+        foreach ($gemsCounts as $gem_id => $gemCount) {
             if ($gemCount === 0 || $gem_id === $newGem) {
                 continue;
             }
