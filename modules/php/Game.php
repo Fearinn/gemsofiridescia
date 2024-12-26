@@ -1248,7 +1248,9 @@ class Game extends \Table
         $rhomSkip = $this->globals->get(RHOM_SKIP, 0);
 
         if ($rhomSkip === 0) {
-            $this->rhomRevealTiles();
+            if (!$this->rhomRevealTiles()) {
+                return;
+            }
         }
 
         $explorableTiles = $this->explorableTiles(1);
@@ -4002,36 +4004,52 @@ class Game extends \Table
         return $mostDemandingTiles;
     }
 
-    public function rhomRevealTiles(): void
+    public function rhomRevealableTiles(): array
     {
-        $rhomCard = $this->rhomDrawCard();
-        $rhom_id = (int) $rhomCard["type_arg"];
-
-        $directions = $this->rhom_info[$rhom_id]["directions"];
-        asort($directions);
+        $revealableTiles = [];
 
         $revealedTiles = $this->globals->get(REVEALED_TILES);
         $adjacentTiles = $this->adjacentTiles(1, null, false, true, true);
 
-        $revealsLimit = 0;
-        foreach ($directions as $direction => $order) {
-            $tileCard = null;
-            foreach ($adjacentTiles as $tileDirection => $l_tileCard) {
-                if ($direction === $tileDirection) {
-                    $tileCard = $l_tileCard;
-                    break;
-                }
-            }
-
+        foreach ($adjacentTiles as $direction => $tileCard) {
             if ($tileCard === null) {
                 continue;
             }
 
             $tileCard_id = (int) $tileCard["id"];
 
-            if (array_key_exists($tileCard_id, $revealedTiles)) {
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
+                $revealableTiles[$direction] = $tileCard;
+            }
+        }
+
+        return $revealableTiles;
+    }
+
+    public function rhomRevealTiles(): bool
+    {
+        $revealableTiles = $this->rhomRevealableTiles();
+        $explorableTiles = $this->explorableTiles(1);
+
+        if (!$revealableTiles && !$explorableTiles) {
+            $this->gamestate->nextState("discardTileForRhom");
+            return false;
+        }
+
+        $rhomCard = $this->rhomDrawCard();
+        $rhom_id = (int) $rhomCard["type_arg"];
+
+        $directions = $this->rhom_info[$rhom_id]["directions"];
+        asort($directions);
+
+        $revealsLimit = 0;
+        foreach ($directions as $direction => $order) {
+            if (!array_key_exists($direction, $revealableTiles)) {
                 continue;
             }
+
+            $tileCard = $revealableTiles[$direction];
+            $tileCard_id = (int) $tileCard["id"];
 
             $this->revealTile($tileCard_id, 1);
             $revealsLimit++;
@@ -4040,6 +4058,8 @@ class Game extends \Table
                 break;
             }
         }
+
+        return true;
     }
 
     public function rhomResolveTileEffect(array $tileCard): void
