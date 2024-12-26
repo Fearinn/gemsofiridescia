@@ -1368,7 +1368,7 @@ class Game extends \Table
             }
 
             $hex = (int) $explorerCard["location_arg"];
-            $tileRow = $this->hexRow($hex);
+            $tileRow = $this->hexes_info[$hex]["row"];
 
             $progression += $tileRow / 9;
         }
@@ -1574,20 +1574,6 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function hexRow(int $hex): int
-    {
-        $remainingHexes = $hex;
-
-        for ($row = 1; $remainingHexes >= 0; $row++) {
-            $hexesInRow = $row % 2 === 0 ? 7 : 6;
-            $remainingHexes -= $hexesInRow;
-
-            if ($remainingHexes <= 0) {
-                return $row;
-            }
-        }
-    }
-
     public function adjacentTiles(int $player_id, int $hex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true, bool $withDirections = false): array
     {
         $adjacentTiles = [];
@@ -1611,7 +1597,7 @@ class Game extends \Table
             $hex = (int) $explorerCard["location_arg"];
         }
 
-        $tileRow = (int) $this->hexRow($hex);
+        $tileRow = $this->hexes_info[$hex]["row"];
 
         $leftHex = $hex - 1;
         $rightHex = $hex + 1;
@@ -3833,7 +3819,7 @@ class Game extends \Table
         $explorerCard = $this->getExplorerByPlayerId($player_id);
 
         $hex = (int) $explorerCard["location_arg"];
-        $row = $this->hexRow($hex) + 1;
+        $row = $this->hexes_info[$hex]["row"] + 1;
 
         if ($explorerCard["location"] === "scene") {
             $row = 1;
