@@ -1626,7 +1626,12 @@ define([
         xclone = xclone.replaceAll(realPlayer.id, bot.id);
         xclone = xclone.replaceAll(realPlayer.name, bot.name);
         xclone = xclone.replaceAll(realPlayer.color, bot.color);
-        dojo.place(xclone, "player_boards", "last");
+
+        xclone = xclone.replaceAll("<a", "<span");
+        xclone = xclone.replaceAll("</a>", "</span>");
+        xclone = xclone.replaceAll("bga-flag", "");
+
+        document.getElementById("player_boards").insertAdjacentHTML("beforeend", xclone);
 
         document.getElementById(
           `avatar_${bot.id}`
