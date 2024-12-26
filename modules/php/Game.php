@@ -736,7 +736,9 @@ class Game extends \Table
 
     public function stRevealTile(): void
     {
-        $rhomFirstTurn = $this->globals->get(RHOM_FIRST_TURN, true) && $this->isSolo();
+        $isSolo = $this->isSolo();
+        $rhomFirstTurn = $isSolo && $this->globals->get(RHOM_FIRST_TURN, true);
+
         if ($rhomFirstTurn) {
             $this->gamestate->nextState("startSolo");
             return;
@@ -746,6 +748,14 @@ class Game extends \Table
 
         if ($args["_no_notify"]) {
             if ($args["hasReachedCastle"]) {
+                if ($isSolo) {
+                    $rhomReachedSolo = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
+                    if ($rhomReachedSolo) {
+                        $this->gamestate->nextState("finalScoring");
+                        return;
+                    }
+                }
+
                 $this->gamestate->nextState("discardTile");
                 return;
             }
@@ -4289,7 +4299,8 @@ class Game extends \Table
         $this->reshuffleRhomDeck();
     }
 
-    public function debug_barricadeTile(int $hex): void {
+    public function debug_barricadeTile(int $hex): void
+    {
         $this->DbQuery("UPDATE tile SET card_location='barricade' WHERE card_location='board' AND card_location_arg=$hex");
     }
 
