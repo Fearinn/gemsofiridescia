@@ -357,7 +357,7 @@ class Game extends \Table
                 clienttranslate('${player_name} fails to mine his tile'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerOrRhomNameById($player_id)
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 ]
             );
 
@@ -1134,10 +1134,12 @@ class Game extends \Table
 
             $this->notifyAllPlayers(
                 "passTurn",
-                clienttranslate('${player_name} ends his turn'),
+                clienttranslate('${player_name} ends ${his} turn'),
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                    "his" => $this->pronoun($player_id),
+                    "i18n" => ["his"],
                 ]
             );
 
@@ -1771,13 +1773,14 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
+            clienttranslate('${player_name} discards a collected ${tile} to unblock ${his} moves'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "tileCard" => $tileCard,
+                "his" => $this->pronoun($player_id),
+                "i18n" => ["his, tile"],
                 "preserve" => ["tileCard"],
-                "i18n" => ["tile"],
+                "tileCard" => $tileCard,
                 "tile" => clienttranslate("tile"),
             ]
         );
@@ -1826,13 +1829,15 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
+            clienttranslate('${player_name} moves ${his} explorer onto an empty tile (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "his" => $this->pronoun($player_id),
                 "log_hex" => $emptyHex,
                 "hex" => $emptyHex,
                 "explorerCard" => $explorerCard,
+                "i18n" => ["his"],
             ]
         );
     }
@@ -1932,7 +1937,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "moveExplorer",
-            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${log_hex}) '),
+            clienttranslate('${player_name} moves ${his} explorer onto a new ${tile} (hex ${log_hex}) '),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -1940,6 +1945,8 @@ class Game extends \Table
                 "hex" => $hex,
                 "tileCard" => $tileCard,
                 "explorerCard" => $explorerCard,
+                "his" => $this->pronoun($player_id),
+                "i18n" => ["his"],
                 "preserve" => ["tileCard"],
                 "tile" => clienttranslate("tile"),
             ]
@@ -3647,6 +3654,10 @@ class Game extends \Table
     }
 
     /* SOLO UTILITY */
+    public function pronoun(int $player_id) {
+        return $player_id === 1 ? clienttranslate("its") : clienttranslate("his");
+    }
+
     public function getStatWithRhom(string $statName, int $player_id = null): int
     {
         if ($this->isSolo() && $player_id === 1) {
