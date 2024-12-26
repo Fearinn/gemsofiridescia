@@ -232,8 +232,8 @@ $machinestates = [
 
     83 => [
         "name" => "discardTileForRhom",
-        "description" => clienttranslate('${actplayer} must discard a tile from the ${rhom}&apos;s victory pile'),
-        "descriptionmyturn" => clienttranslate('${you} must discard a tile from the ${rhom}&apos;s victory pile'),
+        "description" => clienttranslate('The {rhom} is out of legal moves. ${actplayer} must discard a tile from its Victory Pile'),
+        "descriptionmyturn" => clienttranslate('The ${rhom} is out of legal moves. ${you} must discard a tile from its Victory Pile'),
         "type" => "activeplayer",
         "args" => "argDiscardTileForRhom",
         "action" => "stDiscardTileForRhom",
