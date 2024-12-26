@@ -1434,6 +1434,10 @@ class Game extends \Table
 
     public function checkPlayer($player_id): void
     {
+        if ($this->isSolo() && $player_id === 1) {
+            return;
+        }
+
         $players = $this->loadPlayersNoZombie();
 
         if ($player_id && !array_key_exists($player_id, $players)) {
@@ -2415,13 +2419,20 @@ class Game extends \Table
         return $minedGemsCount;
     }
 
-    public function availableCargos(int $current_player_id = null, int $excendent = 1): array
+    public function availableCargos(int $current_player_id = null, int $excess = 1): array
     {
+        if ($this->isSolo()) {
+            if ($this->getTotalGemsCount(1) + $excess <= 7) {
+                return [1];
+            }
+            return [];
+        }
+
         $players = $this->loadPlayersNoZombie();
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
+            if ($this->getTotalGemsCount($player_id) + $excess <= 7 && $player_id !== $current_player_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -2461,8 +2472,8 @@ class Game extends \Table
                 [
                     "player_id" => $player_id,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                    "player_id2" => $opponent_id,
                     "player_name2" => $this->getPlayerOrRhomNameById($opponent_id),
+                    "player_id2" => $opponent_id,
                     "delta" => $delta,
                     "gem_label" => $gem_info["tr_name"],
                     "gemName" => $gemName,
@@ -3654,7 +3665,8 @@ class Game extends \Table
     }
 
     /* SOLO UTILITY */
-    public function pronoun(int $player_id) {
+    public function pronoun(int $player_id)
+    {
         return $player_id === 1 ? clienttranslate("its") : clienttranslate("his");
     }
 
@@ -4129,12 +4141,12 @@ class Game extends \Table
                 if ($publicStoneDiceCount === 0) {
                     $this->notifyAllPlayers(
                         "message",
-                        clienttranslate('${player_name} does not roll a die because all Stone Dice are with ${player_name2}'),
+                        clienttranslate('${player_name2} does not roll a die because all Stone Dice are with ${player_name}'),
                         [
-                            "player_id" => 1,
-                            "player_name" => $this->getPlayerOrRhomNameById(1),
-                            "player_id2" => $player_id,
-                            "player_name2" => $this->getPlayerOrRhomNameById($player_id)
+                            "player_id" => $player_id,
+                            "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                            "player_id2" => 1,
+                            "player_name2" => $this->getPlayerOrRhomNameById(1),
                         ]
                     );
                     return;

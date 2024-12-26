@@ -1686,7 +1686,6 @@ define([
         }
 
         const rhomDeckTop = this.goi.globals.rhomDeckTop;
-        console.log(rhomDeckTop);
         this.goi.stocks.rhom.deck.addCard(rhomDeckTop);
         this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
 
@@ -4269,17 +4268,22 @@ define([
         if (log && args && !args.processed) {
           args.processed = true;
 
-          const botColor = this.goi.bot.color;
-          if (args.rhom) {
-            args.rhom = `<span style="font-weight: bold; color: #${botColor}">Rhom</span>`;
-          }
+          if (this.goi.globals.isSolo) {
+            const bot_id = this.goi.bot.id;
+            const botColor = this.goi.bot.color;
+            const botName = this.goi.bot.name;
 
-          if (
-            args.player_name &&
-            args.player_id == 1 &&
-            this.goi.globals.isSolo
-          ) {
-            args.player_name = `<!--PNS--><span class="playername" style="color: #${botColor}">Rhom</span><!--PNE-->`;
+            if (args.rhom) {
+              args.rhom = `<span style="font-weight: bold; color: #${botColor}">${botName}</span>`;
+            }
+
+            if (args.player_name && args.player_id == bot_id) {
+              args.player_name = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
+            }
+
+            if (args.player_name2 && args.player_name2.includes(`>${botName}</`)) {
+              args.player_name2 = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
+            }
           }
 
           if (args.tile && args.tileCard) {
