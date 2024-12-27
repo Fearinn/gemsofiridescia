@@ -3850,10 +3850,11 @@ class Game extends \Table
         $explorerCard = $this->getExplorerByPlayerId($player_id);
 
         $hex = (int) $explorerCard["location_arg"];
-        $row = $this->hexes_info[$hex]["row"] + 1;
 
         if ($explorerCard["location"] === "scene") {
             $row = 1;
+        } else {
+            $row = $this->hexes_info[$hex]["row"] + 1;
         }
 
         $hexesInRow = $this->rows_info[$row];
