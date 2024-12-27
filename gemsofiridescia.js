@@ -2575,7 +2575,7 @@ define([
       this.goi.stocks[player_id].gems.cargo.addCard(
         gemCard,
         {
-          fromElement: originElement,
+          fromElement: originElement || document.getElementById("goi_void"),
         },
         {
           forceToElement: destinationElement,
