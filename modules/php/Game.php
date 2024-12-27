@@ -4115,6 +4115,10 @@ class Game extends \Table
             if ($rainbowGem) {
                 $gem_id = $rainbowGem;
             } else {
+                if ($gem_id === 10) {
+                    $this->obtainIridiaStone(1);
+                }
+                
                 $gemsDemand = $this->gemsDemand();
 
                 $maxDemand = max($gemsDemand);
@@ -4170,10 +4174,6 @@ class Game extends \Table
 
             $this->incRoyaltyPoints($points, 1);
             $this->incStatWithRhom($points, "tilesPoints", 1);
-        }
-
-        if ($gem_id === 10) {
-            $this->obtainIridiaStone(1);
         }
     }
 
@@ -4255,7 +4255,8 @@ class Game extends \Table
         $this->globals->set(REVEALED_TILES, $tileCards);
     }
 
-    public function debug_reshuffleRelicsDeck(): void {
+    public function debug_reshuffleRelicsDeck(): void
+    {
         $this->relic_cards->moveAllCardsInLocation(null, "deck");
         $this->relic_cards->shuffle("deck");
         $this->relic_cards->pickCardsForLocation(5, "deck", "market");
