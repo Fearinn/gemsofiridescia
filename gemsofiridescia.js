@@ -1709,7 +1709,11 @@ define([
         this.goi.stocks.rhom.discard = new CardStock(
           this.goi.managers.rhom,
           rhomDiscardElement,
-          {}
+          {
+            sort: (a, b) => {
+              return b.location_arg - a.location_arg;
+            },
+          }
         );
 
         const rhomDiscard = this.goi.globals.rhomDiscard;

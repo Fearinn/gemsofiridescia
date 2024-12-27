@@ -3767,7 +3767,9 @@ class Game extends \Table
 
     public function rhomDrawCard(): array
     {
-        $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard");
+        $rhomDeckCount =  $this->rhom_cards->countCardsInLocation("deck");
+        $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard", $rhomDeckCount);
+
         $rhomDeckTop = $this->getRhomDeck(true);
         $rhomDeckCount = $this->rhom_cards->countCardsInLocation("deck");
 
