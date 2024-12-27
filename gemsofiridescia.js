@@ -1523,10 +1523,9 @@ define([
         this.goi.stocks.items.active.addCard(itemCard);
       }
 
-      this.goi.stocks.items.discard = new AllVisibleDeck(
+      this.goi.stocks.items.discard = new CardStock(
         this.goi.managers.items,
         document.getElementById(`goi_itemsDiscard`),
-        { horizontalShift: "0px", verticalShift: "24px" }
       );
 
       const itemsDiscard = this.goi.globals.itemsDiscard;

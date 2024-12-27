@@ -426,8 +426,11 @@ html {
 }
 
 .goi_itemsDiscard {
-  pointer-events: none;
   width: var(--cardSize) !important;
+}
+
+.goi_itemsDiscard .goi_item:not(:first-child) {
+  margin-top: -110%;
 }
 
 .goi_item,
