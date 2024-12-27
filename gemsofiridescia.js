@@ -3449,7 +3449,7 @@ define([
         { event: "discardTile" },
         { event: "moveExplorer" },
         { event: "resetExplorer" },
-        { event: "incRoyaltyPoints" },
+        { event: "incRoyaltyPoints", duration: 1000 },
         { event: "obtainStoneDie" },
         { event: "activateStoneDie" },
         { event: "resetStoneDice" },

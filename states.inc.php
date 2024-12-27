@@ -47,6 +47,7 @@ $machinestates = [
             "rainbowTile" => 30,
             "optionalActions" => 4,
             "startSolo" => 80,
+            "finalScoring" => 7,
         ]
     ],
 

@@ -3610,7 +3610,12 @@ class Game extends \Table
             $tokenPoints = $this->getStatWithRhom("tokenPoints", $player_id);
             $iridiaPoints = $this->getStatWithRhom("iridiaPoints", $player_id);
 
-            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $iridiaPoints;
+            $rhomPoints = 0;
+            if ($this->isSolo() && $player_id === 1) {
+                $rhomPoints = $this->getStatWithRhom("rhomPoints", $player_id);
+            }
+
+            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $rhomPoints + $iridiaPoints;
 
             $tableGems[] = $gemsPoints;
             $tableTiles[] = $tilesPoints;
@@ -3618,6 +3623,7 @@ class Game extends \Table
             $tableObjective[] = $objectivePoints;
             $tableToken[] = $tokenPoints;
             $tableIridia[] = $iridiaPoints;
+            $tableOther[] = $rhomPoints;
             $tableTotal[] = $totalPoints;
         }
 
@@ -3629,6 +3635,7 @@ class Game extends \Table
             [clienttranslate("Objective"), ...$tableObjective],
             [clienttranslate("Royalty Token"), ...$tableToken],
             [clienttranslate("Iridia Stone"), ...$tableIridia],
+            [clienttranslate("Other"), ...$tableOther],
             [clienttranslate("Total"), ...$tableTotal],
         ];
 
@@ -3792,6 +3799,7 @@ class Game extends \Table
 
             $points = $item->cost;
             $this->incRoyaltyPoints($points, 1, true);
+            $this->incStatWithRhom($points, "rhomPoints", 1);
 
             $this->notifyAllPlayers(
                 "rhomDiscardItem",
@@ -3955,6 +3963,7 @@ class Game extends \Table
 
             $this->discardGems(1, null, $gem_id, $discardedCount);
             $this->incRoyaltyPoints($points, 1);
+            $this->incStatWithRhom($points, "gemsPoints", 1);
 
             $excessGems -= $discardedCount;
 
@@ -4155,6 +4164,7 @@ class Game extends \Table
             }
 
             $this->incRoyaltyPoints($points, 1);
+            $this->incStatWithRhom($points, "tilesPoints", 1);
         }
 
         if ($gem_id === 10) {
