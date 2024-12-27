@@ -373,7 +373,6 @@ class Game extends \Table
         );
 
         $tileCard = $this->currentTile($player_id);
-
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
@@ -1284,7 +1283,8 @@ class Game extends \Table
         return $face;
     }
 
-    public function updateRolledDice(array $die) {
+    public function updateRolledDice(array $die)
+    {
         $die_id = $die["id"];
 
         $rolledDice = $this->globals->get(ROLLED_DICE, []);
@@ -1293,7 +1293,8 @@ class Game extends \Table
         $this->globals->set(ROLLED_DICE, $rolledDice);
     }
 
-    public function updateRerollableDice(array $die, bool $remove = false) {
+    public function updateRerollableDice(array $die, bool $remove = false)
+    {
         $die_id = $die["id"];
 
         $rerollableDice = $this->globals->get(REROLLABLE_DICE, []);
@@ -1663,11 +1664,6 @@ class Game extends \Table
             return;
         }
 
-        if ($gem_id === 0) {
-            $this->gamestate->nextState("rainbowTile");
-            return;
-        }
-
         $tileEffect_id = (int) $tileInfo["effect"];
 
         if ($tileEffect_id) {
@@ -1688,8 +1684,11 @@ class Game extends \Table
             }
         }
 
-        if ($gem_id === 10) {
-            $this->obtainIridiaStone($player_id);
+        if ($gem_id % 10 === 0) {
+            if ($gem_id === 10) {
+                $this->obtainIridiaStone($player_id);
+            }
+            
             $this->gamestate->nextState("rainbowTile");
             return;
         }
