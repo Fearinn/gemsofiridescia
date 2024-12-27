@@ -1283,6 +1283,10 @@ class Game extends \Table
             $this->rhomResolveTileEffect($tileCard);
         }
 
+        if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
+            return;
+        }
+
         $this->rhomRestoreRelic();
         $this->collectTile(1);
         $this->resetExplorer(1);
@@ -4243,6 +4247,18 @@ class Game extends \Table
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
         WHERE card_location='board' AND card_location_arg IN (29)");
+    }
+
+    public function debug_revealTiles(): void
+    {
+        $tileCards =  $this->getCollectionFromDB("$this->deckSelectQuery from tile WHERE card_type=5");
+        $this->globals->set(REVEALED_TILES, $tileCards);
+    }
+
+    public function debug_reshuffleRelicsDeck(): void {
+        $this->relic_cards->moveAllCardsInLocation(null, "deck");
+        $this->relic_cards->shuffle("deck");
+        $this->relic_cards->pickCardsForLocation(5, "deck", "market");
     }
 
     public function debug_giveItem(int $item_id, int $player_id): void
