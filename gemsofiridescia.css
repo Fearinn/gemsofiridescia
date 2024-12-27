@@ -607,6 +607,10 @@ html {
   background-image: url("img/tooltips/items.jpg") !important;
 }
 
+.goi_tooltip.goi_rhom {
+  background-image: url("img/tooltips/rhom.jpg");
+}
+
 .goi_rhom .card-side {
   background-image: url("img/solo/rhom.jpg");
 }
@@ -643,6 +647,11 @@ html {
   height: var(--barricadeSize);
   width: var(--barricadeSize);
   z-index: 9;
+}
+
+.goi_barricade:hover {
+  transition: 2s;
+  opacity: 0.4;
 }
 
 @keyframes barricade {

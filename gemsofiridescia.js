@@ -566,8 +566,13 @@ define([
           div.style.position = "relative";
         },
         setupFrontDiv: (card, div) => {
-          const backgroundPosition = this.calcBackgroundPosition(card.type_arg);
+          const rhom_id = Number(card.type_arg);
+
+          const backgroundPosition = this.calcBackgroundPosition(rhom_id);
           div.style.backgroundPosition = backgroundPosition;
+
+          const tooltip = this.createRhomTooltip(rhom_id);
+          this.addTooltipHtml(div.id, tooltip);
         },
         setupBackDiv: (card, div) => {
           const spritePosition = card.type == "left" ? 0 : 17;
@@ -1631,7 +1636,9 @@ define([
         xclone = xclone.replaceAll("</a>", "</span>");
         xclone = xclone.replaceAll("bga-flag", "");
 
-        document.getElementById("player_boards").insertAdjacentHTML("beforeend", xclone);
+        document
+          .getElementById("player_boards")
+          .insertAdjacentHTML("beforeend", xclone);
 
         document.getElementById(
           `avatar_${bot.id}`
@@ -4213,6 +4220,11 @@ define([
       return clone.outerHTML;
     },
 
+    createRhomTooltip: function (rhom_id) {
+      const backgroundPosition = this.calcBackgroundPosition(rhom_id);
+      return `<div class="goi_rhom goi_tooltip goi_card" style="background-position: ${backgroundPosition}"></div>`;
+    },
+
     addCustomTooltip: function (container, html) {
       this.addTooltipHtml(container, html, 1000);
     },
@@ -4286,8 +4298,26 @@ define([
               args.player_name = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
             }
 
-            if (args.player_name2 && args.player_name2.includes(`>${botName}</`)) {
+            if (
+              args.player_name2 &&
+              args.player_name2.includes(`>${botName}</`)
+            ) {
               args.player_name2 = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
+            }
+
+            if (args.card && args.rhomCard) {
+              const rhomCard = args.rhomCard;
+
+              const rhom_id = Number(rhomCard.type_arg);
+              const uid = `${Date.now()}${rhom_id}`;
+              const elementId = `goi_rhomLog:${uid}`;
+
+              args.card = `<span id="${elementId}" style="font-weight: bold;">${_(
+                args.card
+              )}</span>`;
+
+              const tooltip = this.createRhomTooltip(rhom_id);
+              this.registerCustomTooltip(tooltip, elementId);
             }
           }
 
@@ -4295,7 +4325,6 @@ define([
             const tileCard = args.tileCard;
 
             const tile_id = Number(tileCard.type_arg);
-
             const uid = `${Date.now()}${tile_id}`;
             const elementId = `goi_tileLog:${uid}`;
 
