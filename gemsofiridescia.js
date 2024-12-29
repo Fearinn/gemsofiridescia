@@ -177,10 +177,10 @@ define([
         this.goi.globals.playerBoards[this.player_id] - 1 || 0
       );
 
-      const sentence3a = this.format_string(
+      const sentence3a = this.format_string_recursive(
         _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
         {
-          coin_icon: `<span class="goi_coinIcon"></span>`,
+          coin_icon: `<i class="goi_coinIcon"></i>`,
         }
       );
 
@@ -188,15 +188,17 @@ define([
       <div id="goi_helpCardContent" class="goi_cardContent"> 
         <div>
           <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
-          <span>1 ${_("Reveal up to 2 adjacent tiles.")}</span>
-          <span>2 ${_("Move your explorer on to an adjacent tile.")}</span>
+          <span><i class="goi_greenFlag"></i> 1 ${_(
+            "Reveal up to 2 adjacent tiles."
+          )}</span>
+          <span>2 ${_("Move your explorer to an adjacent tile.")}</span>
         </div>
         <div>
-          <span class="goi_helpCardSubtitle">${_("Optional Actions")}</span>
+          <span class="goi_helpCardSubtitle">${_("Optional Actions (in any order)")}</span>
           <span> 3a ${sentence3a}</span>
           <span>3b ${_("Purchase an Item Card. (Once)")}</span>
           <span>3c ${_("Play Item Card(s). (∞)")}</span>
-          <span>3d ${_("Sell Gems. (Once)")}</span>
+          <span>3d ${_("Sell Gem(s) of one color. (Once)")}</span>
         </div>
         <div>
           <span class="goi_helpCardSubtitle">${_("End of Turn")}</span>
@@ -211,15 +213,29 @@ define([
         buttons: [
           new BgaHelpExpandableButton({
             title: _("Player Aid"),
-            expandedHeight: "230px",
+            expandedWidth: "300px",
+            expandedHeight: "409px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
-            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
+            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_tooltip goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
               <span class="goi_cardTitle">${_("Player Aid")}</span>
               ${aidContent}
             </div>`,
           }),
         ],
       });
+
+      // this.goi.managers.aid = new CardManager(this, {
+      //   getId: (card) => `aid-${card.id}`,
+      //   setupDiv: (card, div) => {
+      //     div.classList.add("goi_helpCard");
+      //     div.style.position = "relative";
+
+      //     const backgroundPosition = this.calcBackgroundPosition(card.type_arg);
+      //     div.style.backgroundPosition = backgroundPosition;
+      //   },
+      //   setupFrontDiv: (card, div) => {},
+      //   setupBackDiv: (card, div) => {},
+      // });
 
       this.goi.managers.dice = new DiceManager(this, {
         selectedDieClass: "goi_selectedDie",
@@ -717,7 +733,7 @@ define([
         this.goi.managers.tiles,
         document.getElementById("goi_void")
       );
-      
+
       this.goi.stocks.tiles.board = new CardStock(
         this.goi.managers.tiles,
         document.getElementById("goi_board"),
@@ -1611,7 +1627,7 @@ define([
 
       this.goi.stocks.items.discard = new CardStock(
         this.goi.managers.items,
-        document.getElementById(`goi_itemsDiscard`),
+        document.getElementById(`goi_itemsDiscard`)
       );
 
       const itemsDiscard = this.goi.globals.itemsDiscard;
