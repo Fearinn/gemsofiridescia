@@ -46,6 +46,8 @@ $machinestates = [
             "moveExplorer" => 3,
             "rainbowTile" => 30,
             "optionalActions" => 4,
+            "startSolo" => 80,
+            "finalScoring" => 7,
         ]
     ],
 
@@ -172,7 +174,7 @@ $machinestates = [
         "args" => "argRestoreRelic",
         "action" => "stRestoreRelic",
         "possibleactions" => ["actRestoreRelic", "actSkipRestoreRelic", "actUndoSkipOptionalActions"],
-        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6]
+        "transitions" => ["back" => 4, "repeat" => 5, "skip" => 6, "betweenTurns" => 6],
     ],
 
     6 => [
@@ -180,7 +182,7 @@ $machinestates = [
         "description" => clienttranslate("Ending turn..."),
         "type" => "game",
         "action" => "stBetweenTurns",
-        "transitions" => ["nextTurn" => 2, "finalScoring" => 7],
+        "transitions" => ["nextTurn" => 2, "finalScoring" => 7, "rhomTurn" => 8],
         "updateGameProgression" => true,
     ],
 
@@ -189,7 +191,55 @@ $machinestates = [
         "description" => clienttranslate("Computing final scoring..."),
         "type" => "game",
         "action" => "stFinalScoring",
-        "transitions" => ["gameEnd" => 99]
+        "transitions" => ["gameEnd" => 99],
+    ],
+
+    8 => [
+        "name" => "rhomTurn",
+        "description" => clienttranslate('The ${rhom} is playing its turn'),
+        "type" => "game",
+        "args" => "argRhomTurn",
+        "action" => "stRhomTurn",
+        "transitions" => ["realTurn" => 2, "pickRainbowForRhom" => 82, "discardTileForRhom" => 83],
+    ],
+
+    80 => [
+        "name" => "startSolo",
+        "description" => clienttranslate('${actplayer} must click the button to start the solo expedition'),
+        "descriptionmyturn" => clienttranslate('${you} must click the button to start the solo expedition'),
+        "type" => "activeplayer",
+        "possibleactions" => ["actStartSolo"],
+        "transitions" => ["rhomFirstTurn" => 81, "pickRainbowForRhom" => 82],
+    ],
+
+    81 => [
+        "name" => "rhomFirstTurn",
+        "description" => clienttranslate('The ${rhom} is playing its first turn'),
+        "type" => "game",
+        "args" => "argRhomTurn",
+        "action" => "stRhomFirstTurn",
+        "transitions" => ["realTurn" => 2, "pickRainbowForRhom" => 82],
+    ],
+
+    82 => [
+        "name" => "pickRainbowForRhom",
+        "description" => clienttranslate('${actplayer} must pick a Gem for the ${rhom}'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the ${rhom}'),
+        "type" => "activeplayer",
+        "args" => "argPickRainbowForRhom",
+        "possibleactions" => ["actPickRainbowForRhom"],
+        "transitions" => ["realTurn" => 2, "rhomTurn" => 8],
+    ],
+
+    83 => [
+        "name" => "discardTileForRhom",
+        "description" => clienttranslate('The {rhom} is out of legal moves. ${actplayer} must discard a tile from its Victory Pile'),
+        "descriptionmyturn" => clienttranslate('The ${rhom} is out of legal moves. ${you} must discard a tile from its Victory Pile'),
+        "type" => "activeplayer",
+        "args" => "argDiscardTileForRhom",
+        "action" => "stDiscardTileForRhom",
+        "possibleactions" => ["actDiscardTileForRhom"],
+        "transitions" => ["realTurn" => 2, "rhomTurn" => 8],
     ],
 
     // Final state.

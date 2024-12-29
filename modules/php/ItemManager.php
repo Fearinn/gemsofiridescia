@@ -79,7 +79,7 @@ class ItemManager
             clienttranslate('${player_name} buys the ${item_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "itemCard" => $this->card,
                 "item_name" => $this->tr_name,
                 "i18n" => ["item_name"],
@@ -199,7 +199,7 @@ class ItemManager
             clienttranslate('${player_name} uses the ${item_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "itemCard" => $this->card,
                 "item_name" => $this->tr_name,
                 "i18n" => ["item_name"],
@@ -327,7 +327,7 @@ class ItemManager
             clienttranslate('${player_name} reserves the ${relic_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "relic_name" => $this->game->relics_info[$relic_id]["tr_name"],
                 "relicCard" => $relicCard,
                 "relicsDeckCount" => $this->game->relic_cards->countCardsInLocation("deck"),
@@ -364,7 +364,7 @@ class ItemManager
             clienttranslate('${player_name} splits 1 ${gem_label} into 2'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "gem_label" => $this->game->gems_info[$gem_id]["tr_name"],
                 "preserve" => ["gem_id"],
                 "gem_id" => $gem_id,
@@ -547,7 +547,7 @@ class ItemManager
             clienttranslate('${player_name} modifies a ${type_label} Die from ${oldFace} to ${face}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "type_label" => $this->game->dice_info[$dieType],
                 "die_id" => $die_id,
                 "oldFace" => $oldFace,
@@ -646,9 +646,9 @@ class ItemManager
             clienttranslate('${player_name} swaps location with ${player_name2}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "player_id" => $opponent_id,
-                "player_name2" => $this->game->getPlayerNameById($opponent_id),
+                "player_name2" => $this->game->getPlayerOrRhomNameById($opponent_id),
                 "currentExplorerCard" => $currentExplorerCard,
                 "opponentExplorerCard" => $opponentExplorerCard,
                 "currentHex" => $currentHex,
@@ -761,7 +761,7 @@ class ItemManager
             clienttranslate('${player_name} cancels the ${item_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->game->getPlayerNameById($player_id),
+                "player_name" => $this->game->getPlayerOrRhomNameById($player_id),
                 "itemCard" => $this->card,
                 "item_name" => $this->tr_name,
                 "i18n" => ["item_name"],

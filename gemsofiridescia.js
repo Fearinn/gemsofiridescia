@@ -49,6 +49,7 @@ define([
         objectives: {},
         items: {},
         scoringMarkers: {},
+        rhom: {},
       };
     },
 
@@ -118,6 +119,14 @@ define([
       };
 
       this.goi.selections = this.goi.info.defaultSelections;
+
+      this.goi.bot = gamedatas.bot;
+      this.goi.globals.isSolo = gamedatas.isSolo;
+      this.goi.globals.realPlayer = gamedatas.realPlayer;
+      this.goi.globals.rhomDeck = gamedatas.rhomDeck;
+      this.goi.globals.rhomDeckTop = gamedatas.rhomDeckTop;
+      this.goi.globals.rhomDiscard = gamedatas.rhomDiscard;
+      this.goi.globals.barricadeTiles = gamedatas.barricadeTiles;
 
       this.goi.globals.players = gamedatas.playersNoZombie;
       this.goi.globals.player = gamedatas.players[this.player_id];
@@ -245,6 +254,12 @@ define([
           div.classList.add("goi_tile");
           div.style.position = "absolute";
 
+          if (card.location === "barricade") {
+            const barricadeElement = document.createElement("div");
+            barricadeElement.classList.add("goi_barricade");
+            div.appendChild(barricadeElement);
+          }
+
           if (card.id < 0) {
             div.classList.add("goi_emptyTile");
           }
@@ -285,7 +300,7 @@ define([
               this.format_string_recursive(_("Hex: ${log_hex}"), {
                 log_hex: card.location_arg,
               }),
-              "",
+              ""
             );
           }
         },
@@ -541,6 +556,32 @@ define([
         },
       });
 
+      this.goi.managers.rhom = new CardManager(this, {
+        cardHeight: 230,
+        cardWidth: 168.75,
+        getId: (card) => `rhom-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_card");
+          div.classList.add("goi_rhom");
+          div.style.position = "relative";
+        },
+        setupFrontDiv: (card, div) => {
+          const rhom_id = Number(card.type_arg);
+
+          const backgroundPosition = this.calcBackgroundPosition(rhom_id);
+          div.style.backgroundPosition = backgroundPosition;
+
+          const tooltip = this.createRhomTooltip(rhom_id);
+          this.addTooltipHtml(div.id, tooltip);
+        },
+        setupBackDiv: (card, div) => {
+          const spritePosition = card.type == "left" ? 0 : 17;
+          const backgroundPosition =
+            this.calcBackgroundPosition(spritePosition);
+          div.style.backgroundPosition = backgroundPosition;
+        },
+      });
+
       const scoringTrack = document.getElementById("goi_scoringTrack");
 
       let slotsIds = [];
@@ -610,7 +651,9 @@ define([
 
       /* PLAYER PANELS */
       for (const player_id in this.goi.globals.players) {
-        this.goi.counters[player_id] = {};
+        if (this.goi.globals.isSolo && player_id == 1) {
+          continue;
+        }
 
         this.getPlayerPanelElement(
           player_id
@@ -618,17 +661,19 @@ define([
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
           </div>`;
 
-        this.goi.counters[player_id].gems = {
-          amethyst: new ebg.counter(),
-          citrine: new ebg.counter(),
-          emerald: new ebg.counter(),
-          sapphire: new ebg.counter(),
+        this.goi.counters[player_id] = {
+          gems: {
+            amethyst: new ebg.counter(),
+            citrine: new ebg.counter(),
+            emerald: new ebg.counter(),
+            sapphire: new ebg.counter(),
+          },
         };
 
         const gemCounters = this.goi.counters[player_id].gems;
 
         let spritePosition = 1;
-        for (const gem in gemCounters) {
+        for (const gemName in gemCounters) {
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
           spritePosition++;
@@ -637,7 +682,7 @@ define([
             `goi_gemCounters:${player_id}`
           ).innerHTML += `<div class="goi_gemCounter">
                 <div class="goi_gemIcon" style="background-position: ${backgroundPosition}"></div>
-                <span id="goi_gemCounter:${player_id}-${gem}" class="goi_counterValue"></span>
+                <span id="goi_gemCounter:${player_id}-${gemName}" class="goi_counterValue"></span>
               </div>`;
         }
 
@@ -652,10 +697,10 @@ define([
         </div>
       </div>`;
 
-        for (const gem in gemCounters) {
-          const gemCounter = gemCounters[gem];
-          gemCounter.create(`goi_gemCounter:${player_id}-${gem}`);
-          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gem]);
+        for (const gemName in gemCounters) {
+          const gemCounter = gemCounters[gemName];
+          gemCounter.create(`goi_gemCounter:${player_id}-${gemName}`);
+          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gemName]);
         }
 
         this.goi.counters[player_id].coins = new ebg.counter();
@@ -736,7 +781,7 @@ define([
         this.goi.stocks.tiles.board.unselectAll(true);
         document.getElementById("goi_confirm_btn")?.remove();
 
-        const stateName = this.getStateName();
+        const stateName = this.getStatWithRhomeName();
 
         if (stateName === "client_pickEmptyTile") {
           if (selection.length === 0) {
@@ -754,6 +799,34 @@ define([
 
         this.handleSelection();
       };
+
+      if (this.goi.globals.isSolo) {
+        this.goi.stocks.tiles.barricade = new CardStock(
+          this.goi.managers.tiles,
+          document.getElementById("goi_board"),
+          {}
+        );
+
+        const barricadeTiles = this.goi.globals.barricadeTiles;
+        for (const tileCard_id in barricadeTiles) {
+          const tileCard = barricadeTiles[tileCard_id];
+          this.goi.stocks.tiles.barricade.addCard(
+            tileCard,
+            {},
+            {
+              forceToElement: document.getElementById(
+                `goi_tileContainer-${tileCard.location_arg}`
+              ),
+            }
+          );
+          this.goi.stocks.tiles.barricade.setCardVisible(
+            tileCard,
+            !!tileCard.type_arg
+          );
+        }
+      }
+
+      /* EXPLORERS */
 
       this.goi.stocks.explorers.board = new CardStock(
         this.goi.managers.explorers,
@@ -805,7 +878,7 @@ define([
         selection,
         lastChange
       ) => {
-        const stateName = this.getStateName();
+        const stateName = this.getStatWithRhomeName();
 
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("none");
         this.goi.stocks[this.player_id].dice.scene.setSelectionMode("multiple");
@@ -938,7 +1011,7 @@ define([
         ) => {
           this.goi.stocks.dice.market.setSelectionMode("none");
 
-          const stateName = this.getStateName();
+          const stateName = this.getStatWithRhomeName();
           if (stateName === "client_luckyLibation") {
             this.goi.stocks.dice.market.setSelectionMode("multiple");
           } else {
@@ -1006,7 +1079,7 @@ define([
           selection,
           lastChange
         ) => {
-          const stateName = this.getStateName();
+          const stateName = this.getStatWithRhomeName();
 
           if (stateName === "client_sellGems") {
             if (selection.length > 0) {
@@ -1389,7 +1462,11 @@ define([
       this.goi.stocks.relics.market = new CardStock(
         this.goi.managers.relics,
         document.getElementById("goi_relicsMarket"),
-        {}
+        {
+          sort: (a, b) => {
+            return Number(b.location_arg) - Number(a.location_arg);
+          },
+        }
       );
 
       this.goi.stocks.relics.market.onSelectionChange = (
@@ -1473,9 +1550,18 @@ define([
         this.goi.stocks.items.deck.setCardVisible(itemCard, false);
       }
 
+      if (this.goi.globals.isSolo) {
+        document.getElementById("goi_merchant").classList.add("goi_solo");
+      }
+
       this.goi.stocks.items.market = new CardStock(
         this.goi.managers.items,
-        document.getElementById("goi_itemsMarket")
+        document.getElementById("goi_itemsMarket"),
+        {
+          sort: (a, b) => {
+            return Number(b.location_arg) - Number(a.location_arg);
+          },
+        }
       );
 
       this.goi.stocks.items.market.onSelectionChange = (
@@ -1532,6 +1618,108 @@ define([
       for (const itemCard_id in itemsDiscard) {
         const itemCard = itemsDiscard[itemCard_id];
         this.goi.stocks.items.discard.addCard(itemCard);
+      }
+
+      if (this.goi.globals.isSolo) {
+        const realPlayer = this.goi.globals.realPlayer;
+        const bot = this.goi.bot;
+
+        let xclone = document.getElementById(
+          `overall_player_board_${realPlayer.id}`
+        ).outerHTML;
+        xclone = xclone.replaceAll(realPlayer.id, bot.id);
+        xclone = xclone.replaceAll(realPlayer.name, bot.name);
+        xclone = xclone.replaceAll(realPlayer.color, bot.color);
+
+        xclone = xclone.replaceAll("<a", "<span");
+        xclone = xclone.replaceAll("</a>", "</span>");
+        xclone = xclone.replaceAll("bga-flag", "");
+
+        document
+          .getElementById("player_boards")
+          .insertAdjacentHTML("beforeend", xclone);
+
+        document.getElementById(
+          `avatar_${bot.id}`
+        ).src = `${g_gamethemeurl}/img/solo/rhomAvatar.jpg`;
+
+        document.getElementById(`player_score_${bot.id}`).textContent =
+          bot.score;
+        document
+          .getElementById(`goi_gemCounters:${bot.id}`)
+          .querySelector(".goi_coinIcon")
+          .remove();
+
+        this.goi.counters[bot.id] = {
+          gems: {
+            amethyst: new ebg.counter(),
+            citrine: new ebg.counter(),
+            emerald: new ebg.counter(),
+            sapphire: new ebg.counter(),
+          },
+        };
+
+        const gemCounters = this.goi.counters[bot.id].gems;
+
+        for (const gemName in gemCounters) {
+          const gemCounter = gemCounters[gemName];
+          gemCounter.create(`goi_gemCounter:${bot.id}-${gemName}`);
+          gemCounter.setValue(this.goi.globals.gemsCounts[bot.id][gemName]);
+        }
+
+        /* RHOM ZONE */
+        const rhomZoneElement = document.getElementById(
+          `goi_playerZone:${bot.id}`
+        );
+
+        const rhomDeckElement = document.createElement("div");
+        rhomDeckElement.id = "goi_rhomDeck";
+        rhomDeckElement.classList.add("goi_rhomDeck");
+        rhomZoneElement.prepend(rhomDeckElement);
+
+        this.goi.stocks.rhom.deck = new Deck(
+          this.goi.managers.rhom,
+          rhomDeckElement,
+          {
+            counter: {
+              id: "goi_rhomDeckCounter",
+              position: "top",
+              extraClasses: "goi_deckCounter",
+            },
+          }
+        );
+
+        const rhomDeck = this.goi.globals.rhomDeck;
+        for (const rhomCard_id in rhomDeck) {
+          const rhomCard = rhomDeck[rhomCard_id];
+          this.goi.stocks.rhom.deck.addCard(rhomCard);
+          this.goi.stocks.rhom.deck.setCardVisible(rhomCard, false);
+        }
+
+        const rhomDeckTop = this.goi.globals.rhomDeckTop;
+        this.goi.stocks.rhom.deck.addCard(rhomDeckTop);
+        this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+
+        const rhomDiscardElement = document.createElement("div");
+        rhomDiscardElement.id = "goi_rhomDiscard";
+        rhomDiscardElement.classList.add("goi_rhomDiscard");
+        rhomZoneElement.prepend(rhomDiscardElement);
+
+        this.goi.stocks.rhom.discard = new CardStock(
+          this.goi.managers.rhom,
+          rhomDiscardElement,
+          {
+            sort: (a, b) => {
+              return b.location_arg - a.location_arg;
+            },
+          }
+        );
+
+        const rhomDiscard = this.goi.globals.rhomDiscard;
+        for (const rhomCard_id in rhomDiscard) {
+          const rhomCard = rhomDiscard[rhomCard_id];
+          this.goi.stocks.rhom.discard.addCard(rhomCard);
+        }
       }
 
       this.setupNotifications();
@@ -2196,6 +2384,23 @@ define([
           );
         }
 
+        if (stateName === "startSolo") {
+          this.addActionButton("goi_startSolo_btn", _("Start"), "actStartSolo");
+        }
+
+        if (stateName === "pickRainbowForRhom") {
+          const pickableGems = args.args.pickableGems;
+
+          this.generateRainbowOptions(() => {
+            this.actPickRainbowForRhom();
+          }, pickableGems);
+        }
+
+        if (stateName === "discardTileForRhom") {
+          const bot = this.goi.bot;
+          this.goi.stocks[bot.id].tiles.victoryPile.setSelectionMode("single");
+        }
+
         return;
       }
 
@@ -2216,6 +2421,7 @@ define([
             );
           this.updatePageTitle();
         }
+        return;
       }
     },
 
@@ -2347,6 +2553,11 @@ define([
         this.goi.stocks.relics.market.setSelectionMode("none");
         this.goi.stocks[this.player_id].relics.book.setSelectionMode("none");
       }
+
+      if (stateName === "discardTileForRhom") {
+        const bot = this.goi.bot;
+        this.goi.stocks[bot.id].tiles.victoryPile.setSelectionMode("none");
+      }
     },
 
     // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
@@ -2360,7 +2571,7 @@ define([
 
     ///////////////////////////////////////////////////
     //// Utility methods
-    getStateName: function () {
+    getStatWithRhomeName: function () {
       return this.gamedatas.gamestate.name;
     },
 
@@ -2426,9 +2637,6 @@ define([
 
         document.getElementById(buttonId).style.border = "none";
       }
-
-      const gemCards = this.goi.stocks.gems.rainbowOptions.getCards();
-      this.goi.stocks.gems.rainbowOptions.setSelectionMode("single", gemCards);
     },
 
     generateItemButton: function (item_id, elementId, isCancellable) {
@@ -2588,7 +2796,7 @@ define([
       message = _("Confirm selection")
     ) {
       document.getElementById(elementId)?.remove();
-      const stateName = this.getStateName();
+      const stateName = this.getStatWithRhomeName();
 
       if (stateName === "revealTile") {
         if (this.goi.selections.tile) {
@@ -2605,6 +2813,12 @@ define([
             });
           });
           return;
+        }
+      }
+
+      if (stateName === "discardTileForRhom") {
+        if (this.goi.selections.tile) {
+          this.addActionButton(elementId, message, "actDiscardTileForRhom");
         }
       }
 
@@ -3218,6 +3432,22 @@ define([
       });
     },
 
+    actStartSolo: function () {
+      this.performAction("actStartSolo");
+    },
+
+    actPickRainbowForRhom: function () {
+      this.performAction("actPickRainbowForRhom", {
+        gem_id: this.goi.selections.gem,
+      });
+    },
+
+    actDiscardTileForRhom: function () {
+      this.performAction("actDiscardTileForRhom", {
+        tileCard_id: this.goi.selections.tile.id,
+      });
+    },
+
     ///////////////////////////////////////////////////
     //// Reaction to cometD notifications
 
@@ -3229,7 +3459,7 @@ define([
         { event: "discardTile" },
         { event: "moveExplorer" },
         { event: "resetExplorer" },
-        { event: "incRoyaltyPoints" },
+        { event: "incRoyaltyPoints", duration: 1000 },
         { event: "obtainStoneDie" },
         { event: "activateStoneDie" },
         { event: "resetStoneDice" },
@@ -3271,6 +3501,9 @@ define([
         },
         { event: "completeObjective", duration: 1000 },
         { event: "zombieQuit" },
+        { event: "rhomDrawCard" },
+        { event: "reshuffleRhomDeck", duration: 1000 },
+        { event: "rhomBarricade" },
       ];
 
       notifications.forEach((notif) => {
@@ -3482,8 +3715,19 @@ define([
       const player_id = notif.args.player_id;
       const points = notif.args.points;
 
-      this.scoreCtrl[player_id].incValue(points);
-      const score = this.scoreCtrl[player_id].getValue();
+      let score = 0;
+      const bot = this.goi.bot;
+      if (this.goi.globals.isSolo && player_id == bot.id) {
+        const scoreElement = document.getElementById(`player_score_${bot.id}`);
+        const prevPoints = Number(scoreElement.innerText);
+        document.getElementById(`player_score_${bot.id}`).innerText =
+          points + prevPoints;
+
+        score = points + prevPoints;
+      } else {
+        this.scoreCtrl[player_id].incValue(points);
+        score = this.scoreCtrl[player_id].getValue();
+      }
 
       const player_color = `#${this.goi.globals.players[player_id].color}`;
 
@@ -3738,7 +3982,7 @@ define([
       this.goi.stocks.explorers.board.addCard(
         currentExplorerCard,
         {
-          forceToElement: document.getElementById(
+          fromElement: document.getElementById(
             `goi_tileContainer-${currentHex}`
           ),
         },
@@ -3752,7 +3996,7 @@ define([
       this.goi.stocks.explorers.board.addCard(
         opponentExplorerCard,
         {
-          forceToElement: document.getElementById(
+          fromElement: document.getElementById(
             `goi_tileContainer-${opponentHex}`
           ),
         },
@@ -3873,6 +4117,52 @@ define([
       document.getElementById(`goi_playerZoneContainer:${player_id}`).remove();
     },
 
+    /* SOLO */
+
+    notif_rhomDrawCard: function (notif) {
+      const rhomCard = notif.args.rhomCard;
+      const rhomDeckCount = notif.args.rhomDeckCount;
+      const rhomDeckTop = notif.args.rhomDeckTop;
+
+      this.goi.stocks.rhom.discard.addCard(rhomCard, {
+        fromStock: this.goi.stocks.rhom.deck,
+      });
+
+      this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
+      this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+    },
+
+    notif_reshuffleRhomDeck: function (notif) {
+      const rhomDeckCount = notif.args.rhomDeckCount;
+      const rhomDeckTop = notif.args.rhomDeckTop;
+
+      const rhomDiscard = this.goi.stocks.rhom.discard.getCards();
+      this.goi.stocks.rhom.deck.addCards(rhomDiscard);
+
+      this.goi.stocks.rhom.deck.shuffle();
+      this.goi.stocks.rhom.deck.setCardNumber(rhomDeckCount, rhomDeckTop);
+      this.goi.stocks.rhom.deck.setCardVisible(rhomDeckTop, false);
+    },
+
+    notif_rhomBarricade: function (notif) {
+      const tileCard = notif.args.tileCard;
+
+      this.goi.stocks.tiles.board.removeCard(tileCard);
+      this.goi.stocks.tiles.barricade.addCard(
+        tileCard,
+        {},
+        {
+          forceToElement: document.getElementById(
+            `goi_tileContainer-${tileCard.location_arg}`
+          ),
+        }
+      );
+      this.goi.stocks.tiles.barricade.setCardVisible(
+        tileCard,
+        !!tileCard.type_arg
+      );
+    },
+
     /* LOGS MANIPULATION */
 
     createTileTooltip: function (tileCard) {
@@ -3931,6 +4221,11 @@ define([
       const clone = realCard.cloneNode(true);
       clone.style.visibility = "visible";
       return clone.outerHTML;
+    },
+
+    createRhomTooltip: function (rhom_id) {
+      const backgroundPosition = this.calcBackgroundPosition(rhom_id);
+      return `<div class="goi_rhom goi_tooltip goi_card" style="background-position: ${backgroundPosition}"></div>`;
     },
 
     addCustomTooltip: function (container, html) {
@@ -3993,11 +4288,46 @@ define([
         if (log && args && !args.processed) {
           args.processed = true;
 
+          if (this.goi.globals.isSolo) {
+            const bot_id = this.goi.bot.id;
+            const botColor = this.goi.bot.color;
+            const botName = this.goi.bot.name;
+
+            if (args.rhom) {
+              args.rhom = `<span style="font-weight: bold; color: #${botColor}">${botName}</span>`;
+            }
+
+            if (args.player_name && args.player_id == bot_id) {
+              args.player_name = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
+            }
+
+            if (
+              args.player_name2 &&
+              args.player_name2.includes(`>${botName}</`)
+            ) {
+              args.player_name2 = `<!--PNS--><span class="playername" style="color: #${botColor}">${botName}</span><!--PNE-->`;
+            }
+
+            if (args.card && args.rhomCard) {
+              const rhomCard = args.rhomCard;
+
+              const rhom_id = Number(rhomCard.type_arg);
+              const uid = `${Date.now()}${rhom_id}`;
+              const elementId = `goi_rhomLog:${uid}`;
+
+              args.card = `<span id="${elementId}" style="font-weight: bold;">${_(
+                args.card
+              )}</span>`;
+
+              const tooltip = this.createRhomTooltip(rhom_id);
+              this.registerCustomTooltip(tooltip, elementId);
+            }
+          }
+
           if (args.tile && args.tileCard) {
             const tileCard = args.tileCard;
 
             const tile_id = Number(tileCard.type_arg);
-
             const uid = `${Date.now()}${tile_id}`;
             const elementId = `goi_tileLog:${uid}`;
 

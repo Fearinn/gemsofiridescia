@@ -54,6 +54,7 @@ html {
   --dieSize: 45px;
   --scoringMarkerSize: 22.5px;
   --royaltyTokenSize: 112.8px;
+  --barricadeSize: 75px;
 }
 
 .goi_gameArea {
@@ -62,13 +63,14 @@ html {
   box-sizing: border-box;
   display: grid;
   grid-template-areas:
-    ". d d d d d ."
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "e a a a a a b"
-    "c c c c c c c";
+    ". . d d d d d . ."
+    ". f f f f f f f ."
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "e e a a a a a b b"
+    "c c c c c c c c c";
   align-items: flex-start;
   justify-content: center;
   gap: 8px;
@@ -367,7 +369,13 @@ html {
   max-height: var(--cardHeight);
 }
 
-.goi_items {
+.goi_void {
+  position: absolute !important;
+  top: 0;
+  left: 70%;
+}
+
+.goi_merchant {
   grid-area: b;
   position: relative;
   display: flex;
@@ -377,9 +385,8 @@ html {
   width: calc(var(--cardSize) * 2.1);
 }
 
-.goi_merchant {
-  position: relative;
-  width: 100%;
+.goi_merchant div {
+  flex-shrink: 0;
 }
 
 .goi_itemsDeck {
@@ -398,6 +405,8 @@ html {
 .goi_itemPlaceholder {
   grid-column: 1;
   grid-row: 1;
+  width: var(--cardSize);
+  order: -99;
 }
 
 .goi_itemsZone {
@@ -565,7 +574,7 @@ html {
   bottom: 12%;
   left: 37.5%;
 
-  animation: pickaxe infinite 2s;
+  animation: infinite 2s pickaxe;
   content: "";
   background-image: url("img/pickaxe.png");
   background-size: cover;
@@ -599,6 +608,63 @@ html {
 
 .goi_tooltip.goi_item .card-side {
   background-image: url("img/tooltips/items.jpg") !important;
+}
+
+.goi_tooltip.goi_rhom {
+  background-image: url("img/tooltips/rhom.jpg");
+}
+
+.goi_rhom .card-side {
+  background-image: url("img/solo/rhom.jpg");
+}
+
+.goi_rhomDeck {
+  margin-left: 4px;
+}
+
+.goi_rhomDiscard .goi_rhom:not(:first-child) {
+  margin-top: calc(-1 * var(--cardHeight));
+}
+
+.goi_merchant.goi_solo {
+  grid-area: f;
+  justify-content: center;
+  margin: 0 auto;
+  width: var(--boardSize);
+}
+
+.goi_merchant.goi_solo .goi_itemsMarket {
+  display: flex;
+  justify-content: space-between;
+}
+
+.goi_barricade {
+  animation: 1s ease-in-out 1 barricade;
+  position: absolute;
+  top: 15%;
+  left: 10%;
+  background-image: url("img/solo/barricade.png");
+  border-radius: 100%;
+  box-shadow: 0.5625px 0.5625px 1.125px 0.5625px rgba(0, 0, 0, 0.5);
+  cursor: not-allowed;
+  height: var(--barricadeSize);
+  width: var(--barricadeSize);
+  z-index: 9;
+}
+
+.goi_barricade:hover {
+  transition: 2s;
+  opacity: 0.4;
+}
+
+@keyframes barricade {
+  0% {
+    transform: scale(0.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes pickaxe {
@@ -1015,7 +1081,7 @@ body > .card {
   top: calc(var(--thickness) * var(--xShadowShift) * -1);
   left: calc(var(--thickness) * var(--yShadowShift) * -1);
 }
-.card-stock.deck > .card:first-child {
+.card-stock.deck > div:nth-child(2) {
   box-shadow: calc(var(--thickness) * var(--xShadowShift))
       calc(var(--thickness) * var(--yShadowShift)) 0px 0px #111,
     calc(var(--thickness) * var(--xShadowShift))

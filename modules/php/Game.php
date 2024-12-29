@@ -25,6 +25,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
+use BgaUserException;
 
 const ST_PICK_WELL_GEM = 40;
 const ST_TRANSFER_GEM = 31;
@@ -52,6 +53,13 @@ const EPIC_ELIXIR_TURN = "epicElixirTurn";
 const SWAPPING_STONES = "swappingStones";
 const PROSPEROUS_PICKAXE = "prosperousPickaxe";
 const WISHING_WELL = "wishingWell";
+
+const REAL_TURN = "realTurn";
+const RHOM_FIRST_TURN = "rhomFirstTurn";
+const RHOM_MULTIPLIER = "rhomMultiplier";
+const RHOM_STATS = "rhomStats";
+const RHOM_POSSIBLE_RAINBOW = "rhomPossibleRainbow";
+const RHOM_SKIP = "rhomSkip";
 
 class Game extends \Table
 {
@@ -85,9 +93,8 @@ class Game extends \Table
 
         $this->rhom_cards = $this->getNew("module.common.deck");
         $this->rhom_cards->init("rhom");
-
-        $this->barrier_cards = $this->getNew("module.common.deck");
-        $this->barrier_cards->init("barrier");
+        $this->rhom_cards->autoreshuffle = true;
+        $this->rhom_cards->autoreshuffle_trigger = ["obj" => $this, "method", "reshuffleRhomDeck"];
 
         $this->deckSelectQuery = "SELECT card_id id, card_type type, card_type_arg type_arg, 
         card_location location, card_location_arg location_arg ";
@@ -108,8 +115,6 @@ class Game extends \Table
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
-        $tileCard = $this->tile_cards->getCard($tileCard_id);
-
         if (!$force) {
             $revealableTiles = $this->revealableTiles($player_id, true);
 
@@ -118,28 +123,7 @@ class Game extends \Table
             }
         }
 
-        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
-        $revealedTiles[$tileCard_id] = $tileCard;
-        $this->globals->set(REVEALED_TILES, $revealedTiles);
-
-        $hex = (int) $tileCard["location_arg"];
-
-        $this->notifyAllPlayers(
-            "revealTile",
-            clienttranslate('${player_name} reveals a ${tile} (hex ${log_hex})'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "log_hex" => $hex,
-                "hex" => $hex,
-                "tileCard" => $tileCard,
-                "preserve" => ["tileCard"],
-                "i18n" => ["tile"],
-                "tile" => clienttranslate("tile"),
-            ]
-        );
-
-        $this->globals->inc(REVEALS_LIMIT, 1);
+        $this->revealTile($tileCard_id, $player_id);
 
         if (!$skipTransition) {
             $this->gamestate->nextState("repeat");
@@ -199,39 +183,8 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("You can't move your explorer to this empty tile now: actDiscardCollectedTile, $emptyHex");
         }
 
-        $tileCard = $this->tile_cards->getCard($tileCard_id);
-
-        $this->checkCardLocation($tileCard, "hand", $player_id);
-
-        $this->tile_cards->moveCard($tileCard_id, "discard");
-
-        $this->notifyAllPlayers(
-            "discardCollectedTile",
-            clienttranslate('${player_name} discards a collected ${tile} to unblock his moves'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "tileCard" => $tileCard,
-                "preserve" => ["tileCard"],
-                "i18n" => ["tile"],
-                "tile" => clienttranslate("tile"),
-            ]
-        );
-
-        $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$emptyHex WHERE card_type_arg=$player_id");
-
-        $this->notifyAllPlayers(
-            "moveExplorer",
-            clienttranslate('${player_name} moves his explorer to an empty tile (hex ${log_hex})'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "log_hex" => $emptyHex,
-                "hex" => $emptyHex,
-                "explorerCard" => $explorerCard,
-            ]
-        );
+        $this->discardCollectedTile($tileCard_id, $player_id);
+        $this->moveToEmptyHex($emptyHex, $player_id);
 
         $this->globals->set(HAS_EXPANDED_TILES, true);
         $this->gamestate->nextState("revealTile");
@@ -261,7 +214,7 @@ class Game extends \Table
             clienttranslate('${player_name} discards a ${tile} from the board (hex ${log_hex})'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "log_hex" => $hex,
                 "hex" => $hex,
                 "tileCard" => $tileCard,
@@ -279,8 +232,6 @@ class Game extends \Table
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
-        $tileCard = $this->tile_cards->getCard($tileCard_id);
-
         if (!$force) {
             $explorableTiles = $this->explorableTiles($player_id, true);
 
@@ -289,29 +240,7 @@ class Game extends \Table
             }
         }
 
-        $explorerCard = $this->getExplorerByPlayerId($player_id);
-        $hex = (int) $tileCard["location_arg"];
-
-        $this->explorer_cards->moveCard($explorerCard["id"], "board", $hex);
-
-        $this->notifyAllPlayers(
-            "moveExplorer",
-            clienttranslate('${player_name} moves his explorer onto a new ${tile} (hex ${log_hex})'),
-            [
-                "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
-                "log_hex" => $hex,
-                "hex" => $hex,
-                "tileCard" => $tileCard,
-                "explorerCard" => $explorerCard,
-                "preserve" => ["tileCard"],
-                "tile" => clienttranslate("tile"),
-            ]
-        );
-
-        $this->globals->set(HAS_MOVED_EXPLORER, true);
-
-        $this->resolveTileEffect($tileCard, $player_id);
+        $this->moveExplorer($tileCard_id, $player_id);
     }
 
     public function actPickRainbowGem(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id): void
@@ -354,7 +283,7 @@ class Game extends \Table
             clienttranslate('${player_name} discards a Secret Objective'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "objectiveCard" => $this->hideCard($objectiveCard)
             ]
         );
@@ -406,7 +335,7 @@ class Game extends \Table
         $tile_id = (int) $tileCard["type_arg"];
         $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-        if ($gem_id === 0 || $gem_id === 10) {
+        if ($gem_id % 10 === 0) {
             $gem_id = $this->globals->get(RAINBOW_GEM);
         }
 
@@ -419,7 +348,7 @@ class Game extends \Table
 
         $minedGemsCount = $this->mine($gem_id, $dice, $player_id);
 
-        $this->incStat(1, "miningAttempts", $player_id);
+        $this->incStatWithRhom(1, "miningAttempts", $player_id);
 
         if ($minedGemsCount === 0) {
             $this->notifyAllPlayers(
@@ -427,11 +356,11 @@ class Game extends \Table
                 clienttranslate('${player_name} fails to mine his tile'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id)
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 ]
             );
 
-            $this->incStat(1, "failedMiningAttempts", $player_id);
+            $this->incStatWithRhom(1, "failedMiningAttempts", $player_id);
         } else {
             if ($this->globals->get(MARVELOUS_CART)) {
                 $minedGemsCount *= 2;
@@ -511,7 +440,7 @@ class Game extends \Table
         $item = new ItemManager($itemCard_id, $this);
 
         $item->buy($player_id);
-        $this->incStat(1, "itemsPurchased", $player_id);
+        $this->incStatWithRhom(1, "itemsPurchased", $player_id);
 
         $this->gamestate->nextState("repeat");
     }
@@ -703,6 +632,45 @@ class Game extends \Table
         $this->gamestate->nextState("skip");
     }
 
+    /* SOLO ACTIONS */
+
+    public function actStartSolo(): void
+    {
+        $this->gamestate->nextState("rhomFirstTurn");
+    }
+
+    public function actPickRainbowForRhom(?int $clientVersion, #[IntParam(min: 1, max: 4)] int $gem_id): void
+    {
+        $this->checkVersion($clientVersion);
+
+        $pickableGems = $this->globals->get(RHOM_POSSIBLE_RAINBOW, []);
+
+        if (!in_array($gem_id, $pickableGems)) {
+            throw new \BgaVisibleSystemException("You can't pick this gem for the Rhom: $gem_id");
+        }
+
+        $this->globals->set(RAINBOW_GEM, $gem_id);
+        $this->globals->set(RHOM_SKIP, 2);
+        $this->globals->set(RHOM_POSSIBLE_RAINBOW, null);
+
+        if ($this->globals->get(RHOM_FIRST_TURN, true)) {
+            $this->stRhomFirstTurn();
+            return;
+        }
+
+        $this->gamestate->nextState("rhomTurn");
+    }
+
+    public function actDiscardTileForRhom(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id): void
+    {
+        $this->checkVersion($clientVersion);
+
+        $this->discardCollectedTile($tileCard_id, 1);
+        $this->rhomMoveToEmptyHex();
+
+        $this->gamestate->nextState("rhomTurn");
+    }
+
     /**
      * Game state arguments, example content.
      *
@@ -767,10 +735,26 @@ class Game extends \Table
 
     public function stRevealTile(): void
     {
+        $isSolo = $this->isSolo();
+        $rhomFirstTurn = $isSolo && $this->globals->get(RHOM_FIRST_TURN, true);
+
+        if ($rhomFirstTurn) {
+            $this->gamestate->nextState("startSolo");
+            return;
+        }
+
         $args = $this->argRevealTile();
 
         if ($args["_no_notify"]) {
             if ($args["hasReachedCastle"]) {
+                if ($isSolo) {
+                    $rhomReachedSolo = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
+                    if ($rhomReachedSolo) {
+                        $this->gamestate->nextState("finalScoring");
+                        return;
+                    }
+                }
+
                 $this->gamestate->nextState("discardTile");
                 return;
             }
@@ -1098,22 +1082,7 @@ class Game extends \Table
 
         $this->resetStoneDice($player_id);
         $this->collectTile($player_id);
-
-        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
-
-        if ($hasReachedCastle) {
-            $explorerCard = $this->getExplorerByPlayerId($player_id);
-            $this->explorer_cards->moveCard($explorerCard["id"], "scene");
-
-            $this->notifyAllPlayers(
-                "resetExplorer",
-                "",
-                [
-                    "player_id" => $player_id,
-                    "explorerCard" => $explorerCard,
-                ]
-            );
-        }
+        $this->resetExplorer($player_id);
 
         $this->globals->set(REVEALS_LIMIT, 0);
         $this->globals->set(HAS_MOVED_EXPLORER, false);
@@ -1129,8 +1098,9 @@ class Game extends \Table
         $this->globals->set(ANCHOR_STATE, null);
 
         $castlePlayersCount = $this->castlePlayersCount();
+        $playersNumber = $this->getPlayersNumberNoZombie();
 
-        if ($castlePlayersCount === $this->getPlayersNumberNoZombie()) {
+        if ($castlePlayersCount === $playersNumber) {
             $this->gamestate->nextState("finalScoring");
             return;
         }
@@ -1140,6 +1110,9 @@ class Game extends \Table
         $epicElixir = $this->globals->get(EPIC_ELIXIR, false);
         $this->disableItems();
 
+        $isSolo = $this->isSolo();
+        $isRealTurn = $this->globals->get(REAL_TURN);
+
         if ($epicElixir) {
             $this->globals->set(EPIC_ELIXIR_TURN, true);
 
@@ -1148,7 +1121,7 @@ class Game extends \Table
                 clienttranslate('${player_name} starts a new turn (${item_name})'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "item_name" => clienttranslate("Epic Elixir"),
                     "i18n" => ["item_name"],
                     "preserve" => ["item_id"],
@@ -1160,12 +1133,21 @@ class Game extends \Table
 
             $this->notifyAllPlayers(
                 "passTurn",
-                clienttranslate('${player_name} ends his turn'),
+                clienttranslate('${player_name} ends ${his} turn'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                    "his" => $this->pronoun($player_id),
+                    "i18n" => ["his"],
                 ]
             );
+
+            if ($isSolo && $isRealTurn) {
+                $this->globals->set(REAL_TURN, false);
+                $this->gamestate->nextState("rhomTurn");
+                return;
+            }
+
             $this->activeNextPlayer();
         }
 
@@ -1176,6 +1158,189 @@ class Game extends \Table
     {
         $this->calcFinalScoring();
         $this->gamestate->nextState("gameEnd");
+    }
+
+    /* SOLO MODE */
+
+    public function stRhomFirstTurn(): void
+    {
+        $rhomSkip = $this->globals->get(RHOM_SKIP, 0);
+
+        if ($rhomSkip === 0) {
+            $hex_1 = $this->rollDie("1-1", 1, "mining");
+            $hex_2 = $this->rollDie("2-1", 1, "mining");
+
+            $weathervaneDirection = $this->weathervaneDirection();
+
+            if ($weathervaneDirection === "right") {
+                if ($hex_1 === 1 || $hex_1 === 6) {
+                    $hex_1 = 2;
+                }
+
+                if ($hex_2 === 1 || $hex_2 === 6) {
+                    $hex_2 = 2;
+                }
+            }
+
+            if ($weathervaneDirection === "left") {
+                if ($hex_1 === 1 || $hex_1 === 6) {
+                    $hex_1 = 5;
+                }
+
+                if ($hex_2 === 1 || $hex_2 === 6) {
+                    $hex_2 = 5;
+                }
+            }
+
+            if ($hex_1 === $hex_2) {
+                if ($weathervaneDirection === "right") {
+                    $hex_2++;
+
+                    if ($hex_2 === 6) {
+                        $hex_2 = 2;
+                    }
+                }
+
+                if ($weathervaneDirection === "left") {
+                    $hex_2--;
+
+                    if ($hex_2 === 1) {
+                        $hex_2 = 5;
+                    }
+                }
+            }
+
+            $this->notifyAllPlayers(
+                "syncDieRolls",
+                "",
+                []
+            );
+
+            $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_1");
+            $this->revealTile($tileCard_id, 1);
+
+            $tileCard_id = (int) $this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg=$hex_2");
+            $this->revealTile($tileCard_id, 1);
+        }
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        $mostDemandingTiles = $this->mostDemandingTiles($revealedTiles);
+
+        $tileCard = reset($mostDemandingTiles);
+        $tileCard_id = (int) $tileCard["id"];
+
+        if ($rhomSkip <= 1) {
+            $this->moveExplorer($tileCard_id, 1);
+        } else {
+            $this->rhomResolveTileEffect($tileCard);
+        }
+
+        if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
+            return;
+        }
+
+        $this->collectTile(1);
+
+        $this->globals->set(RHOM_FIRST_TURN, false);
+        $this->globals->set(RHOM_SKIP, 0);
+        $this->globals->set(REAL_TURN, true);
+        $this->gamestate->nextState("realTurn");
+    }
+
+    public function stRhomTurn(): void
+    {
+        $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
+        if ($hasReachedCastle) {
+            $this->globals->set(REAL_TURN, true);
+            $this->gamestate->nextState("realTurn");
+            return;
+        }
+
+        $rhomSkip = $this->globals->get(RHOM_SKIP, 0);
+
+        if ($rhomSkip === 0) {
+            if (!$this->rhomRevealTiles()) {
+                return;
+            }
+        }
+
+        $explorableTiles = $this->explorableTiles(1);
+
+        if (!$explorableTiles) {
+            $this->gamestate->nextState("discardTileForRhom");
+            return;
+        }
+
+        $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+
+        $tileCard = reset($mostDemandingTiles);
+        $tileCard_id = (int) $tileCard["id"];
+
+        if ($rhomSkip <= 1) {
+            $this->moveExplorer($tileCard_id, 1);
+        } else {
+            $this->rhomResolveTileEffect($tileCard);
+        }
+
+        if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
+            return;
+        }
+
+        $this->rhomRestoreRelic();
+        $this->collectTile(1);
+        $this->resetExplorer(1);
+
+        $this->globals->set(RHOM_SKIP, 0);
+        $this->globals->set(REAL_TURN, true);
+        $this->gamestate->nextState("realTurn");
+    }
+
+    public function argRhomTurn(): array
+    {
+        return [
+            "rhom" => "Rhom"
+        ];
+    }
+
+    public function argPickRainbowForRhom(): array
+    {
+        $pickableGems = $this->globals->get(RHOM_POSSIBLE_RAINBOW);
+        asort($pickableGems);
+
+        return [
+            "rhom" => "Rhom",
+            "pickableGems" => $pickableGems,
+        ];
+    }
+
+    public function argDiscardTileForRhom(): array
+    {
+        $collectedTiles = $this->getCollectedTiles(1);
+        $auto = count($collectedTiles) === 1;
+
+        return [
+            "rhom" => "Rhom",
+            "collectedTiles" => $collectedTiles,
+            "auto" => $auto,
+            "no_notify" => $auto,
+        ];
+    }
+
+    public function stDiscardTileForRhom(): void
+    {
+        $args = $this->argDiscardTileForRhom();
+
+        if ($args["no_notify"]) {
+            if ($args["auto"]) {
+                $collectedTiles = $args["collectedTiles"];
+
+                $tileCard = reset($collectedTiles);
+                $tileCard_id = (int) $tileCard["id"];
+
+                $this->actDiscardTileForRhom(null, $tileCard_id);
+                return;
+            }
+        }
     }
 
     /**
@@ -1208,7 +1373,7 @@ class Game extends \Table
             }
 
             $hex = (int) $explorerCard["location_arg"];
-            $tileRow = $this->hexRow($hex);
+            $tileRow = $this->hexes_info[$hex]["row"];
 
             $progression += $tileRow / 9;
         }
@@ -1230,6 +1395,11 @@ class Game extends \Table
         }
     }
 
+    public function isSolo(): bool
+    {
+        return $this->getPlayersNumber() === 1;
+    }
+
     public function isZombie(int $player_id): bool
     {
         return !!$this->getUniqueValueFromDB("SELECT player_zombie from player WHERE player_id=$player_id");
@@ -1237,17 +1407,40 @@ class Game extends \Table
 
     public function loadPlayersNoZombie(): array
     {
-        return $this->getCollectionFromDB("SELECT player_id id, player_name name, player_color color, player_score score FROM player WHERE player_zombie=0");
+        $players = $this->getCollectionFromDB("SELECT player_id id, player_name name, player_color color, player_score score FROM player WHERE player_zombie=0");
+
+        if ($this->isSolo()) {
+            $players[1] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+        }
+
+        return $players;
     }
 
     public function getPlayersNumberNoZombie(): int
     {
+        if ($this->isSolo()) {
+            return 2;
+        }
+
         $playersNoZombie = $this->loadPlayersNoZombie();
         return count($playersNoZombie);
     }
 
+    public function getPlayerOrRhomNameById(int $player_id): string
+    {
+        if ($player_id === 1) {
+            return "Rhom";
+        }
+
+        return $this->getPlayerNameById($player_id);
+    }
+
     public function checkPlayer($player_id): void
     {
+        if ($this->isSolo() && $player_id === 1) {
+            return;
+        }
+
         $players = $this->loadPlayersNoZombie();
 
         if ($player_id && !array_key_exists($player_id, $players)) {
@@ -1259,14 +1452,14 @@ class Game extends \Table
     {
         $face = bga_rand(1, 6);
 
-        $this->incStat(1, "$face:Rolled", $player_id);
+        $this->incStatWithRhom(1, "$face:Rolled", $player_id);
 
         $this->notifyAllPlayers(
             'rollDie',
             clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "die_id" => $die_id,
                 "face" => $face,
                 "type" => $type,
@@ -1346,16 +1539,41 @@ class Game extends \Table
 
     public function getExplorers(): array
     {
-        $explorers = $this->getCollectionFromDB("$this->deckSelectQuery FROM explorer WHERE card_location!='box'");
+        $explorerCards = $this->getCollectionFromDB("$this->deckSelectQuery FROM explorer WHERE card_location!='box'");
 
-        return $explorers;
+        return $explorerCards;
     }
 
     public function getExplorerByPlayerId(int $player_id): array
     {
-        $explorer = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id");
+        $queryResult = $this->getCollectionFromDB("$this->deckSelectQuery FROM explorer WHERE card_type_arg=$player_id AND card_location<>'box'");
+        $explorerCard = reset($queryResult);
 
-        return $explorer;
+        return $explorerCard;
+    }
+
+    public function resetExplorer(int $player_id): void
+    {
+        if ($player_id === 1) {
+            $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from robot WHERE id=1");
+        } else {
+            $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
+        }
+
+        if ($hasReachedCastle) {
+            $explorerCard = $this->getExplorerByPlayerId($player_id);
+            $explorerCard_id = (int) $explorerCard["id"];
+            $this->explorer_cards->moveCard($explorerCard_id, "scene");
+
+            $this->notifyAllPlayers(
+                "resetExplorer",
+                "",
+                [
+                    "player_id" => $player_id,
+                    "explorerCard" => $explorerCard,
+                ]
+            );
+        }
     }
 
     public function getTilesBoard(): array
@@ -1365,21 +1583,7 @@ class Game extends \Table
         return $this->hideCards($tilesBoard);
     }
 
-    public function hexRow(int $hex): int
-    {
-        $remainingHexes = $hex;
-
-        for ($row = 1; $remainingHexes >= 0; $row++) {
-            $hexesInRow = $row % 2 === 0 ? 7 : 6;
-            $remainingHexes -= $hexesInRow;
-
-            if ($remainingHexes <= 0) {
-                return $row;
-            }
-        }
-    }
-
-    public function adjacentTiles(int $player_id, int $hex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true): array
+    public function adjacentTiles(int $player_id, int $hex = null, bool $onlyHexes = false, bool $onlyUnoccupied = true, bool $withDirections = false): array
     {
         $adjacentTiles = [];
 
@@ -1402,7 +1606,7 @@ class Game extends \Table
             $hex = (int) $explorerCard["location_arg"];
         }
 
-        $tileRow = (int) $this->hexRow($hex);
+        $tileRow = $this->hexes_info[$hex]["row"];
 
         $leftHex = $hex - 1;
         $rightHex = $hex + 1;
@@ -1434,10 +1638,10 @@ class Game extends \Table
         }
 
         $adjacentHexes = [
-            $leftHex,
-            $rightHex,
-            $topLeftHex,
-            $topRightHex
+            "left" => $leftHex,
+            "topLeft" => $topLeftHex,
+            "topRight" => $topRightHex,
+            "right" => $rightHex,
         ];
 
         if ($onlyHexes) {
@@ -1453,15 +1657,16 @@ class Game extends \Table
                 }
 
                 $isOcuppied = !!$this->getUniqueValueFromDB("SELECT card_id FROM explorer WHERE card_location='board' AND card_location_arg=$hex");
+                $isBarricaded = !!$this->getUniqueValueFromDB("SELECT card_id FROM tile WHERE card_location='barricade' AND card_location_arg=$hex");
 
-                if (!$isOcuppied) {
+                if (!$isOcuppied && !$isBarricaded) {
                     $hexes[] = $hex;
                 }
             }
             return $hexes;
         }
 
-        foreach ($adjacentHexes as $hex) {
+        foreach ($adjacentHexes as $direction => $hex) {
             if ($hex === null) {
                 continue;
             }
@@ -1470,6 +1675,12 @@ class Game extends \Table
 
             if ($tileCard) {
                 $tileCard_id = (int) $tileCard["id"];
+
+                if ($withDirections) {
+                    $adjacentTiles[$direction] = $tileCard;
+                    continue;
+                }
+
                 $adjacentTiles[$tileCard_id] = $tileCard;
             }
         }
@@ -1561,6 +1772,27 @@ class Game extends \Table
         return $explorableTiles;
     }
 
+    public function discardCollectedTile(int $tileCard_id, int $player_id): void
+    {
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+        $this->checkCardLocation($tileCard, "hand", $player_id);
+        $this->tile_cards->moveCard($tileCard_id, "discard");
+
+        $this->notifyAllPlayers(
+            "discardCollectedTile",
+            clienttranslate('${player_name} discards a collected ${tile} to unblock ${his} moves'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "his" => $this->pronoun($player_id),
+                "i18n" => ["his, tile"],
+                "preserve" => ["tileCard"],
+                "tileCard" => $tileCard,
+                "tile" => clienttranslate("tile"),
+            ]
+        );
+    }
+
     public function closestEmpty(int $player_id, array $adjacentHexes): array
     {
         $emptyWithAdjacent = [];
@@ -1596,7 +1828,28 @@ class Game extends \Table
         return $this->closestEmpty($player_id, $adjacentHexes);
     }
 
-    public function expandedCatapultableHexes(int $player_id, array $adjacentHexes, bool $catapult = false): array
+    public function moveToEmptyHex(int $emptyHex, int $player_id)
+    {
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $explorerCard_id = (int) $explorerCard["id"];
+        $this->explorer_cards->moveCard($explorerCard_id, "board", $emptyHex);
+
+        $this->notifyAllPlayers(
+            "moveExplorer",
+            clienttranslate('${player_name} moves ${his} explorer onto an empty tile (hex ${log_hex})'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "his" => $this->pronoun($player_id),
+                "log_hex" => $emptyHex,
+                "hex" => $emptyHex,
+                "explorerCard" => $explorerCard,
+                "i18n" => ["his"],
+            ]
+        );
+    }
+
+    public function expandedCatapultableHexes(int $player_id, array $adjacentHexes): array
     {
         $expandedCatapultableHexes = [];
 
@@ -1649,13 +1902,83 @@ class Game extends \Table
         return ["tiles" => $catapultableTiles, "empty" => array_unique($catapultableEmpty)];
     }
 
+    public function revealTile(int $tileCard_id, int $player_id): void
+    {
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES, []);
+        $revealedTiles[$tileCard_id] = $tileCard;
+        $this->globals->set(REVEALED_TILES, $revealedTiles);
+
+        $hex = (int) $tileCard["location_arg"];
+
+        $this->notifyAllPlayers(
+            "revealTile",
+            clienttranslate('${player_name} reveals a ${tile} (hex ${log_hex})'),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $hex,
+                "hex" => $hex,
+                "tileCard" => $tileCard,
+                "preserve" => ["tileCard"],
+                "i18n" => ["tile"],
+                "tile" => clienttranslate("tile"),
+            ]
+        );
+
+        if ($player_id !== 1) {
+            $this->globals->inc(REVEALS_LIMIT, 1);
+        }
+    }
+
+    public function moveExplorer($tileCard_id, $player_id)
+    {
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $hex = (int) $tileCard["location_arg"];
+
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+        $explorerCard_id = (int) $explorerCard["id"];
+        $this->explorer_cards->moveCard($explorerCard_id, "board", $hex);
+
+        $this->notifyAllPlayers(
+            "moveExplorer",
+            clienttranslate('${player_name} moves ${his} explorer onto a new ${tile} (hex ${log_hex}) '),
+            [
+                "player_id" => $player_id,
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                "log_hex" => $hex,
+                "hex" => $hex,
+                "tileCard" => $tileCard,
+                "explorerCard" => $explorerCard,
+                "his" => $this->pronoun($player_id),
+                "i18n" => ["his"],
+                "preserve" => ["tileCard"],
+                "tile" => clienttranslate("tile"),
+            ]
+        );
+
+        if ($player_id !== 1) {
+            $this->globals->set(HAS_MOVED_EXPLORER, true);
+        }
+
+        $this->resolveTileEffect($tileCard, $player_id);
+    }
+
     public function resolveTileEffect(array $tileCard, int $player_id): void
     {
+        if ($player_id === 1) {
+            $this->rhomResolveTileEffect($tileCard);
+            return;
+        }
+
         $tile_id = (int) $tileCard["type_arg"];
         $region_id = (int) $tileCard["type"];
 
-        $tileInfo = $this->tiles_info[$tile_id];
-        $gem_id = (int) $tileInfo["gem"];
+        $tile_info = $this->tiles_info[$tile_id];
+        $tileEffect_id = (int) $tile_info["effect"];
+        $gem_id = (int) $tile_info["gem"];
 
         $hasReachedForest = !!$this->getUniqueValueFromDB("SELECT forest from player WHERE player_id=$player_id");
 
@@ -1676,7 +1999,7 @@ class Game extends \Table
 
             if ($tileEffect_id === 2) {
                 $this->incRoyaltyPoints($effectValue, $player_id);
-                $this->incStat($effectValue, "tilesPoints", $player_id);
+                $this->incStatWithRhom($effectValue, "tilesPoints", $player_id);
             }
 
             if ($tileEffect_id === 3) {
@@ -1709,14 +2032,13 @@ class Game extends \Table
 
         $hex = (int) $explorerCard["location_arg"];
 
-        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' 
-        AND card_location_arg=$hex");
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery FROM tile WHERE card_location='board' AND card_location_arg=$hex");
 
         if ($onlyGem) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = $this->tiles_info[$tile_id]["gem"];
 
-            if ($gem_id === 0 || $gem_id === 10) {
+            if ($gem_id % 10 === 0) {
                 $gem_id = $this->globals->get(RAINBOW_GEM);
             }
 
@@ -1744,9 +2066,9 @@ class Game extends \Table
         $gem_id = (int) $tile_info["gem"];
         $region_id = (int) $tile_info["region"];
 
-        $statName = $gem_id === 0 || $gem_id === 10 ? "rainbow:Tiles" : "$gem_id:GemTiles";
-        $this->incStat(1, $statName, $player_id);
-        $this->incStat(1, "tilesCollected", $player_id);
+        $statName = $gem_id % 10 === 0 ? "rainbow:Tiles" : "$gem_id:GemTiles";
+        $this->incStatWithRhom(1, $statName, $player_id);
+        $this->incStatWithRhom(1, "tilesCollected", $player_id);
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
@@ -1777,7 +2099,7 @@ class Game extends \Table
             clienttranslate('${player_name} reaches the Forest region'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
             ]
         );
 
@@ -1789,7 +2111,12 @@ class Game extends \Table
     {
         $players = $this->loadPlayersNoZombie();
         foreach ($players as $player_id => $player) {
-            $foundIridia = !!$this->getUniqueValueFromDB("SELECT iridia_stone FROM player WHERE player_id=$player_id");
+            if ($player_id === 1) {
+                $foundIridia = !!$this->getUniqueValueFromDB("SELECT iridia_stone FROM robot WHERE id=1");
+            } else {
+                $foundIridia = !!$this->getUniqueValueFromDB("SELECT iridia_stone FROM player WHERE player_id=$player_id");
+            }
+
             if ($foundIridia) {
                 return $player_id;
             }
@@ -1804,18 +2131,22 @@ class Game extends \Table
             throw new \BgaVisibleSystemException("The Iridia Stone has already been found: obtainIridiaStone");
         }
 
-        $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=player_score_aux+1000 WHERE player_id=$player_id");
+        if ($player_id === 1) {
+            $this->DbQuery("UPDATE robot SET iridia_stone=1, score_aux=score_aux+1000 WHERE id=1");
+        } else {
+            $this->DbQuery("UPDATE player SET iridia_stone=1, player_score_aux=player_score_aux+1000 WHERE player_id=$player_id");
+        }
 
         $this->notifyAllPlayers(
             "obtainIridiaStone",
             clienttranslate('${player_name} finds the Iridia Stone'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
+                "player_name" => $this->getPlayerOrRhomNameById($player_id)
             ]
         );
 
-        $this->setStat(10, "iridiaPoints", $player_id);
+        $this->setStatWithRhom(10, "iridiaPoints", $player_id);
         $this->incRoyaltyPoints(10, $player_id);
     }
 
@@ -1856,21 +2187,30 @@ class Game extends \Table
 
     public function reachCastle(int $player_id): void
     {
-        $this->DbQuery("UPDATE player SET castle=1 WHERE player_id=$player_id");
+        if ($player_id === 1) {
+            $this->DbQuery("UPDATE robot SET castle=1 WHERE id=1");
+        } else {
+            $this->DbQuery("UPDATE player SET castle=1 WHERE player_id=$player_id");
+        }
 
         $this->notifyAllPlayers(
             "reacheCastle",
             clienttranslate('${player_name} reaches the Castle row'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id)
+                "player_name" => $this->getPlayerOrRhomNameById($player_id)
             ]
         );
 
         $castlePlayersCount = (int) $this->castlePlayersCount();
         $playersNumber = (int) $this->getPlayersNumber();
 
-        if ($playersNumber > 1 && $playersNumber === $castlePlayersCount) {
+        $isSolo = $this->isSolo();
+        if ($isSolo) {
+            $playersNumber = 2;
+        }
+
+        if ($castlePlayersCount === $playersNumber) {
             return;
         }
 
@@ -1909,7 +2249,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains the ${token_label}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "token_id" => $token_id,
                 "token_label" => $tokenLabel,
                 "tokenName" => $tokenName,
@@ -1917,15 +2257,29 @@ class Game extends \Table
             ]
         );
 
-        $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=player_score_aux+$score_aux WHERE player_id=$player_id");
-        $this->setStat($tokenPoints, "tokenPoints", $player_id);
+        if ($player_id === 1) {
+            $this->DbQuery("UPDATE robot SET score_aux=score_aux+$score_aux WHERE id=1");
+        } else {
+            $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=player_score_aux+$score_aux WHERE player_id=$player_id");
+        }
+
+        $this->setStatWithRhom($tokenPoints, "tokenPoints", $player_id);
         $this->incRoyaltyPoints($tokenPoints, $player_id);
     }
 
-    public function castlePlayersCount()
+    public function castlePlayersCount(): int
     {
         $castlePlayers = $this->getCollectionFromDB("SELECT player_id FROM player WHERE castle=1");
-        return count($castlePlayers);
+        $castlePlayersCount = count($castlePlayers);
+
+        if ($this->isSolo()) {
+            $castleRhom = !!$this->getUniqueValueFromDB("SELECT castle from robot WHERE id=1");
+            if ($castleRhom) {
+                $castlePlayersCount++;
+            }
+        }
+
+        return $castlePlayersCount;
     }
 
     public function getCollectedTiles(?int $player_id): array
@@ -2067,13 +2421,20 @@ class Game extends \Table
         return $minedGemsCount;
     }
 
-    public function availableCargos(int $current_player_id = null, int $excendent = 1): array
+    public function availableCargos(int $current_player_id = null, int $excess = 1): array
     {
+        if ($this->isSolo()) {
+            if ($this->getTotalGemsCount(1) + $excess <= 7) {
+                return [1];
+            }
+            return [];
+        }
+
         $players = $this->loadPlayersNoZombie();
 
         $availableCargos = [];
         foreach ($players as $player_id => $player) {
-            if ($this->getTotalGemsCount($player_id) + $excendent <= 7 && $player_id !== $current_player_id) {
+            if ($this->getTotalGemsCount($player_id) + $excess <= 7 && $player_id !== $current_player_id) {
                 $availableCargos[] = $player_id;
             }
         }
@@ -2112,9 +2473,9 @@ class Game extends \Table
                 clienttranslate('${player_name} gives away ${delta} ${gem_label} to ${player_name2}'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                    "player_name2" => $this->getPlayerOrRhomNameById($opponent_id),
                     "player_id2" => $opponent_id,
-                    "player_name2" => $this->getPlayerNameById($opponent_id),
                     "delta" => $delta,
                     "gem_label" => $gem_info["tr_name"],
                     "gemName" => $gemName,
@@ -2150,7 +2511,7 @@ class Game extends \Table
             clienttranslate('${player_name} returns ${delta} ${gem_label} to the supply'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => count($gemCards),
                 "gemCards" => $gemCards,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
@@ -2179,7 +2540,7 @@ class Game extends \Table
             $message,
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "gem_label" => $this->gems_info[$gem_id]["tr_name"],
                 "gemName" => $gemName,
@@ -2234,7 +2595,7 @@ class Game extends \Table
             $message,
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "gemName" => $gemName,
                 "gemCards" => $gemCards,
@@ -2345,7 +2706,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => $delta,
                 "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
@@ -2353,7 +2714,7 @@ class Game extends \Table
             ]
         );
 
-        $this->incStat($delta, "coinsObtained", $player_id);
+        $this->incStatWithRhom($delta, "coinsObtained", $player_id);
     }
 
     public function decCoin(int $delta, int $player_id): void
@@ -2373,7 +2734,7 @@ class Game extends \Table
             clienttranslate('${player_name} spends ${delta_log} ${coin}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "delta" => -$delta,
                 "delta_log" => $delta,
                 "coin" => clienttranslate("coin(s)"),
@@ -2391,12 +2752,16 @@ class Game extends \Table
 
         $this->dbQuery("UPDATE player SET player_score=player_score+$delta WHERE player_id=$player_id");
 
+        if ($player_id === 1) {
+            $this->dbQuery("UPDATE robot SET score=score+$delta WHERE id=1");
+        }
+
         $this->notifyAllPlayers(
             "incRoyaltyPoints",
             $silent ? "" : clienttranslate('${player_name} scores ${points_log} point(s)'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "points" => $delta,
                 "points_log" => $delta,
                 "preserve" => ["points_log"],
@@ -2435,7 +2800,7 @@ class Game extends \Table
             clienttranslate('${player_name} obtains a Stone Die'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "die_id" => 4 - $publicStoneDiceCount
             ]
         );
@@ -2485,7 +2850,13 @@ class Game extends \Table
 
     public function getRelicsMarket(): array
     {
-        return $this->relic_cards->getCardsInLocation("market");
+        $relicsMarket = $this->relic_cards->getCardsInLocation("market");
+
+        uasort($relicsMarket, function ($relicCard, $otherRelicCard) {
+            return (int) $otherRelicCard["location_arg"] <=> (int) $relicCard["location_arg"];
+        });
+
+        return $relicsMarket;
     }
 
     public function getRestoredRelics(?int $player_id): array
@@ -2589,10 +2960,10 @@ class Game extends \Table
         $leadGem = (int) $relic_info["leadGem"];
 
         $statName = $leadGem === 0 ? "iridia:Relics" : "$leadGem:GemRelics";
-        $this->incStat(1, $statName, $player_id);
+        $this->incStatWithRhom(1, $statName, $player_id);
 
         if ($relicType !== 0) {
-            $this->incStat(1, "$relicType:TypeRelics", $player_id);
+            $this->incStatWithRhom(1, "$relicType:TypeRelics", $player_id);
         }
 
         foreach ($relicCost as $gem_id => $gemCost) {
@@ -2614,7 +2985,7 @@ class Game extends \Table
             clienttranslate('${player_name} restores the ${relic_name}'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "relic_name" => $relic_info["tr_name"],
                 "relicCard" => $relicCard,
                 "i18n" => ["relic_name"],
@@ -2623,7 +2994,7 @@ class Game extends \Table
         );
 
         $this->incRoyaltyPoints($relicPoints, $player_id);
-        $this->incStat($relicPoints, "relicsPoints", $player_id);
+        $this->incStatWithRhom($relicPoints, "relicsPoints", $player_id);
 
         if ($relicCard["location"] === "book") {
             $itemCard = $this->getBooks($player_id)["item"];
@@ -2639,11 +3010,15 @@ class Game extends \Table
 
     public function replaceRelic(): void
     {
-        $relicCard = $this->relic_cards->pickCardForLocation("deck", "market");
+        $relicCard = $this->relic_cards->getCardOnTop("deck");
 
         if (!$relicCard) {
             return;
         }
+
+        $relicCard_id = (int) $relicCard["id"];
+        $this->relic_cards->insertCardOnExtremePosition($relicCard_id, "market", false);
+        $relicCard = $this->relic_cards->getCard($relicCard_id);
 
         $relic_id = $relicCard["type_arg"];
 
@@ -2684,6 +3059,9 @@ class Game extends \Table
     public function getItemsMarket(): array
     {
         $itemsMarket = $this->item_cards->getCardsInLocation("market");
+        uasort($itemsMarket, function ($itemCard, $otherItemCard) {
+            return (int) $otherItemCard["location_arg"] <=> (int) $itemCard["location_arg"];
+        });
 
         return $itemsMarket;
     }
@@ -2717,13 +3095,19 @@ class Game extends \Table
         return $isValid;
     }
 
-    public function reshuffleItemsDeck(bool $setup = false)
+    public function reshuffleItemsDeck(bool $setup = false, array $players = null)
     {
         $this->item_cards->moveAllCardsInLocation("market", "deck");
         $this->item_cards->moveAllCardsInLocation("discard", "deck");
 
+        if ($players === null) {
+            $players = $this->loadPlayersBasicInfos();
+        }
+
+        $itemsMarketCount = count($players) === 1 ? 6 : 5;
+
         $this->item_cards->shuffle("deck");
-        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+        $this->item_cards->pickCardsForLocation($itemsMarketCount, "deck", "market");
 
         if (!$this->checkItemsMarket()) {
             $this->reshuffleItemsDeck($setup);
@@ -2840,9 +3224,16 @@ class Game extends \Table
 
     public function replaceItem(): void
     {
-        $itemCard = $this->item_cards->pickCardForLocation("deck", "market");
+        $itemCard = $this->item_cards->getCardOnTop("deck");
+
+        if (!$itemCard) {
+            $this->reshuffleItemsDeck();
+            return;
+        }
 
         $itemCard_id = (int) $itemCard["id"];
+        $this->item_cards->insertCardOnExtremePosition($itemCard_id, "market", false);
+        $itemCard = $this->item_cards->getCard($itemCard_id);
 
         $item = new ItemManager($itemCard_id, $this);
 
@@ -2908,10 +3299,12 @@ class Game extends \Table
                 "computeGemsPoints",
                 clienttranslate('${player_name} scores ${points_log} points from gem sets'),
                 [
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_id" => 1,
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $gemsPoints,
-                    "points_log" => $gemsPoints,
                     "preserve" => ["points_log"],
+                    "points_log" => $gemsPoints,
+                    "finalScoring" => true,
                 ]
             );
         }
@@ -3009,7 +3402,7 @@ class Game extends \Table
                 clienttranslate('${player_name} scores ${points_log} points from tile sets'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $tilesPoints,
                     "preserve" => ["points_log", "finalScoring"],
                     "points_log" => $tilesPoints,
@@ -3119,7 +3512,7 @@ class Game extends \Table
                 clienttranslate('${player_name} scores ${points_log} points from relic sets'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $relicsPoints,
                     "preserve" => ["points_log", "finalScoring"],
                     "points_log" => $relicsPoints,
@@ -3135,6 +3528,10 @@ class Game extends \Table
 
     public function computeObjectivePoints(int $player_id): int
     {
+        if ($player_id === 1) {
+            return 0;
+        }
+
         $handObjectives = $this->objective_cards->getCardsInLocation("hand", $player_id);
         $objectiveCard = reset($handObjectives);
         $objective_id = (int) $objectiveCard["type_arg"];
@@ -3147,7 +3544,7 @@ class Game extends \Table
             clienttranslate('${player_name} reveals ${objective_name} as his Secret Objective'),
             [
                 "player_id" => $player_id,
-                "player_name" => $this->getPlayerNameById($player_id),
+                "player_name" => $this->getPlayerOrRhomNameById($player_id),
                 "objective_name" => $objective->tr_name,
                 "objectiveCard" => $objectiveCard,
                 "i18n" => ["objective_name"],
@@ -3163,7 +3560,7 @@ class Game extends \Table
                 clienttranslate('${player_name} completes the ${objective_name} objective and scores ${points_log} points'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "objective_name" => $objective->tr_name,
                     "objectiveCard" => $objectiveCard,
                     "points" => $objective->points,
@@ -3187,10 +3584,10 @@ class Game extends \Table
         $tableNames = [];
         foreach ($players as $player_id => $player) {
             $relicsForSets = [
-                1 => (int) $this->getStat("1:TypeRelics", $player_id),
-                2 => (int) $this->getStat("3:TypeRelics", $player_id),
-                3 => (int) $this->getStat("2:TypeRelics", $player_id),
-                "iridia" => (int) $this->getStat("iridia:Relics", $player_id),
+                1 => (int) $this->getStatWithRhom("1:TypeRelics", $player_id),
+                2 => (int) $this->getStatWithRhom("3:TypeRelics", $player_id),
+                3 => (int) $this->getStatWithRhom("2:TypeRelics", $player_id),
+                "iridia" => (int) $this->getStatWithRhom("iridia:Relics", $player_id),
             ];
             $this->globals->set("relicsForSets:$player_id", $relicsForSets);
 
@@ -3199,23 +3596,28 @@ class Game extends \Table
             $bonusTilesPoints = $this->computeTilesPoints($player_id);
             $bonusRelicsPoints = $this->computeRelicsPoints($player_id);
 
-            $this->setStat($gemsPoints, "gemsPoints", $player_id);
-            $this->incStat($bonusTilesPoints, "tilesPoints", $player_id);
-            $this->incStat($bonusRelicsPoints, "relicsPoints", $player_id);
-            $this->setStat($objectivePoints, "objectivePoints", $player_id);
+            $this->setStatWithRhom($gemsPoints, "gemsPoints", $player_id);
+            $this->incStatWithRhom($bonusTilesPoints, "tilesPoints", $player_id);
+            $this->incStatWithRhom($bonusRelicsPoints, "relicsPoints", $player_id);
+            $this->setStatWithRhom($objectivePoints, "objectivePoints", $player_id);
 
             $tableNames[] = [
                 "str" => '${player_name}',
-                "args" => ["player_name" => $this->getPlayerNameById($player_id)],
+                "args" => ["player_name" => $this->getPlayerOrRhomNameById($player_id)],
                 "type" => "header"
             ];
 
-            $tilesPoints = $this->getStat("tilesPoints", $player_id);
-            $relicsPoints = $this->getStat("relicsPoints", $player_id);
-            $tokenPoints = $this->getStat("tokenPoints", $player_id);
-            $iridiaPoints = $this->getStat("iridiaPoints", $player_id);
+            $tilesPoints = $this->getStatWithRhom("tilesPoints", $player_id);
+            $relicsPoints = $this->getStatWithRhom("relicsPoints", $player_id);
+            $tokenPoints = $this->getStatWithRhom("tokenPoints", $player_id);
+            $iridiaPoints = $this->getStatWithRhom("iridiaPoints", $player_id);
 
-            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $iridiaPoints;
+            $rhomPoints = 0;
+            if ($this->isSolo() && $player_id === 1) {
+                $rhomPoints = $this->getStatWithRhom("rhomPoints", $player_id);
+            }
+
+            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $rhomPoints + $iridiaPoints;
 
             $tableGems[] = $gemsPoints;
             $tableTiles[] = $tilesPoints;
@@ -3223,6 +3625,7 @@ class Game extends \Table
             $tableObjective[] = $objectivePoints;
             $tableToken[] = $tokenPoints;
             $tableIridia[] = $iridiaPoints;
+            $tableOther[] = $rhomPoints;
             $tableTotal[] = $totalPoints;
         }
 
@@ -3234,6 +3637,7 @@ class Game extends \Table
             [clienttranslate("Objective"), ...$tableObjective],
             [clienttranslate("Royalty Token"), ...$tableToken],
             [clienttranslate("Iridia Stone"), ...$tableIridia],
+            [clienttranslate("Other"), ...$tableOther],
             [clienttranslate("Total"), ...$tableTotal],
         ];
 
@@ -3247,7 +3651,565 @@ class Game extends \Table
                 "closing" => clienttranslate("Close"),
             ]
         );
+
+        if ($this->isSolo()) {
+            $rhomScore = (int) $this->getUniqueValueFromDB("SELECT score FROM robot WHERE id=1");
+            $player_id = (int) $this->getActivePlayerId();
+            $playerScore = $this->getUniqueValueFromDB("SELECT player_score FROM player WHERE player_id=$player_id");
+
+            if ($rhomScore > $playerScore) {
+                $difference = $playerScore - $rhomScore;
+                $this->DbQuery("UPDATE player SET player_score=$difference WHERE player_id=$player_id");
+                return;
+            }
+
+            if ($rhomScore === $playerScore) {
+                $rhomScoreAux = (int) $this->getUniqueValueFromDB("SELECT score_aux FROM robot WHERE id=1");
+                if ($rhomScoreAux > 0) {
+                    $rhomScoreAux = -$rhomScoreAux;
+                    $this->DbQuery("UPDATE player SET player_score=$rhomScoreAux WHERE player_id=$player_id");
+                }
+            }
+        }
     }
+
+    /* SOLO UTILITY */
+    public function pronoun(int $player_id)
+    {
+        return $player_id === 1 ? clienttranslate("its") : clienttranslate("his");
+    }
+
+    public function getStatWithRhom(string $statName, int $player_id = null): int
+    {
+        if ($this->isSolo() && $player_id === 1) {
+            $rhomStats = $this->globals->get(RHOM_STATS, []);
+
+            if (!array_key_exists($statName, $rhomStats)) {
+                return 0;
+            }
+
+            return $rhomStats[$statName];
+        }
+
+        return (int) $this->getStat($statName, $player_id);
+    }
+
+    public function incStatWithRhom(int $delta, string $statName, int $player_id = null): void
+    {
+        if ($this->isSolo() && $player_id === 1) {
+            $rhomStats = $this->globals->get(RHOM_STATS, []);
+
+            if (!array_key_exists($statName, $rhomStats)) {
+                $rhomStats[$statName] = 0;
+            }
+
+            $rhomStats[$statName] += $delta;
+            $this->globals->set(RHOM_STATS, $rhomStats);
+            return;
+        }
+
+        $this->incStat($delta, $statName, $player_id);
+    }
+
+    public function setStatWithRhom(int $value, string $statName, int $player_id = null): void
+    {
+        if ($this->isSolo() && $player_id === 1) {
+            $rhomStats = $this->globals->get(RHOM_STATS, []);
+            $rhomStats[$statName] = $value;
+            $this->globals->set(RHOM_STATS, $rhomStats);
+            return;
+        }
+
+        $this->setStat($value, $statName, $player_id);
+    }
+
+    public function getRhomDeck(bool $onlyTop = false): array
+    {
+        $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
+        if ($onlyTop) {
+            return $this->hideCard($rhomDeckTop);
+        }
+
+        $rhomDeck = $this->rhom_cards->getCardsInLocation("deck");
+        $rhomDeckTop_id = (int) $rhomDeckTop["id"];
+        unset($rhomDeck[$rhomDeckTop_id]);
+
+        return $this->hideCards($rhomDeck, false, true);
+    }
+
+    public function reshuffleRhomDeck(): void
+    {
+        $this->rhom_cards->moveAllCardsInLocation("discard", "deck");
+        $this->rhom_cards->shuffle("deck");
+
+        $this->notifyAllPlayers(
+            "reshuffleRhomDeck",
+            clienttranslate('The Rhom&apos;s deck is reshuffled'),
+            [
+                "rhomDeckCount" => $this->rhom_cards->countCardsInLocation("deck"),
+                "rhomDeckTop" => $this->getRhomDeck(true),
+            ]
+        );
+    }
+
+    public function getRhomDiscard(): array
+    {
+        return $this->rhom_cards->getCardsInLocation("discard");
+    }
+
+    public function weathervaneDirection(): string
+    {
+        $rhomDeckTop = $this->rhom_cards->getCardOnTop("deck");
+        return $rhomDeckTop["type"];
+    }
+
+    public function rhomDrawCard(): array
+    {
+        $rhomDeckCount =  $this->rhom_cards->countCardsInLocation("deck");
+        $rhomCard = $this->rhom_cards->pickCardForLocation("deck", "discard", $rhomDeckCount);
+
+        $rhomDeckTop = $this->getRhomDeck(true);
+        $rhomDeckCount = $this->rhom_cards->countCardsInLocation("deck");
+
+        $this->notifyAllPlayers(
+            "rhomDrawCard",
+            clienttranslate('${player_name} draws a ${card} from its deck'),
+            [
+                "player_id" => 1,
+                "player_name" => $this->getPlayerOrRhomNameById(1),
+                "card" => clienttranslate("card"),
+                "rhomDeckTop" => $rhomDeckTop,
+                "rhomDeckCount" => $rhomDeckCount,
+                "i18n" => ["card"],
+                "preserve" => ["rhomCard"],
+                "rhomCard" => $rhomCard,
+            ]
+        );
+
+        $rhom_id = $rhomCard["type_arg"];
+        $effect = (int) $this->rhom_info[$rhom_id]["effect"];
+
+        if ($effect === 1) {
+            $position = (int) $this->rollDie("1-1", 1, "mining");
+            $itemsMarket = $this->getItemsMarket();
+
+            $itemsMarket = array_values($itemsMarket);
+
+            $itemCard = $itemsMarket[$position - 1];
+            $itemCard_id = (int) $itemCard["id"];
+
+            $item = new ItemManager($itemCard_id, $this);
+            $item->discard();
+
+            $points = $item->cost;
+            $this->incRoyaltyPoints($points, 1, true);
+            $this->incStatWithRhom($points, "rhomPoints", 1);
+
+            $this->notifyAllPlayers(
+                "rhomDiscardItem",
+                clienttranslate('${player_name} discards the ${item_name} and scores ${points_log} points'),
+                [
+                    "player_id" => 1,
+                    "player_name" => $this->getPlayerOrRhomNameById(1),
+                    "item_name" => $item->tr_name,
+                    "points_log" => $points,
+                    "points" => $points,
+                    "i18n" => ["item_name"],
+                    "preserve" => ["item_id"],
+                    "item_id" => $item->id,
+                ]
+            );
+
+            $this->replaceItem();
+        }
+
+        if ($effect === 2 || $effect === 3) {
+            $this->globals->set(RHOM_MULTIPLIER, $effect);
+        }
+
+        if ($effect === 4) {
+            $this->rhomBarricade();
+        }
+
+        return $rhomCard;
+    }
+
+    public function getBarricadeTiles(): array
+    {
+        $barricadeTiles = $this->tile_cards->getCardsInLocation("barricade");
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        foreach ($barricadeTiles as $tileCard_id => $tileCard) {
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
+                $barricadeTiles[$tileCard_id] = $this->hideCard($tileCard);
+            }
+        }
+
+        return $barricadeTiles;
+    }
+
+    public function rhomBarricade(): void
+    {
+        $player_id = (int) $this->getActivePlayerId();
+        $explorerCard = $this->getExplorerByPlayerId($player_id);
+
+        $hex = (int) $explorerCard["location_arg"];
+
+        if ($explorerCard["location"] === "scene") {
+            $row = 1;
+        } else {
+            $row = $this->hexes_info[$hex]["row"] + 1;
+        }
+
+        $hexesInRow = $this->rows_info[$row];
+
+        $weathervaneDirection = $this->weathervaneDirection();
+        if ($weathervaneDirection === "right") {
+            array_reverse($hexesInRow);
+        }
+
+        $shift = (int) $this->rollDie("1-1", 1, "mining") - 1;
+        $this->placeBarricade($shift, $hexesInRow);
+    }
+
+    public function placeBarricade(int $shift, array $hexesInRow): void
+    {
+        if (!array_key_exists($shift, $hexesInRow)) {
+            $shift = 0;
+        }
+
+        $hex = $hexesInRow[$shift];
+        $tileCard = $this->getObjectFromDB("$this->deckSelectQuery from tile WHERE card_location='board' AND card_location_arg=$hex");
+
+        if ($tileCard === null) {
+            $shift++;
+            $this->placeBarricade($shift, $hexesInRow);
+            return;
+        }
+
+        $tileCard_id = (int) $tileCard["id"];
+        $this->tile_cards->moveCard($tileCard_id, "barricade", $hex);
+
+
+        $tileCard = $this->tile_cards->getCard($tileCard_id);
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        if (!array_key_exists($tileCard_id, $revealedTiles)) {
+            $tileCard = $this->hideCard($tileCard);
+        }
+
+        $this->notifyAllPlayers(
+            "rhomBarricade",
+            clienttranslate('${player_name} places a barricade (hex ${log_hex})'),
+            [
+                "player_id" => 1,
+                "player_name" => $this->getPlayerOrRhomNameById(1),
+                "log_hex" => $hex,
+                "hex" => $hex,
+                "tileCard" => $tileCard,
+            ]
+        );
+    }
+
+    public function gemsDemand(): array
+    {
+        $gemsDemand = [
+            1 => 0,
+            2 => 0,
+            3 => 0,
+            4 => 0
+        ];
+
+        $relicsMarket = $this->getRelicsMarket();
+        foreach ($relicsMarket as $relicCard) {
+            $relic_id = (int) $relicCard["type_arg"];
+            $cost = $this->relics_info[$relic_id]["cost"];
+
+            foreach ($cost as $gem_id => $demand) {
+                $gemsDemand[$gem_id] += $demand;
+            }
+        }
+
+        arsort($gemsDemand);
+        return $gemsDemand;
+    }
+
+    public function rhomDiscardGems(int $newGem): void
+    {
+        $excessGems = $this->getTotalGemsCount(1) - 7;
+        $gemsCounts = $this->getGemsCounts(1, true);
+
+        $hasGem = $gemsCounts[$newGem] > $excessGems;
+
+        if ($hasGem) {
+            $marketValue = $this->getMarketValues($newGem);
+            $points = $marketValue * $excessGems;
+
+            $this->discardGems(1, null, $newGem, $excessGems);
+            $this->incRoyaltyPoints($points, 1);
+            return;
+        }
+
+        arsort($gemsCounts);
+
+        foreach ($gemsCounts as $gem_id => $gemCount) {
+            if ($gemCount === 0 || $gem_id === $newGem) {
+                continue;
+            }
+
+            $discardedCount = $excessGems - $gemCount;
+
+            if ($discardedCount <= 0) {
+                $discardedCount = $excessGems;
+            }
+
+            $marketValue = $this->getMarketValues($gem_id);
+            $points = $marketValue * $discardedCount;
+
+            $this->discardGems(1, null, $gem_id, $discardedCount);
+            $this->incRoyaltyPoints($points, 1);
+            $this->incStatWithRhom($points, "gemsPoints", 1);
+
+            $excessGems -= $discardedCount;
+
+            if ($excessGems === 0) {
+                break;
+            }
+        }
+    }
+
+    public function compareHexesByWeathervane(int $hex, int $otherHex): int
+    {
+        $column = $this->hexes_info[$hex]["column"];
+        $otherColumn = $this->hexes_info[$otherHex]["column"];
+
+        $weathervaneDirection = $this->weathervaneDirection();
+
+        if ($weathervaneDirection === "left") {
+            return $column <=> $otherColumn;
+        }
+
+        return $otherColumn <=> $column;
+    }
+
+    public function mostDemandingTiles(array $tileCards): array
+    {
+        $mostDemandingTiles = [];
+
+        $includesRainbow = false;
+        $gemsDemand = $this->gemsDemand();
+        $maxDemand = 0;
+
+        foreach ($tileCards as $tileCard) {
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+
+            if ($gem_id % 10 === 0) {
+                $includesRainbow = true;
+                continue;
+            }
+
+            $demand = (int) $gemsDemand[$gem_id];
+            if ($maxDemand < $demand) {
+                $maxDemand = $demand;
+            }
+        }
+
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($includesRainbow, $gemsDemand, $maxDemand) {
+            $tile_id = (int) $tileCard["type_arg"];
+            $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+
+            if ($includesRainbow) {
+                return $gem_id % 10 === 0;
+            }
+
+            $demand = (int) $gemsDemand[$gem_id];
+
+            if ($demand === $maxDemand) {
+                return true;
+            }
+        });
+
+        if (count($mostDemandingTiles) > 1) {
+            usort($mostDemandingTiles, function ($tileCard, $otherTileCard) {
+                $hex = (int) $tileCard["location_arg"];
+                $otherHex = (int) $otherTileCard["location_arg"];
+
+                return $this->compareHexesByWeathervane($hex, $otherHex);
+            });
+        }
+
+        return $mostDemandingTiles;
+    }
+
+    public function rhomRevealableTiles(): array
+    {
+        $revealableTiles = [];
+
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        $adjacentTiles = $this->adjacentTiles(1, null, false, true, true);
+
+        foreach ($adjacentTiles as $direction => $tileCard) {
+            if ($tileCard === null) {
+                continue;
+            }
+
+            $tileCard_id = (int) $tileCard["id"];
+
+            if (!array_key_exists($tileCard_id, $revealedTiles)) {
+                $revealableTiles[$direction] = $tileCard;
+            }
+        }
+
+        return $revealableTiles;
+    }
+
+    public function rhomRevealTiles(): bool
+    {
+        $revealableTiles = $this->rhomRevealableTiles();
+        $explorableTiles = $this->explorableTiles(1);
+
+        if (!$revealableTiles && !$explorableTiles) {
+            $this->gamestate->nextState("discardTileForRhom");
+            return false;
+        }
+
+        $rhomCard = $this->rhomDrawCard();
+        $rhom_id = (int) $rhomCard["type_arg"];
+
+        $directions = $this->rhom_info[$rhom_id]["directions"];
+        asort($directions);
+
+        $revealsLimit = 0;
+        foreach ($directions as $direction => $order) {
+            if (!array_key_exists($direction, $revealableTiles)) {
+                continue;
+            }
+
+            $tileCard = $revealableTiles[$direction];
+            $tileCard_id = (int) $tileCard["id"];
+
+            $this->revealTile($tileCard_id, 1);
+            $revealsLimit++;
+
+            if ($revealsLimit === 2) {
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    public function rhomResolveTileEffect(array $tileCard): void
+    {
+        $tile_id = (int) $tileCard["type_arg"];
+        $region_id = (int) $tileCard["type"];
+
+        $tile_info = $this->tiles_info[$tile_id];
+        $gem_id = $tile_info["gem"];
+        $tileEffect_id = $tile_info["effect"];
+
+        $rainbowGem = $this->globals->get(RAINBOW_GEM);
+
+        if ($gem_id % 10 === 0) {
+            if ($rainbowGem) {
+                $gem_id = $rainbowGem;
+            } else {
+                if ($gem_id === 10) {
+                    $this->obtainIridiaStone(1);
+                }
+                
+                $gemsDemand = $this->gemsDemand();
+
+                $maxDemand = max($gemsDemand);
+                $mostDemandingGems = [];
+
+                foreach ($gemsDemand as $gem_id => $demand) {
+                    if ($demand === $maxDemand) {
+                        $gemName = $this->gems_info[$gem_id]["name"];
+                        $mostDemandingGems[$gemName] = $gem_id;
+                    }
+                }
+
+                if (count($mostDemandingGems) === 1) {
+                    $gem_id = reset($mostDemandingGems);
+                } else {
+                    $this->globals->set(RHOM_POSSIBLE_RAINBOW, $mostDemandingGems);
+                    $this->gamestate->nextState("pickRainbowForRhom");
+                    return;
+                }
+            }
+        }
+
+        $rhomMultiplier = $this->globals->get(RHOM_MULTIPLIER, 1);
+        $fullCargo = !$this->incGem($rhomMultiplier, $gem_id, 1, $tileCard);
+
+        if ($fullCargo) {
+            $this->rhomDiscardGems($gem_id);
+        }
+
+        if ($tileEffect_id) {
+            $tileEffect = $this->tileEffects_info[$tileEffect_id];
+            $points = $tileEffect["values"][$region_id];
+
+            if ($tileEffect_id === 3) {
+                $publicStoneDiceCount = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
+                $player_id = (int) $this->getActivePlayerId();
+
+                if ($publicStoneDiceCount === 0) {
+                    $this->notifyAllPlayers(
+                        "message",
+                        clienttranslate('${player_name2} does not roll a die because all Stone Dice are with ${player_name}'),
+                        [
+                            "player_id" => $player_id,
+                            "player_name" => $this->getPlayerOrRhomNameById($player_id),
+                            "player_id2" => 1,
+                            "player_name2" => $this->getPlayerOrRhomNameById(1),
+                        ]
+                    );
+                    return;
+                }
+                $points = $this->rollDie("1-1", 1, "mining");
+            }
+
+            $this->incRoyaltyPoints($points, 1);
+            $this->incStatWithRhom($points, "tilesPoints", 1);
+        }
+    }
+
+    public function rhomMoveToEmptyHex(): void
+    {
+        $emptyHexes = $this->emptyHexes(1);
+        usort($emptyHexes, function (int $hex, int $otherHex) {
+            return $this->compareHexesByWeathervane($hex, $otherHex);
+        });
+
+        $emptyHex = reset($emptyHexes);
+        $this->moveToEmptyHex($emptyHex, 1);
+    }
+
+    public function rhomRestoreRelic(): void
+    {
+        $restorableRelics = $this->restorableRelics(1, true);
+
+        if (!$restorableRelics) {
+            return;
+        }
+
+        $weathervaneDirection = $this->weathervaneDirection();
+
+        if ($weathervaneDirection === "right") {
+            $restorableRelics = array_reverse($restorableRelics, true);
+        }
+
+        $relicCard = reset($restorableRelics);
+        $relicCard_id = (int) $relicCard["id"];
+
+        $this->restoreRelic($relicCard_id, 1);
+        $this->rhomRestoreRelic();
+    }
+
+    /*  DEBUG */
 
     public function debug_rollDie(int $player_id): void
     {
@@ -3256,7 +4218,7 @@ class Game extends \Table
 
     public function debug_stat(int $player_id): void
     {
-        $stat = $this->getStat("miningAttempts", $player_id);
+        $stat = $this->getStatWithRhom("miningAttempts", $player_id);
         throw new \BgaUserException($stat);
     }
 
@@ -3274,6 +4236,61 @@ class Game extends \Table
         $anchorState_id = (int) $this->gamestate->state_id();
         $this->globals->set(ANCHOR_STATE, $anchorState_id);
         $this->gamestate->jumpToState(ST_TRANSFER_GEM);
+    }
+
+    public function debug_moveExplorer(int $hex, int $player_id): void
+    {
+        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$hex WHERE card_location<>'box'AND card_type_arg=$player_id");
+    }
+
+    public function debug_removeTiles(): void
+    {
+        $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
+        WHERE card_location='board' AND card_location_arg IN (29)");
+    }
+
+    public function debug_revealTiles(): void
+    {
+        $tileCards =  $this->getCollectionFromDB("$this->deckSelectQuery from tile WHERE card_type=5");
+        $this->globals->set(REVEALED_TILES, $tileCards);
+    }
+
+    public function debug_reshuffleRelicsDeck(): void
+    {
+        $this->relic_cards->moveAllCardsInLocation(null, "deck");
+        $this->relic_cards->shuffle("deck");
+        $this->relic_cards->pickCardsForLocation(5, "deck", "market");
+    }
+
+    public function debug_giveItem(int $item_id, int $player_id): void
+    {
+        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
+    }
+
+    public function debug_reshuffleItemsDeck(): void
+    {
+        $this->reshuffleItemsDeck();
+    }
+
+    public function debug_giveObjective(int $objective_id, int $player_id): void
+    {
+        $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
+        $this->DbQuery("UPDATE objective SET card_location='hand', card_location_arg=$player_id WHERE card_type_arg=$objective_id LIMIT 1");
+    }
+
+    public function debug_calcFinalScoring(int $player_id, int $opponent_id): void
+    {
+        $this->setStatWithRhom(0, "1:TypeRelics", $player_id);
+        $this->setStatWithRhom(0, "2:TypeRelics", $player_id);
+        $this->setStatWithRhom(0, "3:TypeRelics", $player_id);
+        $this->setStatWithRhom(0, "iridia:Relics", $player_id);
+
+        $this->setStatWithRhom(0, "1:TypeRelics", $opponent_id);
+        $this->setStatWithRhom(0, "2:TypeRelics", $opponent_id);
+        $this->setStatWithRhom(0, "3:TypeRelics", $opponent_id);
+        $this->setStatWithRhom(0, "iridia:Relics", $opponent_id);
+
+        $this->calcFinalScoring();
     }
 
     public function debug_zombieQuit(int $player_id): void
@@ -3307,7 +4324,7 @@ class Game extends \Table
                 clienttranslate('${player_name} quits the game. All his dice, tiles, gems, relics and items are discarded'),
                 [
                     "player_id" => $player_id,
-                    "player_name" => $this->getPlayerNameById($player_id),
+                    "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "explorerCard" => $this->getExplorerByPlayerId($player_id),
                 ]
             );
@@ -3318,46 +4335,14 @@ class Game extends \Table
         }
     }
 
-    public function debug_moveExplorer(int $hex, int $player_id): void
+    public function debug_reshuffleRhomDeck(): void
     {
-        $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$hex WHERE card_type_arg=$player_id");
+        $this->reshuffleRhomDeck();
     }
 
-    public function debug_removeTiles(): void
+    public function debug_barricadeTile(int $hex): void
     {
-        $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (29)");
-    }
-
-    public function debug_giveItem(int $item_id, int $player_id): void
-    {
-        $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
-    }
-
-    public function debug_reshuffleItemsDeck(): void
-    {
-        $this->reshuffleItemsDeck();
-    }
-
-    public function debug_giveObjective(int $objective_id, int $player_id): void
-    {
-        $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-        $this->DbQuery("UPDATE objective SET card_location='hand', card_location_arg=$player_id WHERE card_type_arg=$objective_id LIMIT 1");
-    }
-
-    public function debug_calcFinalScoring(int $player_id, int $opponent_id): void
-    {
-        $this->setStat(0, "1:TypeRelics", $player_id);
-        $this->setStat(0, "2:TypeRelics", $player_id);
-        $this->setStat(0, "3:TypeRelics", $player_id);
-        $this->setStat(0, "iridia:Relics", $player_id);
-
-        $this->setStat(0, "1:TypeRelics", $opponent_id);
-        $this->setStat(0, "2:TypeRelics", $opponent_id);
-        $this->setStat(0, "3:TypeRelics", $opponent_id);
-        $this->setStat(0, "iridia:Relics", $opponent_id);
-
-        $this->calcFinalScoring();
+        $this->DbQuery("UPDATE tile SET card_location='barricade' WHERE card_location='board' AND card_location_arg=$hex");
     }
 
     /**
@@ -3401,7 +4386,8 @@ class Game extends \Table
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
 
         $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
-        $result["playersNoZombie"] = $this->loadPlayersNoZombie();
+        $playersNoZombie = $this->loadPlayersNoZombie();
+        $result["playersNoZombie"] = $playersNoZombie;
         $result["tilesBoard"] = $this->getTilesBoard();
         $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
         $result["tilesInfo"] = $this->tiles_info;
@@ -3433,6 +4419,18 @@ class Game extends \Table
         $result["objectives"] = $this->getObjectives($current_player_id);
         $result["books"] = $this->getBooks();
 
+        $isSolo = $this->isSolo();
+        $result["isSolo"] = $isSolo;
+
+        if ($isSolo) {
+            $result["realPlayer"] = array_shift($playersNoZombie);
+            $result["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+            $result["rhomDeck"] = $this->getRhomDeck();
+            $result["rhomDeckTop"] = $this->getRhomDeck(true);
+            $result["rhomDiscard"] = $this->getRhomDiscard();
+            $result["barricadeTiles"] = $this->getBarricadeTiles();
+        }
+
         return $result;
     }
 
@@ -3448,7 +4446,6 @@ class Game extends \Table
 
     protected function setupNewGame($players, $options = [])
     {
-
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 
@@ -3469,7 +4466,13 @@ class Game extends \Table
             )
         );
 
-        $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
+        $colors = $gameinfos["player_colors"];
+        if (count($players) === 1) {
+            unset($colors[3]);
+            $this->DbQuery("INSERT INTO robot () VALUES ()");
+        }
+
+        $this->reattributeColorsBasedOnPreferences($players, $colors);
         $this->reloadPlayersBasicInfos();
 
         $players = $this->loadPlayersBasicInfos();
@@ -3518,30 +4521,48 @@ class Game extends \Table
 
         $explorerCards = $this->explorer_cards->getCardsInLocation("deck");
         $playerBoards = [];
-        foreach ($explorerCards as $explorerCard_id => $explorerCard) {
-            foreach ($players as $player_id => $player) {
+
+        foreach ($players as $player_id => $player) {
+            foreach ($explorerCards as $explorerCard_id => $explorerCard) {
                 $player_color = $this->getPlayerColorById($player_id);
 
                 if ($player_color === $explorerCard["type"]) {
                     $playerBoards[$player_id] = (int) $explorerCard["type_arg"];
 
                     $this->explorer_cards->moveCard($explorerCard_id, "scene", $player_id);
-                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id='$explorerCard_id'");
+                    $this->DbQuery("UPDATE explorer SET card_type_arg=$player_id WHERE card_id=$explorerCard_id");
                 }
             }
+        }
+
+        if (count($players) === 1) {
+            $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type='ffa500'");
+            $playerBoards[1] = (int) $explorerCard["type_arg"];
+
+            $this->explorer_cards->moveCard($explorerCard_id, "scene", 1);
+            $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id=$explorerCard_id");
+
+            $rhomCards = [];
+            foreach ($this->rhom_info as $rhom_id => $rhom_info) {
+                $direction = $rhom_info["weathervane"];
+                $rhomCards[] = ["type" => $direction, "type_arg" => $rhom_id, "nbr" => 1];
+            }
+
+            $this->rhom_cards->createCards($rhomCards, "deck");
+            $this->rhom_cards->shuffle("deck");
         }
 
         $this->globals->set(PLAYER_BOARDS, $playerBoards);
         $this->explorer_cards->moveAllCardsInLocation("deck", "box");
 
-        $tiles = [];
+        $tileCards = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
 
-            $tiles[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
+            $tileCards[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
-        $this->tile_cards->createCards($tiles, "deck");
+        $this->tile_cards->createCards($tileCards, "deck");
 
         $hex = 1;
         foreach ($this->regions_info as $region_id => $region) {
@@ -3558,7 +4579,7 @@ class Game extends \Table
             }
         }
 
-        if (count($players) === 2) {
+        if (count($players) <= 2) {
             $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
             WHERE card_location='board' AND 
             card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
@@ -3598,7 +4619,7 @@ class Game extends \Table
 
         $itemCards = [];
         foreach ($this->items_info as $item_id => $item_info) {
-            if (count($players) === 2 && ($item_id === 10 || $item_id === 11)) {
+            if (count($players) <= 2 && ($item_id === 10 || $item_id === 11)) {
                 continue;
             }
 
@@ -3613,13 +4634,14 @@ class Game extends \Table
             $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$last_player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
         }
 
+        $itemsMarketCount = count($players) === 1 ? 6 : 5;
         $this->item_cards->shuffle("deck");
-        $this->item_cards->pickCardsForLocation(5, "deck", "market");
+        $this->item_cards->pickCardsForLocation($itemsMarketCount, "deck", "market");
 
         if (
             !$this->checkItemsMarket()
         ) {
-            $this->reshuffleItemsDeck(true);
+            $this->reshuffleItemsDeck(true, $players);
         };
 
         $this->globals->set(REVEALS_LIMIT, 0);
@@ -3686,7 +4708,7 @@ class Game extends \Table
                     "",
                     [
                         "player_id" => $player_id,
-                        "player_name" => $this->getPlayerNameById($player_id),
+                        "player_name" => $this->getPlayerOrRhomNameById($player_id),
                         "explorerCard" => $this->getExplorerByPlayerId($player_id),
                     ]
                 );

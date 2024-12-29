@@ -120,6 +120,95 @@ $this->tileEffects_info = [
     ],
 ];
 
+$this->rows_info = [
+    1 => [1, 2, 3, 4, 5, 6],
+    2 => [7, 8, 9, 10, 11, 12, 13],
+    3 => [14, 15, 16, 17, 18, 19],
+    4 => [20, 21, 22, 23, 24, 25, 26],
+    5 => [27, 28, 29, 30, 31, 32],
+    6 => [33, 34, 35, 36, 37, 38, 39],
+    7 => [40, 41, 42, 43, 44, 45],
+    8 => [46, 47, 48, 49, 50, 51, 52],
+    9 => [53, 54, 55, 56, 57, 58]
+];
+
+$this->columns_info = [
+    1 => [7, 20, 33, 43],
+    2 => [1, 14, 27, 40, 53],
+    3 => [8, 21, 34, 47],
+    4 => [2, 15, 28, 41, 54],
+    5 => [9, 22, 35, 48],
+    6 => [3, 16, 29, 42, 55],
+    7 => [10, 23, 36, 49],
+    8 => [4, 17, 30, 43, 56],
+    9 => [11, 24, 37, 50],
+    10 => [5, 18, 31, 44, 57],
+    11 => [12, 25, 38, 51],
+    12 => [6, 19, 32, 45, 58],
+    13 => [13, 26, 39, 42],
+];
+
+$this->hexes_info = [
+    1 => ["row" => 1, "column" => 2],
+    2 => ["row" => 1, "column" => 4],
+    3 => ["row" => 1, "column" => 6],
+    4 => ["row" => 1, "column" => 8],
+    5 => ["row" => 1, "column" => 10],
+    6 => ["row" => 1, "column" => 12],
+    7 => ["row" => 2, "column" => 1],
+    8 => ["row" => 2, "column" => 3],
+    9 => ["row" => 2, "column" => 5],
+    10 => ["row" => 2, "column" => 7],
+    11 => ["row" => 2, "column" => 9],
+    12 => ["row" => 2, "column" => 11],
+    13 => ["row" => 2, "column" => 13],
+    14 => ["row" => 3, "column" => 2],
+    15 => ["row" => 3, "column" => 4],
+    16 => ["row" => 3, "column" => 6],
+    17 => ["row" => 3, "column" => 8],
+    18 => ["row" => 3, "column" => 10],
+    19 => ["row" => 3, "column" => 12],
+    20 => ["row" => 4, "column" => 1],
+    21 => ["row" => 4, "column" => 3],
+    22 => ["row" => 4, "column" => 5],
+    23 => ["row" => 4, "column" => 7],
+    24 => ["row" => 4, "column" => 9],
+    25 => ["row" => 4, "column" => 11],
+    26 => ["row" => 4, "column" => 13],
+    27 => ["row" => 5, "column" => 2],
+    28 => ["row" => 5, "column" => 4],
+    29 => ["row" => 5, "column" => 6],
+    30 => ["row" => 5, "column" => 8],
+    31 => ["row" => 5, "column" => 10],
+    32 => ["row" => 5, "column" => 12],
+    33 => ["row" => 6, "column" => 1],
+    34 => ["row" => 6, "column" => 3],
+    35 => ["row" => 6, "column" => 5],
+    36 => ["row" => 6, "column" => 7],
+    37 => ["row" => 6, "column" => 9],
+    38 => ["row" => 6, "column" => 11],
+    39 => ["row" => 6, "column" => 13],
+    40 => ["row" => 7, "column" => 2],
+    41 => ["row" => 7, "column" => 4],
+    42 => ["row" => 7, "column" => 6],
+    43 => ["row" => 7, "column" => 8],
+    44 => ["row" => 7, "column" => 10],
+    45 => ["row" => 7, "column" => 12],
+    46 => ["row" => 8, "column" => 3],
+    47 => ["row" => 8, "column" => 5],
+    48 => ["row" => 8, "column" => 7],
+    49 => ["row" => 8, "column" => 9],
+    50 => ["row" => 8, "column" => 11],
+    51 => ["row" => 8, "column" => 13],
+    52 => ["row" => 9, "column" => 1],
+    53 => ["row" => 9, "column" => 2],
+    54 => ["row" => 9, "column" => 4],
+    55 => ["row" => 9, "column" => 6],
+    56 => ["row" => 9, "column" => 8],
+    57 => ["row" => 9, "column" => 10],
+    58 => ["row" => 9, "column" => 12],
+];
+
 $this->tiles_info = [
     1 => [
         "region" => 1,
@@ -928,4 +1017,167 @@ $this->items_info = [
         "content" => clienttranslate("Roll your mining dice. Gain one gem with market value equal to or lower than one of your dice."),
         "cost" => 5,
     ]
+];
+
+$this->rhom_info = [
+    1 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 1,
+        "weathervane" => "left",
+    ],
+    2 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 1,
+        "weathervane" => "left",
+    ],
+    3 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 1,
+        "weathervane" => "right",
+    ],
+    4 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 1,
+        "weathervane" => "right",
+    ],
+    5 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 2,
+        "weathervane" => "left",
+    ],
+    6 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 2,
+        "weathervane" => "left",
+    ],
+    7 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 2,
+        "weathervane" => "right",
+    ],
+    8 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 2,
+        "weathervane" => "right",
+    ],
+    9 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 3,
+        "weathervane" => "left",
+    ],
+    10 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 3,
+        "weathervane" => "left",
+    ],
+    11 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 3,
+        "weathervane" => "right",
+    ],
+    12 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 3,
+        "weathervane" => "right",
+    ],
+    13 => [
+        "directions" => [
+            "left" => 1,
+            "topLeft" => 2,
+            "topRight" => 3,
+            "right" => 4,
+        ],
+        "effect" => 4,
+        "weathervane" => "left",
+    ],
+    14 => [
+        "directions" => [
+            "left" => 2,
+            "topLeft" => 3,
+            "topRight" => 4,
+            "right" => 1,
+        ],
+        "effect" => 4,
+        "weathervane" => "left",
+    ],
+    15 => [
+        "directions" => [
+            "left" => 3,
+            "topLeft" => 4,
+            "topRight" => 1,
+            "right" => 2,
+        ],
+        "effect" => 4,
+        "weathervane" => "right",
+    ],
+    16 => [
+        "directions" => [
+            "left" => 4,
+            "topLeft" => 1,
+            "topRight" => 2,
+            "right" => 3,
+        ],
+        "effect" => 4,
+        "weathervane" => "right",
+    ],
 ];
