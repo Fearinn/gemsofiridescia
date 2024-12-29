@@ -173,40 +173,6 @@ define([
         };
       }
 
-      const sentence3a = this.format_string_recursive(
-        _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
-        {
-          coin_icon: `<i class="goi_coinIcon"></i>`,
-        }
-      );
-
-      const aidContent = `
-      <div id="goi_playerAidContent" class="goi_cardContent"> 
-        <div>
-          <span class="goi_playerAidSubtitle">${_("Main Actions")}</span>
-          <span><i class="goi_greenFlag"></i> 1 ${_(
-            "Reveal up to 2 adjacent tiles."
-          )}</span>
-          <span>2 ${_("Move your explorer to an adjacent tile.")}</span>
-        </div>
-        <div>
-          <span class="goi_playerAidSubtitle">${_(
-            "Optional Actions (in any order)"
-          )}</span>
-          <span> 3a ${sentence3a}</span>
-          <span>3b ${_("Purchase an Item Card. (Once)")}</span>
-          <span>3c ${_("Play Item Card(s). (∞)")}</span>
-          <span>3d ${_("Sell Gem(s) of one color. (Once)")}</span>
-        </div>
-        <div>
-          <span class="goi_playerAidSubtitle">${_("End of Turn")}</span>
-          <span>4 ${_("Restore Relic(s). (Optional)")}</span>
-          <span>5 ${_("Collect hex tile.")}</span>
-          <span>6 ${_("Adjust Market die.")}</span>
-        </div>
-      </div>
-      `;
-
       this.goi.managers.help = new HelpManager(this, {
         buttons: [
           new BgaHelpExpandableButton({
@@ -230,10 +196,11 @@ define([
           );
           div.style.backgroundPosition = backgroundPosition;
 
+          const coinPosition = this.calcCoinPosition(3);
           const sentence3a = this.format_string_recursive(
-            _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
+            _("Spend ${coin_icon} to Mine Gems. (∞)"),
             {
-              coin_icon: `<i class="goi_coinIcon"></i>`,
+              coin_icon: `<i class="goi_coinIcon"><span class="goi_iconValue" style="left: ${coinPosition}">3</span></i>`,
             }
           );
 
@@ -3223,7 +3190,6 @@ define([
         contentElement.style.fontSize = `${fontSize}px`;
 
         requestAnimationFrame(() => {
-          contentElement.style.transform = "translateY(-50%) translateX(-50%)";
           this.addAidContent(div, contentElement, fontSize);
         }, 0);
       }

@@ -180,6 +180,16 @@ html {
   width: 16px;
 }
 
+.goi_playerAid .goi_coinIcon {
+  font-family: "sketchnote-square", sans-serif;
+  font-style: normal;
+  position: relative;
+}
+
+.goi_playerAid .goi_iconValue {
+  font-size: 8px !important;
+}
+
 .goi_playerAid .goi_cardContent {
   position: absolute;
   top: 48%;
@@ -189,6 +199,7 @@ html {
   align-items: flex-start;
   justify-content: space-between;
   text-align: left;
+  transform: translateY(-50%) translateX(-50%);
 }
 
 .goi_aidBlock {
@@ -196,7 +207,7 @@ html {
   flex-direction: column;
 }
 
-.goi_aidBlock span {
+.goi_aidBlock > span {
   padding-left: 16px;
 }
 
@@ -215,20 +226,12 @@ html {
   margin: 0;
 }
 
-.goi_playerAid .goi_coinIcon {
-  background-image: url("img/gems.png");
-  background-position: -500% 0;
-}
-
 .goi_coinIcon {
   position: relative;
   top: 2px;
   display: inline-block;
+  background-image: url("img/logMarkers.png") !important;
   background-size: cover;
-}
-
-.goi_gemCounter .goi_coinIcon {
-  background-image: url("img/logMarkers.png");
 }
 
 .goi_gemCounter .goi_counterValue {
