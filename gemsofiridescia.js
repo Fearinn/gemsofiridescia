@@ -173,10 +173,6 @@ define([
         };
       }
 
-      const aidBackgroundPosition = this.calcBackgroundPosition(
-        this.goi.globals.playerBoards[this.player_id] - 1 || 0
-      );
-
       const sentence3a = this.format_string_recursive(
         _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
         {
@@ -185,23 +181,25 @@ define([
       );
 
       const aidContent = `
-      <div id="goi_helpCardContent" class="goi_cardContent"> 
+      <div id="goi_playerAidContent" class="goi_cardContent"> 
         <div>
-          <span class="goi_helpCardSubtitle">${_("Main Actions")}</span>
+          <span class="goi_playerAidSubtitle">${_("Main Actions")}</span>
           <span><i class="goi_greenFlag"></i> 1 ${_(
             "Reveal up to 2 adjacent tiles."
           )}</span>
           <span>2 ${_("Move your explorer to an adjacent tile.")}</span>
         </div>
         <div>
-          <span class="goi_helpCardSubtitle">${_("Optional Actions (in any order)")}</span>
+          <span class="goi_playerAidSubtitle">${_(
+            "Optional Actions (in any order)"
+          )}</span>
           <span> 3a ${sentence3a}</span>
           <span>3b ${_("Purchase an Item Card. (Once)")}</span>
           <span>3c ${_("Play Item Card(s). (∞)")}</span>
           <span>3d ${_("Sell Gem(s) of one color. (Once)")}</span>
         </div>
         <div>
-          <span class="goi_helpCardSubtitle">${_("End of Turn")}</span>
+          <span class="goi_playerAidSubtitle">${_("End of Turn")}</span>
           <span>4 ${_("Restore Relic(s). (Optional)")}</span>
           <span>5 ${_("Collect hex tile.")}</span>
           <span>6 ${_("Adjust Market die.")}</span>
@@ -216,26 +214,83 @@ define([
             expandedWidth: "300px",
             expandedHeight: "409px",
             foldedHtml: `<span class="goi_helpFolded">?</span>`,
-            unfoldedHtml: `<div id="goi_helpCard" class="goi_helpCard goi_tooltip goi_card bga-card" style="background-position: ${aidBackgroundPosition}">
-              <span class="goi_cardTitle">${_("Player Aid")}</span>
-              ${aidContent}
-            </div>`,
+            unfoldedHtml: `<div id="goi_aidContainer"></div>`,
           }),
         ],
       });
 
-      // this.goi.managers.aid = new CardManager(this, {
-      //   getId: (card) => `aid-${card.id}`,
-      //   setupDiv: (card, div) => {
-      //     div.classList.add("goi_helpCard");
-      //     div.style.position = "relative";
+      this.goi.managers.aid = new CardManager(this, {
+        getId: (card) => `aid-${card.id}`,
+        setupDiv: (card, div) => {
+          div.classList.add("goi_playerAid");
+          div.style.position = "relative";
 
-      //     const backgroundPosition = this.calcBackgroundPosition(card.type_arg);
-      //     div.style.backgroundPosition = backgroundPosition;
-      //   },
-      //   setupFrontDiv: (card, div) => {},
-      //   setupBackDiv: (card, div) => {},
-      // });
+          const backgroundPosition = this.calcBackgroundPosition(
+            this.goi.globals.playerBoards[this.player_id] - 1 || 0
+          );
+          div.style.backgroundPosition = backgroundPosition;
+
+          const sentence3a = this.format_string_recursive(
+            _("Spend 3 ${coin_icon} to Mine Gems. (∞)"),
+            {
+              coin_icon: `<i class="goi_coinIcon"></i>`,
+            }
+          );
+
+          const aidTitle = document.createElement("h4");
+          aidTitle.classList.add("goi_cardTitle");
+          aidTitle.textContent = _("Player Aid");
+          div.appendChild(aidTitle);
+
+          const aidContent = `
+            <div class="goi_aidBlock">
+              <h5 class="goi_aidSubtitle">${_("Main Actions")}</h5>
+              <div class="goi_aidFlaggedSentence"><i class="goi_greenFlag"></i><span>1 ${_(
+                "Reveal up to 2 adjacent tiles."
+              )}</span></div>
+              <span>2 ${_("Move your explorer to an adjacent tile.")}</span>
+            </div>
+            <div class="goi_aidBlock">
+              <h5 class="goi_aidSubtitle">${_(
+                "Optional Actions (in any order)"
+              )}</h5>
+              <span> 3a ${sentence3a}</span>
+              <span>3b ${_("Purchase an Item Card. (Once)")}</span>
+              <span>3c ${_("Play Item Card(s). (∞)")}</span>
+              <span>3d ${_("Sell Gem(s) of one color. (Once)")}</span>
+            </div>
+            <div class="goi_aidBlock">
+              <h5 class="goi_aidSubtitle">${_("End of Turn")}</h5>
+              <span>4 ${_("Restore Relic(s). (Optional)")}</span>
+              <span>5 ${_("Collect hex tile.")}</span>
+              <span>6 ${_("Adjust Market die.")}</span>
+            </div>
+          `;
+
+          const aidContentElement = document.createElement("div");
+          aidContentElement.innerHTML = aidContent;
+          aidContentElement.style.boxSizing = "border-box";
+          aidContentElement.style.padding = "0 4px";
+          aidContentElement.style.fontFamily = "'rooney-web', serif";
+          aidContentElement.style.fontSize = "16px";
+          aidContentElement.classList.add("goi_cardContent");
+
+          div.appendChild(aidContentElement);
+          this.addAidContent(div, aidContentElement, 16);
+
+          div.style.backgroundPosition = backgroundPosition;
+          div.classList.add("goi_playerAid", "goi_tooltip", "goi_card");
+        },
+        setupFrontDiv: (card, div) => {},
+        setupBackDiv: (card, div) => {},
+      });
+
+      this.goi.stocks.aid = new CardStock(
+        this.goi.managers.aid,
+        document.getElementById("goi_aidContainer")
+      );
+
+      this.goi.stocks.aid.addCard({ id: this.player_id });
 
       this.goi.managers.dice = new DiceManager(this, {
         selectedDieClass: "goi_selectedDie",
@@ -3123,7 +3178,8 @@ define([
       objective_id,
       div,
       contentElement,
-      initialFont = 12
+      initialFont = 12,
+      cardHeight = 230
     ) {
       if (!contentElement) {
         const objectiveInfo = this.goi.info.objectives[objective_id];
@@ -3139,7 +3195,7 @@ define([
       }
 
       const contentHeight = contentElement.offsetHeight;
-      const maxHeight = 230 * 0.12;
+      const maxHeight = cardHeight * 0.12;
 
       if (contentHeight > maxHeight) {
         const fontSize = initialFont * 0.98;
@@ -3147,7 +3203,28 @@ define([
 
         requestAnimationFrame(() => {
           contentElement.style.transform = "translateY(-50%)";
-          this.addObjectiveContent(objective_id, div, contentElement, fontSize);
+          this.addObjectiveContent(
+            objective_id,
+            div,
+            contentElement,
+            fontSize,
+            cardHeight
+          );
+        }, 0);
+      }
+    },
+
+    addAidContent: function (div, contentElement, initialFont = 16) {
+      const contentHeight = contentElement.offsetHeight;
+      const maxHeight = 409 * 0.6;
+
+      if (contentHeight > maxHeight) {
+        const fontSize = initialFont * 0.98;
+        contentElement.style.fontSize = `${fontSize}px`;
+
+        requestAnimationFrame(() => {
+          contentElement.style.transform = "translateY(-50%) translateX(-50%)";
+          this.addAidContent(div, contentElement, fontSize);
         }, 0);
       }
     },
