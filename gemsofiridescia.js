@@ -20,11 +20,11 @@ define([
   "dojo/_base/declare",
   "ebg/core/gamegui",
   "ebg/counter",
-  g_gamethemeurl + "modules/bga-help.js",
-  g_gamethemeurl + "modules/bga-zoom.js",
-  g_gamethemeurl + "modules/bga-cards.js",
-  g_gamethemeurl + "modules/bga-dice.js",
-  g_gamethemeurl + "modules/diceTypes.js",
+  g_gamethemeurl + "modules/js/bga-help.js",
+  g_gamethemeurl + "modules/js/bga-zoom.js",
+  g_gamethemeurl + "modules/js/bga-cards.js",
+  g_gamethemeurl + "modules/js/bga-dice.js",
+  g_gamethemeurl + "modules/js/diceTypes.js",
 ], function (dojo, declare) {
   return declare("bgagame.gemsofiridescia", ebg.core.gamegui, {
     constructor: function () {
