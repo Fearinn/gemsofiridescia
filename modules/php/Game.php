@@ -1987,8 +1987,6 @@ class Game extends \Table
             return;
         }
 
-        $tileEffect_id = (int) $tileInfo["effect"];
-
         if ($tileEffect_id) {
             $tileEffect = $this->tileEffects_info[$tileEffect_id];
             $effectValue = $tileEffect["values"][$region_id];

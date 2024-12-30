@@ -95,13 +95,22 @@ define([
       this.goi.info.objectives = gamedatas.objectivesInfo;
       this.goi.info.items = gamedatas.itemsInfo;
 
-      this.goi.info.gemIds = {
-        iridescia: 0,
-        amethyst: 1,
-        citrine: 2,
-        emerald: 3,
-        sapphire: 4,
-        coin: 5,
+      this.goi.info.gems = {
+        tooltips: {
+          0: _("Iridia Stone"),
+          1: _("Amethyst (purple)"),
+          2: _("Citrine (yellow)"),
+          3: _("Emerald (green)"),
+          4: _("Sapphire (blue)"),
+        },
+        ids: {
+          iridescia: 0,
+          amethyst: 1,
+          citrine: 2,
+          emerald: 3,
+          sapphire: 4,
+          coin: 5,
+        },
       };
 
       this.goi.info.defaultSelections = {
@@ -276,8 +285,13 @@ define([
           div.classList.add("goi_gem");
           div.style.position = "relative";
 
-          const backgroundPosition = this.calcBackgroundPosition(card.type_arg);
+          const gem_id = Number(card.type_arg);
+          
+          const backgroundPosition = this.calcBackgroundPosition(gem_id);
           div.style.backgroundPosition = backgroundPosition;
+
+          const tooltip = this.goi.info.gems.tooltips[gem_id];
+          this.addTooltip(div.id, tooltip, "");
         },
         setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
@@ -933,7 +947,7 @@ define([
       };
 
       for (const gemName in this.goi.globals.marketValues) {
-        const gem_id = this.goi.info.gemIds[gemName];
+        const gem_id = this.goi.info.gems.ids[gemName];
         const value = this.goi.globals.marketValues[gemName];
 
         this.goi.stocks.dice.market.addDie({
@@ -2656,7 +2670,7 @@ define([
       }
 
       for (const gemName in pickableGems) {
-        const gem_id = this.goi.info.gemIds[gemName];
+        const gem_id = this.goi.info.gems.ids[gemName];
         const buttonId = `goi_rainbow-${gem_id}_btn`;
 
         const backgroundPosition = this.calcBackgroundPosition(gem_id);
