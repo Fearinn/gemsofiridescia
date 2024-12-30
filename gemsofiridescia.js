@@ -213,10 +213,13 @@ define([
             }
           );
 
-          const aidTitle = document.createElement("h4");
-          aidTitle.classList.add("goi_cardTitle");
-          aidTitle.textContent = _("Player Aid");
-          div.appendChild(aidTitle);
+          const cardTitle = document.createElement("h4");
+          cardTitle.textContent = _("Player Aid");
+          cardTitle.classList.add("goi_cardTitle");
+          cardTitle.style.fontSize = "28px";
+
+          div.appendChild(cardTitle);
+          this.addCardTitle(cardTitle, 28, 409);
 
           const aidContent = `
             <div class="goi_aidBlock">
@@ -286,7 +289,7 @@ define([
           div.style.position = "relative";
 
           const gem_id = Number(card.type_arg);
-          
+
           const backgroundPosition = this.calcBackgroundPosition(gem_id);
           div.style.backgroundPosition = backgroundPosition;
 
@@ -436,12 +439,17 @@ define([
 
           const relicName = this.goi.info.relics[relic_id].tr_name;
 
-          const cardTitle = document.createElement("span");
+          const cardTitle = document.createElement("h4");
           cardTitle.textContent = _(relicName);
           cardTitle.classList.add("goi_cardTitle");
 
           if (div.childElementCount === 0) {
+            const initialFont = card.type == -99 ? 24 : 16;
+            const cardHeight = card.type == -99 ? 409 : 230;
+
+            cardTitle.style.fontSize = `${initialFont}px`;
             div.appendChild(cardTitle);
+            this.addCardTitle(cardTitle, initialFont, cardHeight);
           }
 
           new dijit.Tooltip({
@@ -484,22 +492,27 @@ define([
           const objectiveInfo = this.goi.info.objectives[objective_id];
           const objectiveName = objectiveInfo.tr_name;
 
-          const cardTitle = document.createElement("span");
+          const cardTitle = document.createElement("h4");
           cardTitle.textContent = _(objectiveName);
           cardTitle.classList.add("goi_cardTitle");
 
           if (div.childElementCount === 0) {
+            const initialFont = card.type == -99 ? 28 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+
+            cardTitle.style.fontSize = `${initialFont}px`;
             div.appendChild(cardTitle);
+            this.addCardTitle(cardTitle, initialFont, cardHeight);
           }
 
           if (div.childElementCount === 1) {
-            const fontSize = card.type == -99 ? 24 : undefined;
+            const initialFont = card.type == -99 ? 28 : undefined;
             const cardHeight = card.type == -99 ? 409 : undefined;
             this.addObjectiveContent(
               objective_id,
               div,
               null,
-              fontSize,
+              initialFont,
               cardHeight
             );
           }
@@ -560,16 +573,21 @@ define([
           const itemInfo = this.goi.info.items[item_id];
           const itemName = itemInfo.tr_name;
 
-          const cardTitle = document.createElement("span");
+          const cardTitle = document.createElement("h4");
           cardTitle.textContent = _(itemName);
           cardTitle.classList.add("goi_cardTitle");
 
           if (div.childElementCount === 0) {
+            const initialFont = card.type == -99 ? 28 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
+
+            cardTitle.style.fontSize = `${initialFont}px`;
             div.appendChild(cardTitle);
+            this.addCardTitle(cardTitle, initialFont, cardHeight);
           }
 
           if (div.childElementCount === 1) {
-            const fontSize = card.type == -99 ? 24 : undefined;
+            const fontSize = card.type == -99 ? 28 : undefined;
             const cardHeight = card.type == -99 ? 409 : undefined;
             this.addItemContent(item_id, div, null, fontSize, cardHeight);
           }
@@ -3116,9 +3134,25 @@ define([
       }
     },
 
+    addCardTitle: function (titleElement, initialFont = 16, cardHeight = 230) {
+      const titleHeight = titleElement.offsetHeight;
+      const maxHeight = cardHeight * 0.09;
+
+      console.log(titleHeight, maxHeight, "height");
+
+      if (titleHeight > maxHeight) {
+        const fontSize = initialFont * 0.98;
+        titleElement.style.fontSize = `${fontSize}px`;
+
+        requestAnimationFrame(() => {
+          this.addCardTitle(titleElement, fontSize, cardHeight);
+        }, 0);
+      }
+    },
+
     addItemContent: function (
       item_id,
-      cardContent,
+      cardElement,
       contentElement,
       initialFont = 14,
       cardHeight = 230
@@ -3133,7 +3167,7 @@ define([
 
         contentElement.style.fontFamily = "'rooney-web', serif";
         contentElement.style.fontSize = `${initialFont}px`;
-        cardContent.appendChild(contentElement);
+        cardElement.appendChild(contentElement);
       }
 
       const contentHeight = contentElement.offsetHeight;
@@ -3146,7 +3180,7 @@ define([
         requestAnimationFrame(() => {
           this.addItemContent(
             item_id,
-            cardContent,
+            cardElement,
             contentElement,
             fontSize,
             cardHeight
@@ -3157,7 +3191,7 @@ define([
 
     addObjectiveContent: function (
       objective_id,
-      div,
+      cardElement,
       contentElement,
       initialFont = 12,
       cardHeight = 230
@@ -3172,7 +3206,7 @@ define([
 
         contentElement.style.fontFamily = `"rooney-web", serif`;
         contentElement.style.fontSize = `${initialFont}px`;
-        div.appendChild(contentElement);
+        cardElement.appendChild(contentElement);
       }
 
       const contentHeight = contentElement.offsetHeight;
@@ -3186,7 +3220,7 @@ define([
           contentElement.style.transform = "translateY(-50%)";
           this.addObjectiveContent(
             objective_id,
-            div,
+            cardElement,
             contentElement,
             fontSize,
             cardHeight
@@ -4319,12 +4353,12 @@ define([
       this.attachRegisteredTooltips();
     },
 
-    registerCustomTooltip(html, id) {
+    registerCustomTooltip: function (html, id) {
       this._registeredCustomTooltips[id] = html;
       return id;
     },
 
-    attachRegisteredTooltips() {
+    attachRegisteredTooltips: function () {
       console.log("Attaching toolips");
 
       for (const id in this._registeredCustomTooltips) {
@@ -4344,6 +4378,13 @@ define([
             getContent: (matchedNode) => {
               const objective_id = id.split("-")[1];
               return this.createObjectiveTooltip(objective_id);
+            },
+          });
+        } else if (tooltip.match("goi_relic")) {
+          new dijit.Tooltip({
+            connectId: [id],
+            getContent: (matchedNode) => {
+              return this.createRelicTooltip(relic_id);
             },
           });
         } else {

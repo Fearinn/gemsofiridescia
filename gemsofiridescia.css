@@ -137,17 +137,15 @@ html {
 .goi_cardTitle {
   font-family: "sketchnote-square", sans-serif;
   color: white;
-  font-size: 14px;
   text-align: center;
 
   position: absolute;
-  top: 0;
-  left: 0;
-  transform: translateY(50%);
+  top: 7%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
   margin: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  width: 100%;
+  overflow: hidden;
+  width: 95%;
   z-index: 1;
 }
 
@@ -889,10 +887,6 @@ html {
 
 .goi_explorer .card-side {
   box-shadow: none !important;
-}
-
-.goi_relic .goi_cardTitle {
-  transform: translateY(25%);
 }
 
 .goi_relicsContainer {
