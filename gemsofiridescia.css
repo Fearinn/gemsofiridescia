@@ -630,11 +630,11 @@ html {
 }
 
 .goi_tooltip.goi_rhom {
-  background-image: url("img/tooltips/rhom.jpg");
+  background-image: url("img/tooltips/rhomCards.jpg");
 }
 
 .goi_rhom .card-side {
-  background-image: url("img/solo/rhom.jpg");
+  background-image: url("img/solo/rhomCards.jpg");
 }
 
 .goi_rhomDeck {
