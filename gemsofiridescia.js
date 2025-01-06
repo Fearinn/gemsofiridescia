@@ -384,8 +384,15 @@ define([
           div.classList.add("goi_explorer");
           div.style.position = "relative";
 
+          const player_id = Number(card.type_arg);
+          if (this.goi.globals.isSolo && player_id == this.goi.bot.id) {
+            div.style.backgroundImage = `url(${g_gamethemeurl}/img/solo/alternateRhom.png)`;
+            div.style.backgroundPosition = "center";
+            return;
+          } 
+
           const spritePosition =
-            this.goi.globals.playerBoards[card.type_arg] - 1;
+            this.goi.globals.playerBoards[player_id] - 1;
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
 
@@ -721,7 +728,7 @@ define([
 
       /* PLAYER PANELS */
       for (const player_id in this.goi.globals.players) {
-        if (this.goi.globals.isSolo && player_id == 1) {
+        if (this.goi.globals.isSolo && player_id == this.goi.bot.id) {
           continue;
         }
 
@@ -3138,8 +3145,6 @@ define([
       const titleHeight = titleElement.offsetHeight;
       const maxHeight = cardHeight * 0.09;
 
-      console.log(titleHeight, maxHeight, "height");
-
       if (titleHeight > maxHeight) {
         const fontSize = initialFont * 0.98;
         titleElement.style.fontSize = `${fontSize}px`;
@@ -3391,8 +3396,6 @@ define([
     actUseItem: function () {
       const selectedItem = this.goi.selections.item;
       const item_id = Number(selectedItem.type_arg);
-
-      console.log(selectedItem, item_id, "test");
 
       if (item_id === 4) {
         this.performAction(

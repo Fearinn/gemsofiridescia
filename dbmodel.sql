@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `robot` (
   `id` TINYINT(1) unsigned NOT NULL DEFAULT 1,
   `name` varchar(4) NOT NULL DEFAULT 'Rhom',
   `avatar` varchar(10) NOT NULL DEFAULT 'd05e07fccb',
-  `color` varchar(6) NOT NULL DEFAULT 'ffa500',
+  `color` varchar(6) NOT NULL DEFAULT '982F9B',
   `no` TINYINT(1) NOT NULL DEFAULT 2,
   `score` SMALLINT(4) NOT NULL DEFAULT 0,
   `score_aux` SMALLINT(4) NOT NULL DEFAULT 0,

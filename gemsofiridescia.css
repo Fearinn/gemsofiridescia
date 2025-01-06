@@ -806,6 +806,7 @@ html {
   bottom: 12px;
 
   background-image: url("img/explorers.png");
+  background-repeat: no-repeat;
   height: var(--explorerSize);
   width: var(--explorerSize);
   z-index: 1;

@@ -41,7 +41,13 @@ const faceToBackgroundPosition = {
   6: { x: 200, y: 100 },
 };
 
-const colorToMultiplier = { ff0000: 5, "0000ff": 6, "008000": 7, ffa500: 8 };
+const colorToMultiplier = {
+  ff0000: 5,
+  "0000ff": 6,
+  "008000": 7,
+  ffa500: 8,
+  "982F9B": 8,
+};
 
 function calcBackgroundPosition(face, type, type_arg) {
   let multiplier = 0;
