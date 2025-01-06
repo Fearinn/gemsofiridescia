@@ -1068,7 +1068,7 @@ $this->rhom_info = [
             "right" => 4,
         ],
         "effect" => 2,
-        "weathervane" => "left",
+        "weathervane" => "right",
     ],
     6 => [
         "directions" => [
@@ -1078,7 +1078,7 @@ $this->rhom_info = [
             "right" => 1,
         ],
         "effect" => 2,
-        "weathervane" => "left",
+        "weathervane" => "right",
     ],
     7 => [
         "directions" => [
@@ -1088,7 +1088,7 @@ $this->rhom_info = [
             "right" => 2,
         ],
         "effect" => 2,
-        "weathervane" => "right",
+        "weathervane" => "left",
     ],
     8 => [
         "directions" => [
@@ -1098,7 +1098,7 @@ $this->rhom_info = [
             "right" => 3,
         ],
         "effect" => 2,
-        "weathervane" => "right",
+        "weathervane" => "left",
     ],
     9 => [
         "directions" => [
@@ -1118,7 +1118,7 @@ $this->rhom_info = [
             "right" => 1,
         ],
         "effect" => 3,
-        "weathervane" => "left",
+        "weathervane" => "right",
     ],
     11 => [
         "directions" => [
@@ -1138,7 +1138,7 @@ $this->rhom_info = [
             "right" => 3,
         ],
         "effect" => 3,
-        "weathervane" => "right",
+        "weathervane" => "left",
     ],
     13 => [
         "directions" => [
