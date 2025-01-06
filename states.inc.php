@@ -53,8 +53,8 @@ $machinestates = [
 
     20 => [
         "name" => "discardCollectedTile",
-        "description" => clienttranslate('${actplayer} has no legal moves and must discard one tile from his Victory Pile'),
-        "descriptionmyturn" => clienttranslate('${you} have no legal moves and must discard one tile from your Victory Pile'),
+        "description" => clienttranslate('${actplayer} has no legal moves and must discard one tile from his collection'),
+        "descriptionmyturn" => clienttranslate('${you} have no legal moves and must discard one tile from your collection'),
         "type" => "activeplayer",
         "args" => "argDiscardCollectedTile",
         "action" => "stDiscardCollectedTile",
@@ -77,8 +77,8 @@ $machinestates = [
 
     22 => [
         "name" => "confirmAutoMove",
-        "description" => clienttranslate('${actplayer} must reveal a tile'),
-        "descriptionmyturn" => clienttranslate('${you} have a single possible move. Confirm it'),
+        "description" => clienttranslate('${actplayer} has a single possible move'),
+        "descriptionmyturn" => clienttranslate('${you} have a single possible move. Proceed'),
         "type" => "activeplayer",
         "args" => "argConfirmAutoMove",
         "possibleactions" => ["actConfirmAutoMove", "actUseItem"],
@@ -119,8 +119,8 @@ $machinestates = [
 
     31 => [
         "name" => "transferGem",
-        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} Gem(s) to give away to other player'),
-        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} Gem(s) to give away to other player'),
+        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} Gem(s) to give away to another player'),
+        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} Gem(s) to give away to another player'),
         "type" => "activeplayer",
         "args" => "argTransferGem",
         "action" => "stTransferGem",
@@ -188,7 +188,7 @@ $machinestates = [
 
     7 => [
         "name" => "finalScoring",
-        "description" => clienttranslate("Computing final scoring..."),
+        "description" => clienttranslate("Determining the new leader of Iridescia..."),
         "type" => "game",
         "action" => "stFinalScoring",
         "transitions" => ["gameEnd" => 99],
@@ -233,8 +233,8 @@ $machinestates = [
 
     83 => [
         "name" => "discardTileForRhom",
-        "description" => clienttranslate('The {rhom} is out of legal moves. ${actplayer} must discard a tile from its Victory Pile'),
-        "descriptionmyturn" => clienttranslate('The ${rhom} is out of legal moves. ${you} must discard a tile from its Victory Pile'),
+        "description" => clienttranslate('The {rhom} has no legal moves. ${actplayer} must discard a tile from its collection'),
+        "descriptionmyturn" => clienttranslate('The ${rhom} has no legal moves. ${you} must discard a tile from its collection'),
         "type" => "activeplayer",
         "args" => "argDiscardTileForRhom",
         "action" => "stDiscardTileForRhom",

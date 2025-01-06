@@ -133,6 +133,8 @@ class Game extends \Table
     public function actConfirmAutoMove(?int $clientVersion): void
     {
         $tileCard_id = $this->globals->get(CURRENT_TILE);
+        $this->globals->set(CURRENT_TILE, null);
+
         $revealedTiles = $this->globals->get(REVEALED_TILES);
 
         if (!array_key_exists($tileCard_id, $revealedTiles)) {
@@ -685,8 +687,13 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
         $usableItems = $this->usableItems($player_id);
 
+        $tileCard_id = $this->globals->get(CURRENT_TILE);
+        $revealedTiles = $this->globals->get(REVEALED_TILES);
+        $mustReveal = !array_key_exists($tileCard_id, $revealedTiles);
+
         return [
             "usableItems" => $usableItems,
+            "mustReveal" => $mustReveal,
         ];
     }
 

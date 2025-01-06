@@ -391,10 +391,9 @@ define([
           if (this.goi.globals.isSolo && player_id == this.goi.bot.id) {
             div.classList.add("goi_rhomExplorer");
             return;
-          } 
+          }
 
-          const spritePosition =
-            this.goi.globals.playerBoards[player_id] - 1;
+          const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
 
@@ -2019,18 +2018,41 @@ define([
 
         if (stateName === "confirmAutoMove") {
           const usableItems = args.args.usableItems;
+          const mustReveal = args.args.mustReveal;
 
-          if (usableItems.length > 0) {
+          if (usableItems.length > 0 && !mustReveal) {
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
                 _(
-                  "${you} have a single possible move. Confirm it or use an Item with the ${green_flag}"
+                  "${you} have a single possible move. Proceed onto the available tile or use an Item with the ${green_flag}"
                 ),
                 {
                   you: _("${you}"),
                   green_flag: _("green flag"),
                 }
               );
+            this.updatePageTitle();
+          }
+
+          if (mustReveal) {
+            let description = this.format_string_recursive(
+              _("${you} must reveal the only available adjacent tile. Proceed"),
+              { you: _("${you}") }
+            );
+
+            if (usableItems.length > 0) {
+              description = this.format_string_recursive(
+                _(
+                  "${you} must reveal the only available adjacent tile or use an Item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
+            }
+
+            this.gamedatas.gamestate.descriptionmyturn = description;
             this.updatePageTitle();
           }
 
@@ -2041,11 +2063,8 @@ define([
 
           this.addActionButton(
             "goi_confirm_btn",
-            _("Confirm automatic move"),
+            _("Proceed"),
             "actConfirmAutoMove",
-            null,
-            false,
-            "gray"
           );
         }
 
@@ -3333,7 +3352,7 @@ define([
       if (item_id === 1) {
         this.setClientState("client_cauldronOfFortune", {
           descriptionmyturn: _(
-            "${you} must select any 2 Gems in your cargo to trade for other Gem"
+            "${you} must select any 2 Gems in your cargo to trade for another Gem"
           ),
         });
       }
