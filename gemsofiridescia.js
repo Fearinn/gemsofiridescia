@@ -385,9 +385,11 @@ define([
           div.style.position = "relative";
 
           const player_id = Number(card.type_arg);
+          const playerName = this.goi.globals.players[player_id]?.name;
+          this.addTooltip(div.id, playerName, "");
+
           if (this.goi.globals.isSolo && player_id == this.goi.bot.id) {
-            div.style.backgroundImage = `url(${g_gamethemeurl}/img/solo/alternateRhom.png)`;
-            div.style.backgroundPosition = "center";
+            div.classList.add("goi_rhomExplorer");
             return;
           } 
 

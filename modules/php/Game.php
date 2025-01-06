@@ -2009,7 +2009,7 @@ class Game extends \Table
             if ($gem_id === 10) {
                 $this->obtainIridiaStone($player_id);
             }
-            
+
             $this->gamestate->nextState("rainbowTile");
             return;
         }
@@ -4116,7 +4116,7 @@ class Game extends \Table
                 if ($gem_id === 10) {
                     $this->obtainIridiaStone(1);
                 }
-                
+
                 $gemsDemand = $this->gemsDemand();
 
                 $maxDemand = max($gemsDemand);
@@ -4466,7 +4466,6 @@ class Game extends \Table
 
         $colors = $gameinfos["player_colors"];
         if (count($players) === 1) {
-            unset($colors[3]);
             $this->DbQuery("INSERT INTO robot () VALUES ()");
         }
 
@@ -4510,9 +4509,16 @@ class Game extends \Table
             $this->initStat("player", "iridia:Relics", 0, $player_id);
         }
 
+        $isSolo = count($players) === 1;
+        $bot_color = $this->getUniqueValueFromDB("SELECT color FROM robot WHERE id=1");
+
         $explorerCards = [];
         foreach ($this->explorers_info as $explorer_id => $explorer) {
             $explorerCards[] = ["type" => $explorer["color"], "type_arg" => $explorer_id, "nbr" => 1];
+        }
+
+        if ($isSolo) {
+            $explorerCards[] = ["type" => $bot_color, "type_arg" => 0, "nbr" => 1];
         }
 
         $this->explorer_cards->createCards($explorerCards, "deck");
@@ -4534,9 +4540,10 @@ class Game extends \Table
         }
 
         if (count($players) === 1) {
-            $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type='ffa500'");
-            $playerBoards[1] = (int) $explorerCard["type_arg"];
+            $explorerCard = $this->getObjectFromDB("$this->deckSelectQuery FROM explorer WHERE card_type='$bot_color'");
+            $playerBoards[1] = 4;
 
+            $explorerCard_id = (int) $explorerCard["id"];
             $this->explorer_cards->moveCard($explorerCard_id, "scene", 1);
             $this->DbQuery("UPDATE explorer SET card_type_arg=1 WHERE card_id=$explorerCard_id");
 

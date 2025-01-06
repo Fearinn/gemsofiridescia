@@ -802,14 +802,21 @@ html {
 }
 
 .goi_explorer {
-  pointer-events: none;
   bottom: 12px;
-
   background-image: url("img/explorers.png");
-  background-repeat: no-repeat;
   height: var(--explorerSize);
   width: var(--explorerSize);
   z-index: 1;
+}
+
+.goi_explorer:active {
+  pointer-events: none;
+}
+
+.goi_explorer.goi_rhomExplorer {
+  background-image: url("img/solo/alternateRhom.png");
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .goi_cargo {
