@@ -2917,6 +2917,10 @@ class Game extends \Table
             }
         }
 
+        usort($restorableRelics, function ($relicCard, $otherRelicCard) {
+            return (int) $otherRelicCard["location_arg"] <=> $relicCard["location_arg"];
+        });
+
         return $restorableRelics;
     }
 
@@ -3024,11 +3028,10 @@ class Game extends \Table
         $relicCard_id = (int) $relicCard["id"];
         $this->relic_cards->insertCardOnExtremePosition($relicCard_id, "market", false);
         $relicCard = $this->relic_cards->getCard($relicCard_id);
-
         $relic_id = $relicCard["type_arg"];
+        $relic_info = $this->relics_info[$relic_id];
 
         $relicsDeckTop = $this->getRelicsDeck(true);
-        $relic_info = $this->relics_info[$relic_id];
 
         $this->notifyAllPlayers(
             "replaceRelic",
@@ -4046,7 +4049,7 @@ class Game extends \Table
                 $tile_id = (int) $tileCard["type_arg"];
                 $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
                 $demand = $gemsDemand[$gem_id];
- 
+
                 $otherTile_id = (int) $otherTileCard["type_arg"];
                 $otherGem_id = (int) $this->tiles_info[$otherTile_id]["gem"];
                 $otherDemand = $gemsDemand[$otherGem_id];
@@ -4224,6 +4227,16 @@ class Game extends \Table
         if ($weathervaneDirection === "right") {
             $restorableRelics = array_reverse($restorableRelics, true);
         }
+
+        usort($restorableRelics, function ($relicCard, $otherRelicCard) {
+            $relic_id = (int) $relicCard["type_arg"];
+            $points = (int) $this->relics_info[$relic_id]["points"];
+
+            $otherRelic_id = (int) $otherRelicCard["type_arg"];
+            $otherPoints = (int) $this->relics_info[$otherRelic_id]["points"];
+
+            return $otherPoints <=> $points;
+        });
 
         $relicCard = reset($restorableRelics);
         $relicCard_id = (int) $relicCard["id"];
