@@ -4225,6 +4225,10 @@ class Game extends \Table
         throw new \BgaUserException($stat);
     }
 
+    public function debug_incGem(int $delta, int $gem_id, int $player_id): void {
+        $this->incGem($delta, $gem_id, $player_id);
+    }
+
     public function debug_fillCargo(int $player_id): void
     {
         $totalGemsCount = $this->getTotalGemsCount($player_id);

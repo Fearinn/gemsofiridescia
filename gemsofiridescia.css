@@ -34,7 +34,7 @@
 
 .goi_thematicBackground .player-board {
   background-image: url("img/background.jpg");
-  background-position: center top;
+  background-position: center bottom;
 }
 
 .goi_thematicBackground #seemorelogs {
