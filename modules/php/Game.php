@@ -615,7 +615,6 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $restorableRelics = $this->restorableRelics($player_id, true);
-
         $relicCard = $this->relic_cards->getCard($relicCard_id);
 
         if (!array_key_exists($relicCard_id, $restorableRelics) && !$this->checkCardLocation($relicCard, "book", $player_id)) {
@@ -2917,7 +2916,7 @@ class Game extends \Table
             }
         }
 
-        usort($restorableRelics, function ($relicCard, $otherRelicCard) {
+        uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
             return (int) $otherRelicCard["location_arg"] <=> $relicCard["location_arg"];
         });
 
@@ -4045,7 +4044,7 @@ class Game extends \Table
         });
 
         if (count($mostDemandingTiles) > 1) {
-            usort($mostDemandingTiles, function ($tileCard, $otherTileCard) use ($gemsDemand) {
+            uasort($mostDemandingTiles, function ($tileCard, $otherTileCard) use ($gemsDemand) {
                 $tile_id = (int) $tileCard["type_arg"];
                 $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
                 $demand = $gemsDemand[$gem_id];
@@ -4228,7 +4227,7 @@ class Game extends \Table
             $restorableRelics = array_reverse($restorableRelics, true);
         }
 
-        usort($restorableRelics, function ($relicCard, $otherRelicCard) {
+        uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
             $relic_id = (int) $relicCard["type_arg"];
             $points = (int) $this->relics_info[$relic_id]["points"];
 
