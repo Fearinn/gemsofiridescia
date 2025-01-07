@@ -536,7 +536,6 @@ class Game extends \Table
         }
 
         $itemCard_id = (int) $registeredWell["card_id"];
-
         $item = new ItemManager($itemCard_id, $this);
 
         if (!$item->wishingWell2($gem_id, $player_id)) {
@@ -932,7 +931,7 @@ class Game extends \Table
         }
     }
 
-    public function argPickWellgem(): array
+    public function argPickWellGem(): array
     {
         $player_id = (int) $this->getActivePlayerId();
 
@@ -968,7 +967,7 @@ class Game extends \Table
     public function stPickWellGem(): void
     {
         $player_id = (int) $this->getActivePlayerId();
-        $args = $this->argPickWellgem();
+        $args = $this->argPickWellGem();
 
         if ($args["no_notify"]) {
             if ($args["auto"]) {
@@ -4243,6 +4242,11 @@ class Game extends \Table
         $anchorState_id = (int) $this->gamestate->state_id();
         $this->globals->set(ANCHOR_STATE, $anchorState_id);
         $this->gamestate->jumpToState(ST_TRANSFER_GEM);
+    }
+
+    public function debug_setMarketValue(int $value, int $gem_id): void {
+        $gemName = $this->gems_info[$gem_id]["name"];
+        $this->globals->set("$gemName:MarketValue", $value);
     }
 
     public function debug_moveExplorer(int $hex, int $player_id): void

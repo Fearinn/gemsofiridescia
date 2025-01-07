@@ -160,7 +160,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must pick a Gem for the Wishing Well'),
         "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the Wishing Well'),
         "type" => "activeplayer",
-        "args" => "argPickWellgem",
+        "args" => "argPickWellGem",
         "action" => "stPickWellGem",
         "possibleactions" => ["actPickWellGem", "actUseItem"],
         "transitions" => ["pickWellGem" => 40,"repeat" => 4, "fail" => 4, "optionalActions" => 4],
