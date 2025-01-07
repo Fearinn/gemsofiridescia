@@ -3663,16 +3663,14 @@ class Game extends \Table
             $playerScore = $this->getUniqueValueFromDB("SELECT player_score FROM player WHERE player_id=$player_id");
 
             if ($rhomScore > $playerScore) {
-                $difference = $playerScore - $rhomScore;
-                $this->DbQuery("UPDATE player SET player_score=$difference WHERE player_id=$player_id");
+                $this->DbQuery("UPDATE player SET player_score=0 WHERE player_id=$player_id");
                 return;
             }
 
             if ($rhomScore === $playerScore) {
                 $rhomScoreAux = (int) $this->getUniqueValueFromDB("SELECT score_aux FROM robot WHERE id=1");
                 if ($rhomScoreAux > 0) {
-                    $rhomScoreAux = -$rhomScoreAux;
-                    $this->DbQuery("UPDATE player SET player_score=$rhomScoreAux WHERE player_id=$player_id");
+                    $this->DbQuery("UPDATE player SET player_score=0 WHERE player_id=$player_id");
                 }
             }
         }
