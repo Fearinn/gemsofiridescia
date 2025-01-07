@@ -3998,7 +3998,7 @@ class Game extends \Table
     {
         $mostDemandingTiles = [];
 
-        $includesRainbow = false;
+        $includesIridia = false;
         $gemsDemand = $this->gemsDemand();
         $maxDemand = 0;
 
@@ -4006,8 +4006,8 @@ class Game extends \Table
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-            if ($gem_id % 10 === 0) {
-                $includesRainbow = true;
+            if ($gem_id === 10) {
+                $includesIridia = true;
                 continue;
             }
 
@@ -4017,12 +4017,16 @@ class Game extends \Table
             }
         }
 
-        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($includesRainbow, $gemsDemand, $maxDemand) {
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($tileCards, $includesIridia, $gemsDemand, $maxDemand) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-            if ($includesRainbow) {
-                return $gem_id % 10 === 0;
+            if ($includesIridia && $gem_id === 10) {
+                return true;
+            }
+
+            if (count($tileCards) > 1 && $gem_id === 0) {
+                return false;
             }
 
             $demand = (int) $gemsDemand[$gem_id];
