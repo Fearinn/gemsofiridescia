@@ -2036,7 +2036,7 @@ define([
 
           if (mustReveal) {
             let description = this.format_string_recursive(
-              _("${you} must reveal the only available adjacent tile. Proceed"),
+              _("${you} must reveal the only available adjacent tile"),
               { you: _("${you}") }
             );
 
