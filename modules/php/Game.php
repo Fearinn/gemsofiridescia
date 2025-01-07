@@ -1298,6 +1298,7 @@ class Game extends \Table
 
         $this->globals->set(RHOM_SKIP, 0);
         $this->globals->set(REAL_TURN, true);
+        $this->globals->set(RHOM_MULTIPLIER, 1);
         $this->gamestate->nextState("realTurn");
     }
 
