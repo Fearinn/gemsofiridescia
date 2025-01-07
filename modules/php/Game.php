@@ -4002,42 +4002,58 @@ class Game extends \Table
         $gemsDemand = $this->gemsDemand();
         $maxDemand = 0;
 
+        $gemsCounts = $this->getGemsCounts(1, true);
+        $hasAllGems = true;
+
+        foreach ($gemsCounts as $count) {
+            if ($count === 0) {
+                $hasAllGems = false;
+                break;
+            }
+        }
+
         foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
             if ($gem_id === 10) {
                 $includesIridia = true;
-                continue;
-            }
-
-            $demand = (int) $gemsDemand[$gem_id];
-            if ($maxDemand < $demand) {
-                $maxDemand = $demand;
             }
         }
 
-        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($tileCards, $includesIridia, $gemsDemand, $maxDemand) {
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($tileCards, $includesIridia, $gemsCounts, $hasAllGems) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
-            if ($includesIridia && $gem_id === 10) {
-                return true;
+            if ($includesIridia) {
+                return $gem_id === 10;
             }
 
             if (count($tileCards) > 1 && $gem_id === 0) {
                 return false;
             }
 
-            $demand = (int) $gemsDemand[$gem_id];
-
-            if ($demand === $maxDemand) {
+            if ($hasAllGems) {
                 return true;
             }
+
+            return $gemsCounts[$gem_id] === 0;
         });
 
         if (count($mostDemandingTiles) > 1) {
-            usort($mostDemandingTiles, function ($tileCard, $otherTileCard) {
+            usort($mostDemandingTiles, function ($tileCard, $otherTileCard) use ($gemsDemand) {
+                $tile_id = (int) $tileCard["type_arg"];
+                $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
+                $demand = $gemsDemand[$gem_id];
+ 
+                $otherTile_id = (int) $otherTileCard["type_arg"];
+                $otherGem_id = (int) $this->tiles_info[$otherTile_id]["gem"];
+                $otherDemand = $gemsDemand[$otherGem_id];
+
+                if ($demand !== $otherDemand) {
+                    return $otherDemand <=> $demand;
+                }
+
                 $hex = (int) $tileCard["location_arg"];
                 $otherHex = (int) $otherTileCard["location_arg"];
 
@@ -4228,7 +4244,8 @@ class Game extends \Table
         throw new \BgaUserException($stat);
     }
 
-    public function debug_incGem(int $delta, int $gem_id, int $player_id): void {
+    public function debug_incGem(int $delta, int $gem_id, int $player_id): void
+    {
         $this->incGem($delta, $gem_id, $player_id);
     }
 
@@ -4248,7 +4265,8 @@ class Game extends \Table
         $this->gamestate->jumpToState(ST_TRANSFER_GEM);
     }
 
-    public function debug_setMarketValue(int $value, int $gem_id): void {
+    public function debug_setMarketValue(int $value, int $gem_id): void
+    {
         $gemName = $this->gems_info[$gem_id]["name"];
         $this->globals->set("$gemName:MarketValue", $value);
     }
