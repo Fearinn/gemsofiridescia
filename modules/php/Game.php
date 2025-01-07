@@ -432,7 +432,7 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actBuyItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id)
+    public function actBuyItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id)
     {
         $this->actionAfterSell();
 
@@ -447,7 +447,7 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
+    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
     {
         $this->actionAfterSell();
 
@@ -476,7 +476,7 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id): void
     {
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
@@ -489,7 +489,7 @@ class Game extends \Table
     }
 
     #[CheckAction(false)]
-    public function actUseEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUseEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id): void
     {
         $this->checkVersion($clientVersion);
         $current_player_id = (int) $this->getCurrentPlayerId();
@@ -507,7 +507,7 @@ class Game extends \Table
     }
 
     #[CheckAction(false)]
-    public function actUndoEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 33)] int $itemCard_id): void
+    public function actUndoEpicElixir(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id): void
     {
         $this->checkVersion($clientVersion);
         $current_player_id = (int) $this->getActivePlayerId();
