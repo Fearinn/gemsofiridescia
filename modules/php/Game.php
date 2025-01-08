@@ -4009,17 +4009,9 @@ class Game extends \Table
 
         $includesIridia = false;
         $gemsDemand = $this->gemsDemand();
-        $maxDemand = 0;
 
         $gemsCounts = $this->getGemsCounts(1, true);
         $hasAllGems = true;
-
-        foreach ($gemsCounts as $count) {
-            if ($count === 0) {
-                $hasAllGems = false;
-                break;
-            }
-        }
 
         foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
@@ -4027,6 +4019,10 @@ class Game extends \Table
 
             if ($gem_id === 10) {
                 $includesIridia = true;
+            }
+
+            if ($gem_id % 10 !== 0 && $gemsCounts[$gem_id] === 0) {
+                $hasAllGems = false;
             }
         }
 

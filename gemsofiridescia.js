@@ -3366,7 +3366,7 @@ define([
       if (item_id === 5) {
         this.setClientState("client_luckyLibation", {
           descriptionmyturn: _(
-            "${you} must select any dice from a mining atempt or a Gem Market Die to re-roll"
+            "${you} must select any dice from a mining attempt or a Gem Market Die to re-roll"
           ),
         });
       }
