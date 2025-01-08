@@ -951,10 +951,17 @@ class Game extends \Table
         $rerrolableDice = $this->globals->get(REROLLABLE_DICE, []);
         $auto = !$usableItems && count($pickableGems) === 1;
 
+        $singlePickableGem = null;
+        if ($auto) {
+            $k_pickableGems = array_keys($pickableGems);
+            $gemName = reset($k_pickableGems);
+            $singlePickableGem = $this->gemsIds_info[$gemName];
+        }
+
         return [
             "itemCard_id" => $itemCard_id,
             "pickableGems" => $pickableGems,
-            "singlePickableGem" => reset($pickableGems),
+            "singlePickableGem" => $singlePickableGem,
             "failed" => !$pickableGems,
             "usableItems" => $usableItems,
             "rerollableDice" => $rerrolableDice,
