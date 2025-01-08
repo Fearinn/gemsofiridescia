@@ -151,9 +151,9 @@ define([
       this.goi.globals.gemsCounts = gamedatas.gemsCounts;
       this.goi.globals.availableCargos = [];
       this.goi.globals.marketValues = gamedatas.marketValues;
-      this.goi.globals.publicStoneDiceCount = gamedatas.publicStoneDiceCount;
-      this.goi.globals.privateStoneDiceCount = gamedatas.privateStoneDiceCount;
-      this.goi.globals.activeStoneDiceCount = gamedatas.activeStoneDiceCount;
+      this.goi.globals.publicStoneDice = gamedatas.publicStoneDice;
+      this.goi.globals.playerStoneDice = gamedatas.playerStoneDice;
+      this.goi.globals.activeStoneDice = gamedatas.activeStoneDice;
       this.goi.globals.rolledDice = gamedatas.rolledDice;
       this.goi.globals.relicsDeck = gamedatas.relicsDeck;
       this.goi.globals.relicsDeckTop = gamedatas.relicsDeckTop;
@@ -989,17 +989,14 @@ define([
         {}
       );
 
-      for (
-        let die = 4;
-        die > 4 - this.goi.globals.publicStoneDiceCount;
-        die--
-      ) {
+      const publicStoneDice = this.goi.globals.publicStoneDice;
+      publicStoneDice.forEach((die_id) => {
         this.goi.stocks.dice.stone.addDie({
-          id: die,
+          id: die_id,
           type: "stone",
           face: 6,
         });
-      }
+      });
 
       for (const player_id in this.goi.globals.players) {
         const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
@@ -1112,7 +1109,7 @@ define([
         const mininigDie1_id = `1-${player_id}`;
         const mininigDie2_id = `2-${player_id}`;
 
-        const dice = [
+        const miningDice = [
           {
             id: mininigDie1_id,
             face: rolledDice[mininigDie1_id]?.face || 6,
@@ -1127,27 +1124,22 @@ define([
           },
         ];
 
-        const privateStoneDiceCount =
-          this.goi.globals.privateStoneDiceCount[player_id];
+        this.goi.stocks[player_id].dice.scene.addDice(miningDice);
 
-        for (
-          let die_id = currentStoneDie_id;
-          die_id <= privateStoneDiceCount + currentStoneDie_id - 1;
-          die_id++
-        ) {
-          const active = die_id <= this.goi.globals.activeStoneDiceCount;
+        const playerStoneDice = this.goi.globals.playerStoneDice[player_id];
+        playerStoneDice.forEach((die_id) => {
           const face = rolledDice[die_id]?.face;
+          const active = this.goi.globals.activeStoneDice[player_id].includes(die_id);
 
-          dice.push({
+          const die = {
             id: die_id,
             type: "stone",
             face: face || 6,
             active: active,
-          });
-        }
-        currentStoneDie_id += dice.length - 2;
+          };
 
-        this.goi.stocks[player_id].dice.scene.addDice(dice);
+          this.goi.stocks[player_id].dice.scene.addDie(die);
+        });
 
         this.goi.stocks[player_id].gems.cargo = new CardStock(
           this.goi.managers.gems,
@@ -2064,7 +2056,7 @@ define([
           this.addActionButton(
             "goi_confirm_btn",
             _("Proceed"),
-            "actConfirmAutoMove",
+            "actConfirmAutoMove"
           );
         }
 
@@ -3315,8 +3307,11 @@ define([
     },
 
     actMine: function () {
+      const dice = this.goi.selections.dice.map((die) => {
+        return die.id;
+      })
       this.performAction("actMine", {
-        stoneDice: JSON.stringify(this.goi.selections.dice),
+        stoneDice: JSON.stringify(dice),
       });
     },
 
@@ -3917,21 +3912,18 @@ define([
     },
 
     notif_resetStoneDice: function (notif) {
-      const player_id = notif.args.player_id;
+      const resetDice = notif.args.resetDice;
 
-      const activeDice = this.goi.stocks[player_id].dice.scene
-        .getDice()
-        .filter((die) => {
-          return !!die.active;
-        })
-        .map((die) => {
-          die.active = false;
-          return die;
-        });
+      const dice = resetDice.map((die_id) => {
+        return {
+          id: die_id,
+          type: "stone",
+        };
+      });
 
-      this.goi.stocks.dice.stone.addDice(activeDice);
-      this.goi.stocks.dice.stone.removeDice(activeDice);
-      this.goi.stocks.dice.stone.addDice(activeDice);
+      this.goi.stocks.dice.stone.addDice(dice);
+      this.goi.stocks.dice.stone.removeDice(dice);
+      this.goi.stocks.dice.stone.addDice(dice);
     },
 
     notif_rollDie: function (notif) {
@@ -3949,12 +3941,13 @@ define([
       if (type === "gem") {
         this.goi.stocks.dice.market
           .getDieElement(die)
-          .classList.remove("goi_selectedDie");
+          ?.classList.remove("goi_selectedDie");
         this.goi.stocks.dice.market.rollDie(die);
       } else {
+        console.log(die, "die");
         this.goi.stocks[player_id].dice.scene
           .getDieElement(die)
-          .classList.remove("goi_selectedDie");
+          ?.classList.remove("goi_selectedDie");
         this.goi.stocks[player_id].dice.scene.rollDie(die);
       }
 

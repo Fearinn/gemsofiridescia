@@ -25,7 +25,7 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
-use BgaUserException;
+use Bga\GameFramework\Actions\Types\IntArrayParam;
 
 const ST_PICK_WELL_GEM = 40;
 const ST_TRANSFER_GEM = 31;
@@ -37,8 +37,8 @@ const SOLD_GEM = "soldGem";
 const HAS_MINED = "hasMined";
 const REVEALED_TILES = "revealedTiles";
 const RAINBOW_GEM = "activeGem";
-const ACTIVE_STONE_DICE_COUNT = "activeStoneDice";
-const PUBLIC_STONE_DICE_COUNT = "publicStoneDiceCount";
+const PLAYER_STONE_DICE = "playerStoneDice";
+const ACTIVE_STONE_DICE = "activeStoneDice";
 const ROLLED_DICE = "rolledDice";
 const REROLLABLE_DICE = "rerollableDice";
 const ANCHOR_STATE = "anchorState";
@@ -307,7 +307,7 @@ class Game extends \Table
         $this->resolveTileEffect($tileCard, $player_id);
     }
 
-    public function actMine(?int $clientVersion, #[JsonParam(alphanum: false)] array $stoneDice): void
+    public function actMine(?int $clientVersion, #[JsonParam(alphanum: true)] array $stoneDice): void
     {
         $this->actionAfterSell();
 
@@ -318,17 +318,23 @@ class Game extends \Table
         $this->globals->set(ROLLED_DICE, []);
         $this->globals->set(REROLLABLE_DICE, []);
 
-        $stoneDiceCount = count($stoneDice);
-        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
-
-        if ($stoneDiceCount > $activeStoneDiceCount) {
-            $this->globals->set(ACTIVE_STONE_DICE_COUNT, $stoneDiceCount);
+        $playerDice = $this->globals->get(PLAYER_STONE_DICE)[$player_id];
+        if (array_diff($stoneDice, $playerDice)) {
+            throw new \BgaVisibleSystemException("You don't own all the selected Dice");
         }
 
-        $privateStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
+        $stoneDiceCount = count($stoneDice);
+        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE);
 
-        if ($stoneDiceCount > $privateStoneDiceCount) {
-            throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $privateStoneDiceCount");
+        if ($stoneDiceCount > $activeStoneDiceCount) {
+            $this->globals->set(ACTIVE_STONE_DICE, $stoneDice);
+        }
+
+        $playerDice = $this->globals->get(PLAYER_STONE_DICE)[$player_id];
+        $playerDiceCount = count($playerDice);
+
+        if ($stoneDiceCount > $stoneDiceCount) {
+            throw new \BgaVisibleSystemException("Not enough Stone Dice: actMine, $stoneDiceCount, $playerDiceCount");
         }
 
         $this->decCoin(3, $player_id, true);
@@ -346,6 +352,13 @@ class Game extends \Table
             ["id" => "2-$player_id", "type" => "mining"],
         ];
 
+        $stoneDice = array_map(
+            function ($die_id) {
+                return ["id" => $die_id, "type" => "stone"];
+            },
+            $stoneDice
+        );
+        
         $dice = array_merge($miningDice, $stoneDice);
 
         $minedGemsCount = $this->mine($gem_id, $dice, $player_id);
@@ -893,8 +906,10 @@ class Game extends \Table
         $usableItems = $this->usableItems($player_id);
         $canUseItem = !!$usableItems;
 
-        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
-        $activableStoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
+        $activeDice = $this->globals->get(ACTIVE_STONE_DICE)[$player_id];
+        $activeDiceCount = count($activeDice);
+        $playerStoneDice = $this->globals->get(PLAYER_STONE_DICE)[$player_id];
+        $activableDiceCount = count($playerStoneDice);
 
         $explorableTiles = $this->explorableTiles($player_id);
         $prosperousTiles = $this->prosperousTiles($player_id);
@@ -903,8 +918,8 @@ class Game extends \Table
 
         return [
             "canMine" => $canMine,
-            "activeStoneDiceCount" => $activeStoneDiceCount,
-            "activableStoneDiceCount" => $activableStoneDiceCount,
+            "activeStoneDiceCount" => $activeDiceCount,
+            "activableStoneDiceCount" => $activableDiceCount,
             "explorableTiles" => $explorableTiles,
             "prosperousTiles" => $prosperousTiles,
             "canSellGems" => $canSellGems,
@@ -1103,7 +1118,7 @@ class Game extends \Table
         $this->globals->set(HAS_BOUGHT_ITEM, false);
         $this->globals->set(ACTION_AFTER_SELL, false);
         $this->globals->set(SOLD_GEM, null);
-        $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
+        $this->globals->set(ACTIVE_STONE_DICE, []);
         $this->globals->set(ROLLED_DICE, []);
         $this->globals->set(REROLLABLE_DICE, []);
         $this->globals->set(RAINBOW_GEM, null);
@@ -2780,31 +2795,32 @@ class Game extends \Table
         );
     }
 
-    public function getPrivateStoneDiceCount(?int $player_id): int | array
+    public function getPublicStoneDice(): array
     {
-        $sql = "SELECT stone_die FROM player WHERE player_id=";
-        if ($player_id) {
-            return (int) $this->getUniqueValueFromDB("$sql$player_id");
+        $playerDice = $this->globals->get(PLAYER_STONE_DICE);
+        $allPlayerDice = [];
+
+        foreach ($playerDice as $dice) {
+            $allPlayerDice = array_merge($allPlayerDice, $dice);
         }
 
-        $privateStoneDiceCount = [];
-
-        $players = $this->loadPlayersNoZombie();
-        foreach ($players as $player_id => $player) {
-            $privateStoneDiceCount[$player_id] = (int) $this->getUniqueValueFromDB("$sql$player_id");
-        }
-
-        return $privateStoneDiceCount;
+        $publicDice = array_values(array_diff([1, 2, 3, 4], $allPlayerDice));
+        return $publicDice;
     }
 
     public function obtainStoneDie(int $player_id): bool
     {
-        if ($this->globals->get(PUBLIC_STONE_DICE_COUNT) === 0) {
+        $publicStoneDice = $this->getPublicStoneDice();
+
+        if (!$publicStoneDice) {
             return false;
         }
 
-        $this->dbQuery("UPDATE player SET stone_die=stone_die+1 WHERE player_id=$player_id");
-        $publicStoneDiceCount = $this->globals->inc(PUBLIC_STONE_DICE_COUNT, -1);
+        $die_id = reset($publicStoneDice);
+
+        $stoneDice = $this->globals->get(PLAYER_STONE_DICE);
+        $stoneDice[$player_id][] = $die_id;
+        $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
 
         $this->notifyAllPlayers(
             "obtainStoneDie",
@@ -2812,7 +2828,7 @@ class Game extends \Table
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
-                "die_id" => 4 - $publicStoneDiceCount
+                "die_id" => $die_id,
             ]
         );
 
@@ -2821,20 +2837,22 @@ class Game extends \Table
 
     public function resetStoneDice(int $player_id): void
     {
-        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+        $activeDice = $this->globals->get(ACTIVE_STONE_DICE);
+        $stoneDice = $this->globals->get(PLAYER_STONE_DICE);
 
-        if ($activeStoneDiceCount === 0) {
+        if ($activeDice === 0) {
             return;
         }
 
-        $this->dbQuery("UPDATE player SET stone_die=stone_die-$activeStoneDiceCount WHERE player_id=$player_id");
-        $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $activeStoneDiceCount);
+        $stoneDice = array_diff($stoneDice, $activeDice);
+        $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
 
         $this->notifyAllPlayers(
             "resetStoneDice",
             "",
             [
                 "player_id" => $player_id,
+                "resetDice" => $activeDice[$player_id],
             ]
         );
     }
@@ -4187,7 +4205,7 @@ class Game extends \Table
             $points = $tileEffect["values"][$region_id];
 
             if ($tileEffect_id === 3) {
-                $publicStoneDiceCount = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
+                $publicStoneDiceCount = $this->getPublicStoneDice();
                 $player_id = (int) $this->getActivePlayerId();
 
                 if ($publicStoneDiceCount === 0) {
@@ -4257,7 +4275,17 @@ class Game extends \Table
 
     public function debug_rollDie(int $player_id): void
     {
-        $this->rollDie(1, $player_id, "gem");
+        $this->rollDie(1, $player_id, "stone");
+    }
+
+    public function debug_obtainStoneDie(int $player_id): void
+    {
+        $this->obtainStoneDie($player_id);
+    }
+
+    public function debug_resetStoneDice(int $player_id): void
+    {
+        $this->resetStoneDice($player_id);
     }
 
     public function debug_stat(int $player_id): void
@@ -4362,9 +4390,10 @@ class Game extends \Table
         $this->item_cards->moveAllCardsInLocation("book", "discard", $player_id);
         $this->globals->set(EPIC_ELIXIR, false);
 
-        $stoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
-        $this->DbQuery("UPDATE player SET stone_die=0 WHERE player_id=$player_id");
-        $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $stoneDiceCount);
+        $stoneDice = $this->globals->get(PLAYER_STONE_DICE);
+        $stoneDice[$player_id] = [];
+        $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
+        $this->globals->set(ACTIVE_STONE_DICE, []);
 
         $this->DbQuery("UPDATE player SET coin=0 WHERE player_id=$player_id");
 
@@ -4455,9 +4484,9 @@ class Game extends \Table
         $result["gems"] = $this->getGems(null);
         $result["gemsCounts"] = $this->getGemsCounts(null);
         $result["marketValues"] = $this->getMarketValues(null);
-        $result["publicStoneDiceCount"] = $this->globals->get(PUBLIC_STONE_DICE_COUNT);
-        $result["privateStoneDiceCount"] = $this->getPrivateStoneDiceCount(null);
-        $result["activeStoneDiceCount"] = $this->globals->get(ACTIVE_STONE_DICE_COUNT);
+        $result["publicStoneDice"] = $this->getPublicStoneDice();
+        $result["playerStoneDice"] = $this->globals->get(PLAYER_STONE_DICE);
+        $result["activeStoneDice"] = $this->globals->get(ACTIVE_STONE_DICE, []);
         $result["rolledDice"] = $this->globals->get(ROLLED_DICE, []);
         $result["relicsInfo"] = $this->relics_info;
         $result["relicsDeck"] = $this->getRelicsDeck();
@@ -4706,9 +4735,14 @@ class Game extends \Table
             $this->reshuffleItemsDeck(true, $players);
         };
 
+        $stoneDice = [];
+        foreach ($players as $player_id => $player) {
+            $stoneDice[$player_id] = [];
+        }
+
+        $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
+        $this->globals->set(ACTIVE_STONE_DICE, []);
         $this->globals->set(REVEALS_LIMIT, 0);
-        $this->globals->set(PUBLIC_STONE_DICE_COUNT, 4);
-        $this->globals->set(ACTIVE_STONE_DICE_COUNT, 0);
 
         foreach ($this->gems_info as $gem_info) {
             $gemName = $gem_info["name"];
@@ -4716,7 +4750,6 @@ class Game extends \Table
 
             $this->globals->set($marketValueCode, 2);
         }
-
         $this->activeNextPlayer();
     }
 
@@ -4752,10 +4785,6 @@ class Game extends \Table
             $this->item_cards->moveAllCardsInLocation("hand", "discard", $player_id);
             $this->item_cards->moveAllCardsInLocation("book", "discard", $player_id);
             $this->globals->set(EPIC_ELIXIR, false);
-
-            $stoneDiceCount = $this->getPrivateStoneDiceCount($player_id);
-            $this->DbQuery("UPDATE player SET stone_die=0 WHERE player_id=$player_id");
-            $this->globals->inc(PUBLIC_STONE_DICE_COUNT, $stoneDiceCount);
 
             $this->DbQuery("UPDATE player SET coin=0 WHERE player_id=$player_id");
 
