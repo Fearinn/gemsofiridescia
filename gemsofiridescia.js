@@ -2271,12 +2271,6 @@ define([
             rerollableDice.push(die);
           }
 
-          console.log(
-            rerollableDice,
-            this.goi.stocks[this.player_id].dice.scene.getDice(),
-            "rerollable"
-          );
-
           this.goi.stocks.dice.market.setSelectionMode("single");
           this.goi.stocks[this.player_id].dice.scene.setSelectionMode(
             "single",
@@ -4408,6 +4402,8 @@ define([
           new dijit.Tooltip({
             connectId: [id],
             getContent: (matchedNode) => {
+              const relic_id = id.split("-")[1];
+              console.log(relic_id, "tooltip", id);
               return this.createRelicTooltip(relic_id);
             },
           });
@@ -4485,7 +4481,7 @@ define([
             const relicCard = args.relicCard;
 
             const relic_id = Number(relicCard.type_arg);
-            const uid = `${Date.now()}${relic_id}`;
+            const uid = `${Date.now()}-${relic_id}`;
             const elementId = `goi_relicLog:${uid}`;
 
             args.relic_name = `<span id="${elementId}" style="font-weight: bold;">${_(
