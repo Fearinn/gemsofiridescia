@@ -452,8 +452,8 @@ define([
           cardTitle.classList.add("goi_cardTitle");
 
           if (div.childElementCount === 0) {
-            const initialFont = card.type == -99 ? 24 : 16;
-            const cardHeight = card.type == -99 ? 409 : 230;
+            const initialFont = card.type == -99 ? 24 : undefined;
+            const cardHeight = card.type == -99 ? 409 : undefined;
 
             cardTitle.style.fontSize = `${initialFont}px`;
             div.appendChild(cardTitle);
@@ -3162,7 +3162,7 @@ define([
       }
     },
 
-    addCardTitle: function (titleElement, initialFont = 16, cardHeight = 230) {
+    addCardTitle: function (titleElement, initialFont = 14, cardHeight = 230) {
       const titleHeight = titleElement.offsetHeight;
       const maxHeight = cardHeight * 0.09;
 
