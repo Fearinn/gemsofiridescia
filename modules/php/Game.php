@@ -2916,9 +2916,15 @@ class Game extends \Table
             }
         }
 
-        uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
-            return (int) $otherRelicCard["location_arg"] <=> $relicCard["location_arg"];
-        });
+        if ($associative) {
+            uasort($restorableRelics, function ($relicCard, $otherRelicCard) {
+                return (int) $otherRelicCard["location_arg"] <=> $relicCard["location_arg"];
+            });
+        } else {
+            usort($restorableRelics, function ($relicCard, $otherRelicCard) {
+                return (int) $otherRelicCard["location_arg"] <=> $relicCard["location_arg"];
+            });
+        }
 
         return $restorableRelics;
     }

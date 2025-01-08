@@ -908,8 +908,6 @@ html {
 .goi_relicsMarket {
   display: flex;
   gap: 8px;
-  overflow-y: hidden;
-  overflow-x: auto;
 }
 
 .goi_relicsPile .goi_relic.card:not(:first-child) {
