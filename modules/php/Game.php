@@ -4482,6 +4482,19 @@ class Game extends \Table
                 $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
             }
         }
+
+        if ($from_version <= 2501072206) {
+            $players = $this->loadPlayersBasicInfos();
+            $playersDice = [];
+            $dice = [1, 2, 3, 4];
+            foreach ($players as $player_id => $player) {
+                $playerDiceCount = $this->getUniqueValueFromDB("SELECT stone_die FROM player WHERE player_id=$player_id");
+                $playerDice = array_splice($dice, $playerDiceCount);
+                $playersDice[$player_id] = $playerDice;
+            }
+            $this->globals->set(PLAYER_STONE_DICE, $playersDice);
+            $this->globals->set(ACTIVE_STONE_DICE, []);
+        }
     }
 
     /*
