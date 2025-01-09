@@ -1279,6 +1279,7 @@ class Game extends \Table
     {
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
         if ($hasReachedCastle) {
+            $this->rhomBarricade();
             $this->globals->set(REAL_TURN, true);
             $this->gamestate->nextState("realTurn");
             return;
@@ -3899,6 +3900,10 @@ class Game extends \Table
             $row = $this->hexes_info[$hex]["row"] + 1;
         }
 
+        if ($row === 9) {
+            $row = 8;
+        }
+
         $hexesInRow = $this->rows_info[$row];
 
         $weathervaneDirection = $this->weathervaneDirection();
@@ -4424,6 +4429,10 @@ class Game extends \Table
     public function debug_reshuffleRhomDeck(): void
     {
         $this->reshuffleRhomDeck();
+    }
+
+    public function debug_rhomBarricade(): void {
+        $this->rhomBarricade();
     }
 
     public function debug_barricadeTile(int $hex): void

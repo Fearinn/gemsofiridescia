@@ -989,14 +989,15 @@ define([
         {}
       );
 
-      const publicStoneDice = this.goi.globals.publicStoneDice;
-      publicStoneDice.forEach((die_id) => {
-        this.goi.stocks.dice.stone.addDie({
-          id: die_id,
-          type: "stone",
-          face: 6,
+        const publicStoneDice = this.goi.globals.publicStoneDice;
+        publicStoneDice.forEach((die_id) => {
+          this.goi.stocks.dice.stone.addDie({
+            id: die_id,
+            type: "stone",
+            face: 6,
+          });
         });
-      });
+      
 
       for (const player_id in this.goi.globals.players) {
         const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
@@ -1128,6 +1129,7 @@ define([
 
         const playerStoneDice = this.goi.globals.playerStoneDice[player_id];
 
+        if (playerStoneDice) {
         playerStoneDice.forEach((die_id) => {
           const face = rolledDice[die_id]?.face;
           const active = this.goi.globals.activeStoneDice.includes(die_id);
@@ -1141,6 +1143,7 @@ define([
 
           this.goi.stocks[player_id].dice.scene.addDie(die);
         });
+      }
 
         this.goi.stocks[player_id].gems.cargo = new CardStock(
           this.goi.managers.gems,
@@ -3919,7 +3922,7 @@ define([
         return {
           id: die_id,
           type: "stone",
-          face: this.goi.globals.rolledDice[die_id]?.face ||  6
+          face: this.goi.globals.rolledDice[die_id]?.face || 6,
         };
       });
 
