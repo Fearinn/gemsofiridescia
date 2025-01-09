@@ -3644,7 +3644,7 @@ class Game extends \Table
 
             $tableNames[] = [
                 "str" => '${player_name}',
-                "args" => ["player_name" => $this->getPlayerOrRhomNameById($player_id)],
+                "args" => ["player_id" => $player_id, "player_name" => $this->getPlayerOrRhomNameById($player_id)],
                 "type" => "header"
             ];
 
@@ -3887,6 +3887,30 @@ class Game extends \Table
         return $barricadeTiles;
     }
 
+    public function barricadeHexes(int $row): ?array
+    {
+        $hexesInRow = $this->rows_info[$row];
+        $s_hexesInRow = implode(",", $hexesInRow);
+
+        $isEmpty = !$this->getCollectionFromDB("SELECT card_id FROM tile WHERE card_location='board' AND card_location_arg IN ($s_hexesInRow)");
+
+        if ($isEmpty) {
+            if ($row === 8) {
+                return null;
+            }
+
+            $row++;
+            return $this->barricadeHexes($row);
+        }
+
+        $weathervaneDirection = $this->weathervaneDirection();
+        if ($weathervaneDirection === "right") {
+            array_reverse($hexesInRow);
+        }
+
+        return $hexesInRow;
+    }
+
     public function rhomBarricade(): void
     {
         $player_id = (int) $this->getActivePlayerId();
@@ -3904,11 +3928,10 @@ class Game extends \Table
             $row = 8;
         }
 
-        $hexesInRow = $this->rows_info[$row];
+        $hexesInRow = $this->barricadeHexes($row);
 
-        $weathervaneDirection = $this->weathervaneDirection();
-        if ($weathervaneDirection === "right") {
-            array_reverse($hexesInRow);
+        if ($hexesInRow === null) {
+            return;
         }
 
         $shift = (int) $this->rollDie("1-1", 1, "mining") - 1;
@@ -3932,7 +3955,6 @@ class Game extends \Table
 
         $tileCard_id = (int) $tileCard["id"];
         $this->tile_cards->moveCard($tileCard_id, "barricade", $hex);
-
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
 
@@ -4336,7 +4358,7 @@ class Game extends \Table
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (29)");
+        WHERE card_location='board' AND card_location_arg IN (47, 48, 49, 50, 51)");
     }
 
     public function debug_revealTiles(): void
@@ -4431,7 +4453,8 @@ class Game extends \Table
         $this->reshuffleRhomDeck();
     }
 
-    public function debug_rhomBarricade(): void {
+    public function debug_rhomBarricade(): void
+    {
         $this->rhomBarricade();
     }
 
