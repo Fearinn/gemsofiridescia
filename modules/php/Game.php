@@ -324,7 +324,8 @@ class Game extends \Table
         }
 
         $stoneDiceCount = count($stoneDice);
-        $activeStoneDiceCount = $this->globals->get(ACTIVE_STONE_DICE);
+        $activeStoneDice = $this->globals->get(ACTIVE_STONE_DICE);
+        $activeStoneDiceCount = count($activeStoneDice);
 
         if ($stoneDiceCount > $activeStoneDiceCount) {
             $this->globals->set(ACTIVE_STONE_DICE, $stoneDice);
@@ -358,7 +359,7 @@ class Game extends \Table
             },
             $stoneDice
         );
-        
+
         $dice = array_merge($miningDice, $stoneDice);
 
         $minedGemsCount = $this->mine($gem_id, $dice, $player_id);
@@ -906,7 +907,7 @@ class Game extends \Table
         $usableItems = $this->usableItems($player_id);
         $canUseItem = !!$usableItems;
 
-        $activeDice = $this->globals->get(ACTIVE_STONE_DICE)[$player_id];
+        $activeDice = $this->globals->get(ACTIVE_STONE_DICE);
         $activeDiceCount = count($activeDice);
         $playerStoneDice = $this->globals->get(PLAYER_STONE_DICE)[$player_id];
         $activableDiceCount = count($playerStoneDice);
@@ -2838,21 +2839,22 @@ class Game extends \Table
     public function resetStoneDice(int $player_id): void
     {
         $activeDice = $this->globals->get(ACTIVE_STONE_DICE);
-        $stoneDice = $this->globals->get(PLAYER_STONE_DICE);
+        $playerDice = $this->globals->get(PLAYER_STONE_DICE);
 
-        if ($activeDice === 0) {
+        if (!$activeDice) {
             return;
         }
 
-        $stoneDice = array_diff($stoneDice, $activeDice);
-        $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
+        $playerDice[$player_id] = array_values(array_diff($playerDice[$player_id], $activeDice));
+        $this->globals->set(PLAYER_STONE_DICE, $playerDice);
+        $this->globals->set(ACTIVE_STONE_DICE, []);
 
         $this->notifyAllPlayers(
             "resetStoneDice",
             "",
             [
                 "player_id" => $player_id,
-                "resetDice" => $activeDice[$player_id],
+                "resetDice" => $activeDice,
             ]
         );
     }

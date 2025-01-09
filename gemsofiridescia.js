@@ -1127,9 +1127,10 @@ define([
         this.goi.stocks[player_id].dice.scene.addDice(miningDice);
 
         const playerStoneDice = this.goi.globals.playerStoneDice[player_id];
+
         playerStoneDice.forEach((die_id) => {
           const face = rolledDice[die_id]?.face;
-          const active = this.goi.globals.activeStoneDice[player_id].includes(die_id);
+          const active = this.goi.globals.activeStoneDice.includes(die_id);
 
           const die = {
             id: die_id,
@@ -3309,7 +3310,7 @@ define([
     actMine: function () {
       const dice = this.goi.selections.dice.map((die) => {
         return die.id;
-      })
+      });
       this.performAction("actMine", {
         stoneDice: JSON.stringify(dice),
       });
@@ -3904,7 +3905,7 @@ define([
         id: die_id,
         type: "stone",
         active: true,
-        face: this.goi.globals.rolledDice[die_id]?.face,
+        face: this.goi.globals.rolledDice[die_id].face,
       };
 
       this.goi.stocks[player_id].dice.scene.removeDie(die);
@@ -3918,12 +3919,18 @@ define([
         return {
           id: die_id,
           type: "stone",
+          face: this.goi.globals.rolledDice[die_id]?.face ||  6
         };
       });
 
-      this.goi.stocks.dice.stone.addDice(dice);
-      this.goi.stocks.dice.stone.removeDice(dice);
-      this.goi.stocks.dice.stone.addDice(dice);
+      this.goi.stocks.dice.stone
+        .addDice(dice)
+        .then(() => {
+          this.goi.stocks.dice.stone.removeDice(dice);
+        })
+        .then(() => {
+          this.goi.stocks.dice.stone.addDice(dice);
+        });
     },
 
     notif_rollDie: function (notif) {
