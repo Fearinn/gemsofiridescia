@@ -3925,7 +3925,7 @@ class Game extends \Table
         }
 
         if ($row === 9) {
-            $row = 8;
+            return;
         }
 
         $hexesInRow = $this->barricadeHexes($row);
@@ -4483,13 +4483,18 @@ class Game extends \Table
             }
         }
 
-        if ($from_version <= 2501072206) {
+        if ($from_version <= 2501091302) {
+            $stoneDieColumn =  $this->getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'stone_die'");
+            if (empty($stoneDieColumn)) {
+                return;
+            }
+
             $players = $this->loadPlayersBasicInfos();
             $playersDice = [];
             $dice = [1, 2, 3, 4];
             foreach ($players as $player_id => $player) {
-                $playerDiceCount = $this->getUniqueValueFromDB("SELECT stone_die FROM player WHERE player_id=$player_id");
-                $playerDice = array_splice($dice, $playerDiceCount);
+                $playerDiceCount = (int) $this->getUniqueValueFromDB("SELECT stone_die FROM player WHERE player_id=$player_id");
+                $playerDice = array_slice($dice, 0, $playerDiceCount);
                 $playersDice[$player_id] = $playerDice;
             }
             $this->globals->set(PLAYER_STONE_DICE, $playersDice);
