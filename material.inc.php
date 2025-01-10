@@ -991,7 +991,10 @@ $this->items_info = [
     5 => [
         "name" => "Lucky Libation",
         "tr_name" => clienttranslate("Lucky Libation"),
-        "content" => clienttranslate("Re-roll any of your dice or roll up to 4 gem market dice."),
+        "content" => clienttranslate("Re-roll any of your dice or roll up to 4 Gem Market dice."),
+        "details" => [
+            clienttranslate("You may re-roll any of your dice, including Stone dice, once — or ­— You may roll any number of Gem Market dice once."),
+        ],
         "cost" => 2,
     ],
     6 => [

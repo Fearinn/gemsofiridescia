@@ -275,7 +275,7 @@ define([
         selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
-          gem: new gemDie(),
+          gem: new GemDie(),
           stone: new StoneDie(),
           mining: new MiningDie(),
         },
@@ -989,15 +989,14 @@ define([
         {}
       );
 
-        const publicStoneDice = this.goi.globals.publicStoneDice;
-        publicStoneDice.forEach((die_id) => {
-          this.goi.stocks.dice.stone.addDie({
-            id: die_id,
-            type: "stone",
-            face: 6,
-          });
+      const publicStoneDice = this.goi.globals.publicStoneDice;
+      publicStoneDice.forEach((die_id) => {
+        this.goi.stocks.dice.stone.addDie({
+          id: die_id,
+          type: "stone",
+          face: 6,
         });
-      
+      });
 
       for (const player_id in this.goi.globals.players) {
         const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
@@ -1130,20 +1129,20 @@ define([
         const playerStoneDice = this.goi.globals.playerStoneDice[player_id];
 
         if (playerStoneDice) {
-        playerStoneDice.forEach((die_id) => {
-          const face = rolledDice[die_id]?.face;
-          const active = this.goi.globals.activeStoneDice.includes(die_id);
+          playerStoneDice.forEach((die_id) => {
+            const face = rolledDice[die_id]?.face;
+            const active = this.goi.globals.activeStoneDice.includes(die_id);
 
-          const die = {
-            id: die_id,
-            type: "stone",
-            face: face || 6,
-            active: active,
-          };
+            const die = {
+              id: die_id,
+              type: "stone",
+              face: face || 6,
+              active: active,
+            };
 
-          this.goi.stocks[player_id].dice.scene.addDie(die);
-        });
-      }
+            this.goi.stocks[player_id].dice.scene.addDie(die);
+          });
+        }
 
         this.goi.stocks[player_id].gems.cargo = new CardStock(
           this.goi.managers.gems,
@@ -4338,7 +4337,34 @@ define([
 
       const clone = realCard.cloneNode(true);
       clone.style.visibility = "visible";
-      return clone.outerHTML;
+
+      const detailsElement = document.createElement("ul");
+      detailsElement.classList.add("goi_itemDetails");
+
+      const item_info = this.goi.info.items[item_id];
+      const itemName = item_info.tr_name;
+      const itemDetails = item_info.details;
+
+      const descriptionElement = document.createElement("li");
+      const description = item_info.content;
+      descriptionElement.textContent = _(description);
+      detailsElement.appendChild(descriptionElement);
+
+      itemDetails.forEach((detail) => {
+        const detailElement = document.createElement("li");
+        detailElement.textContent = _(detail);
+        detailsElement.appendChild(detailElement);
+      });
+
+      const tooltip = `<div class="goi_tooltipContainer-item">
+        <div class="goi_detailsContainer">
+          <h4 class="goi_detailsTitle">${_(itemName)}</h4>
+          ${detailsElement.outerHTML}
+        </div>
+        ${clone.outerHTML}
+      </div>`;
+
+      return tooltip;
     },
 
     createObjectiveTooltip: function (objective_id) {

@@ -625,6 +625,38 @@ html {
   font-size: 24px;
 }
 
+.goi_tooltipContainer-item {
+  display: grid;
+  grid-template-columns: repeat(2, var(--cardTooltipWidth));
+}
+
+.goi_detailsContainer {
+  padding: 4px 8px;
+}
+
+.goi_detailsTitle {
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.goi_itemDetails {
+  padding-left: 16px;
+}
+
+.goi_itemDetails li {
+  font-size: 16px;
+  list-style-type: circle;
+}
+
+.goi_itemDetails li:not(:first-child) {
+  margin-top: 8px;
+}
+
+.goi_tooltip.goi_item {
+  transform: perspective(2500px) scale(1.02) rotateY(-15deg);
+}
+
 .goi_tooltip.goi_item .card-side {
   background-image: url("img/tooltips/items.jpg") !important;
 }
