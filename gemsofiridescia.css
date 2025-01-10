@@ -375,6 +375,7 @@ html {
   display: flex;
   justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .goi_dieFace {
@@ -504,6 +505,7 @@ html {
   top: 5%;
   left: 30%;
   width: var(--scoringMarkerSize);
+  z-index: 1;
 }
 
 .goi_scoreHundred {
@@ -809,6 +811,7 @@ html {
   position: absolute;
   left: 45%;
   top: 1%;
+  z-index: 2;
 }
 
 .goi_playerBoard {
