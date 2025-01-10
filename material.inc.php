@@ -948,25 +948,44 @@ $this->items_info = [
     1 => [
         "name" => "Cauldron of Fortune",
         "tr_name" => clienttranslate("Cauldron of Fortune"),
-        "content" => clienttranslate("Trade any two gems in your cargo hold for one gem of your choice from the supply."),
+        "content" => clienttranslate("Trade two gems in your cargo hold for one gem of your choice from the supply."),
+        "details" => [
+            clienttranslate("The gems you trade in can be any combination and do not need to be the same type."),
+        ],
         "cost" => 4,
     ],
     2 => [
         "name" => "Regal Reference Book",
         "tr_name" => clienttranslate("Regal Reference Book"),
-        "content" => clienttranslate("Search the relic deck for a card of your choice or take one from relic row. Gain that relic card and place this card on top of it. Only you can restore this relic."),
+        "content" => clienttranslate("Choose a card from the Relics deck or from the row of Relics and reserve it."),
+        "details" => [
+            clienttranslate("The Regal Reference Book card is placed on top of the chosen card."),
+            clienttranslate("Only you can restore this relic."),
+            clienttranslate("Although reserved, it must be restored to earn points; however, there is no penalty for not restoring it."),
+        ],
         "cost" => 2,
     ],
     3 => [
         "name" => "Marvelous Mine Cart",
         "tr_name" => clienttranslate("Marvelous Mine Cart"),
-        "content" => clienttranslate("Gain 2x gems when mining this turn (when rolling your mining dice)."),
+        "content" => clienttranslate("Gain 2x gems when mining this turn."),
+        "details" => [
+            clienttranslate("Do not double the initial gem gained from stepping on the tile."),
+            clienttranslate("Active for the entire turn."),
+            clienttranslate("Must be declared prior to rolling your Mining dice."),
+        ],
         "cost" => 4,
     ],
     4 => [
         "name" => "Epic Elixir",
         "tr_name" => clienttranslate("Epic Elixir"),
         "content" => clienttranslate("Take an additional turn."),
+        "details" => [
+            clienttranslate("Declare its use before the next player starts their turn."),
+            clienttranslate("Upon playing, start a full turn sequence."),
+            clienttranslate("You cannot purchase another Epic Elixir card on a turn started by using one."),
+            clienttranslate("You may cancel it if the additional turn hasn't started yet."),
+        ],
         "cost" => 6,
     ],
     5 => [
@@ -978,43 +997,68 @@ $this->items_info = [
     6 => [
         "name" => "Jolty Jackhammer",
         "tr_name" => clienttranslate("Jolty Jackhammer"),
-        "content" => clienttranslate("Modify any one die by +/-1. This can either be a die that you've rolled or a gem market die."),
+        "content" => clienttranslate("Modify any die by +/-1."),
+        "details" => [
+            clienttranslate("This can be either a die that you've rolled during a mining attempt or one of the Gem Market dice."),
+            clienttranslate("Dice values can change from six to one and vice-versa."),
+        ],
         "cost" => 2,
     ],
     7 => [
         "name" => "Dazzling Dynamite",
         "tr_name" => clienttranslate("Dazzling Dynamite"),
-        "content" => clienttranslate("Modify any one die by up to +/-2. This can either be a die that you've rolled or a gem market die."),
+        "content" => clienttranslate("Modify any die by up to +/-2."),
+        "details" => [
+            clienttranslate("This can be either a die that you've rolled during a mining attempt or one of the Gem Market dice."),
+            clienttranslate("Dice values can change from six to one and vice-versa."),
+        ],
         "cost" => 3,
     ],
     8 => [
         "name" => "Axe of Awesomeness",
         "tr_name" => clienttranslate("Axe of Awesomeness"),
-        "content" => clienttranslate("Split one gem in your cargo hold into two gems of the same type."),
+        "content" => clienttranslate("Split one gem in your cargo hold into two gems of that same type."),
+        "details" => [],
         "cost" => 3,
     ],
     9 => [
         "name" => "Prosperous Pickaxe",
         "tr_name" => clienttranslate("Prosperous Pickaxe"),
-        "content" => clienttranslate("For every gem gained from mining on one tile this turn, gain a gem from a revealed adjacent tile."),
+        "content" => clienttranslate("For every gem gained from mining this turn, gain a gem from a revealed adjacent tile."),
+        "details" => [
+            clienttranslate("You still need to spend the required coins per mining attempt when using this item."),
+            clienttranslate("You must pick the same adjacent tile for all attempts, which limits you to gaining two gem types."),
+            clienttranslate("Must be declared prior to rolling your Mining dice."),
+        ],
         "cost" => 6,
     ],
     10 => [
         "name" => "Swapping Stones",
         "tr_name" => clienttranslate("Swapping Stones"),
-        "content" => clienttranslate("Swap location with any player. (Must be played at the beginning of your turn, prior to revealing tiles.)"),
+        "content" => clienttranslate("Swap location with any player."),
+        "details" => [
+            clienttranslate("After swapping location, play a turn as normal starting with Step One (Reveal Tiles)."),
+            clienttranslate("Must be played at the beginning of your turn, prior to revealing tiles."),
+        ],
         "cost" => 3,
     ],
     11 => [
         "name" => "Clever Catapult",
         "tr_name" => clienttranslate("Clever Catapult"),
-        "content" => clienttranslate("Jump over one adjacent tile space onto an unoccupied tile space. If the tile is not yet revealed, reveal it after landing. (Must be played at the start of your turn, prior to revealing tiles.)"),
+        "content" => clienttranslate("Jump over one adjacent tile space onto an unoccupied tile space."),
+        "details" => [
+            clienttranslate("If you land on a revealed tile, continue your turn as usual. If it's unrevealed, reveal it, collect the gem, and proceed."),
+            clienttranslate("Must be played at the beginning of your turn, prior to revealing tiles."),
+        ],       
         "cost" => 3,
     ],
     12 => [
         "name" => "Wishing Well",
         "tr_name" => clienttranslate("Wishing Well"),
         "content" => clienttranslate("Roll your mining dice. Gain one gem with market value equal to or lower than one of your dice."),
+        "details" => [
+            clienttranslate("This is not a mining action and cannot be combined with the Marvelous Mine Cart or Prosperous Pickaxe."),
+        ],
         "cost" => 5,
     ]
 ];

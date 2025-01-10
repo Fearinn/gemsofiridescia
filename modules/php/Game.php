@@ -571,7 +571,7 @@ class Game extends \Table
         $transferredGemsCount = count($gemCards);
 
         if ($transferredGemsCount > $excedentGems) {
-            throw new \BgaVisibleSystemException("You can't transfer more Gems than your excedent");
+            throw new \BgaVisibleSystemException("You can't transfer more gems than your excedent");
         }
 
         $availableCargos = $this->availableCargos($player_id, $transferredGemsCount);

@@ -110,8 +110,8 @@ $machinestates = [
 
     30 => [
         "name" => "rainbowTile",
-        "description" => clienttranslate('${actplayer} must pick a Gem to collect from the Rainbow'),
-        "descriptionmyturn" => clienttranslate('${you} must pick a Gem to collect from the Rainbow'),
+        "description" => clienttranslate('${actplayer} must pick a gem to collect from the Rainbow'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a gem to collect from the Rainbow'),
         "type" => "activeplayer",
         "possibleactions" => ["actPickRainbowGem"],
         "transitions" => ["optionalActions" => 4]
@@ -119,8 +119,8 @@ $machinestates = [
 
     31 => [
         "name" => "transferGem",
-        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} Gem(s) to give away to another player'),
-        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} Gem(s) to give away to another player'),
+        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} gem(s) to give away to another player'),
+        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} gem(s) to give away to another player'),
         "type" => "activeplayer",
         "args" => "argTransferGem",
         "action" => "stTransferGem",
@@ -157,8 +157,8 @@ $machinestates = [
 
     40 => [
         "name" => "pickWellGem",
-        "description" => clienttranslate('${actplayer} must pick a Gem for the Wishing Well'),
-        "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the Wishing Well'),
+        "description" => clienttranslate('${actplayer} must pick a gem for the Wishing Well'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a gem for the Wishing Well'),
         "type" => "activeplayer",
         "args" => "argPickWellGem",
         "action" => "stPickWellGem",
@@ -223,8 +223,8 @@ $machinestates = [
 
     82 => [
         "name" => "pickRainbowForRhom",
-        "description" => clienttranslate('${actplayer} must pick a Gem for the ${rhom}'),
-        "descriptionmyturn" => clienttranslate('${you} must pick a Gem for the ${rhom}'),
+        "description" => clienttranslate('${actplayer} must pick a gem for the ${rhom}'),
+        "descriptionmyturn" => clienttranslate('${you} must pick a gem for the ${rhom}'),
         "type" => "activeplayer",
         "args" => "argPickRainbowForRhom",
         "possibleactions" => ["actPickRainbowForRhom"],

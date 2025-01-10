@@ -207,7 +207,7 @@ define([
 
           const coinPosition = this.calcCoinPosition(3);
           const sentence3a = this.format_string_recursive(
-            _("Spend ${coin_icon} to Mine Gems. (∞)"),
+            _("Spend ${coin_icon} to Mine gems. (∞)"),
             {
               coin_icon: `<i class="goi_coinIcon"><span class="goi_iconValue" style="left: ${coinPosition}">3</span></i>`,
             }
@@ -236,7 +236,7 @@ define([
               <span> 3a ${sentence3a}</span>
               <span>3b ${_("Purchase an Item Card. (Once)")}</span>
               <span>3c ${_("Play Item Card(s). (∞)")}</span>
-              <span>3d ${_("Sell Gem(s) of one color. (Once)")}</span>
+              <span>3d ${_("Sell gem(s) of one color. (Once)")}</span>
             </div>
             <div class="goi_aidBlock">
               <h5 class="goi_aidSubtitle">${_("End of Turn")}</h5>
@@ -275,7 +275,7 @@ define([
         selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
-          gem: new GemDie(),
+          gem: new gemDie(),
           stone: new StoneDie(),
           mining: new MiningDie(),
         },
@@ -1180,7 +1180,7 @@ define([
             if (selection.length > excedentGems) {
               this.showMessage(
                 this.format_string(
-                  _("You can't select more than ${excedentGems} Gem(s)"),
+                  _("You can't select more than ${excedentGems} gem(s)"),
                   { excedentGems }
                 ),
                 "error"
@@ -1198,7 +1198,7 @@ define([
 
           if (stateName === "client_cauldronOfFortune") {
             if (selection.length > 2) {
-              this.showMessage(_("You can't select more than 2 Gems"), "error");
+              this.showMessage(_("You can't select more than 2 gems"), "error");
               this.goi.stocks[player_id].gems.cargo.unselectCard(
                 lastChange,
                 true
@@ -2119,13 +2119,13 @@ define([
           }
 
           const sellGemsText = canSellMoreGems
-            ? _("Sell more Gem(s)")
-            : _("Sell Gem(s)");
+            ? _("Sell more gem(s)")
+            : _("Sell gem(s)");
 
           this.addActionButton("goi_sellGems_btn", sellGemsText, () => {
             this.setClientState("client_sellGems", {
               descriptionmyturn: _(
-                "${you} must select Gem(s) to sell (all from the same type)"
+                "${you} must select gem(s) to sell (all from the same type)"
               ),
               client_args: { soldGem: canSellMoreGems ? soldGem : null },
             });
@@ -2328,7 +2328,7 @@ define([
 
           if (usableItems.length > usableEpicElixir.length) {
             this.gamedatas.gamestate.descriptionmyturn = _(
-              "${you} must select a Gem for the Wishing Well or use an Item"
+              "${you} must select a gem for the Wishing Well or use an Item"
             );
             this.updatePageTitle();
           }
@@ -2378,7 +2378,7 @@ define([
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
                 _(
-                  "The cargos of all players are full. ${you} must pick up to ${excedentGems} Gem(s) to discard"
+                  "The cargos of all players are full. ${you} must pick up to ${excedentGems} gem(s) to discard"
                 ),
                 {
                   excedentGems: excedentGems,
@@ -2500,7 +2500,7 @@ define([
           this.gamedatas.gamestate.descriptionmyturn =
             this.format_string_recursive(
               _(
-                "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} Gem(s) to discard"
+                "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} gem(s) to discard"
               ),
               {
                 actplayer: _("${actplayer}"),
@@ -2956,7 +2956,7 @@ define([
           this.addActionButton(elementId, message, () => {
             this.setClientState("client_cauldronOfFortune2", {
               descriptionmyturn: _(
-                "${you} may pick the type of the Gem collected in the trade"
+                "${you} may pick the type of the gem collected in the trade"
               ),
             });
           });
@@ -3059,7 +3059,7 @@ define([
             if (gem_id == 0 || gem_id == 10) {
               this.setClientState("client_prosperousPickaxe2", {
                 descriptionmyturn: _(
-                  "${you} must pick the Gem to mine from the Rainbow"
+                  "${you} must pick the gem to mine from the Rainbow"
                 ),
               });
               return;
@@ -3093,7 +3093,7 @@ define([
 
             this.setClientState("client_transferGem", {
               descriptionmyturn:
-                "${you} must pick an opponent to transfer the selected Gem to",
+                "${you} must pick an opponent to transfer the selected gem to",
               client_args: {
                 selectedGems,
                 availableCargos: client_availableCargos,
@@ -3345,7 +3345,7 @@ define([
       if (item_id === 1) {
         this.setClientState("client_cauldronOfFortune", {
           descriptionmyturn: _(
-            "${you} must select any 2 Gems in your cargo to trade for another Gem"
+            "${you} must select any 2 gems in your cargo to trade for another gem"
           ),
         });
       }
@@ -3359,7 +3359,7 @@ define([
       if (item_id === 5) {
         this.setClientState("client_luckyLibation", {
           descriptionmyturn: _(
-            "${you} must select any dice from a mining attempt or a Gem Market Die to re-roll"
+            "${you} must select any dice from a mining attempt or a gem Market Die to re-roll"
           ),
         });
       }
@@ -3379,7 +3379,7 @@ define([
       if (item_id === 8) {
         this.setClientState("client_axeOfAwesomeness", {
           descriptionmyturn: _(
-            "${you} must select any Gem in your cargo to split into 2 Gems"
+            "${you} must select any gem in your cargo to split into 2 gems"
           ),
         });
       }
@@ -3387,7 +3387,7 @@ define([
       if (item_id === 9) {
         this.setClientState("client_prosperousPickaxe", {
           descriptionmyturn: _(
-            "${you} must select a tile to collect Gems from when mining during this turn"
+            "${you} must select a tile to collect gems from when mining during this turn"
           ),
         });
       }
