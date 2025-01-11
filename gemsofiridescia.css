@@ -116,10 +116,7 @@ html {
 .goi_cardContent {
   position: absolute;
   left: 2%;
-  display: flex;
-  justify-content: center;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   text-align: center;
   width: 95%;
 }

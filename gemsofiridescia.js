@@ -259,6 +259,9 @@ define([
           aidContentElement.style.padding = "0 4px";
           aidContentElement.style.fontFamily = "'rooney-web', serif";
           aidContentElement.style.fontSize = "16px";
+          aidContentElement.style.width = "95%";
+          aidContentElement.style.display = "flex";
+          aidContentElement.style.flexDirection = "column";
           aidContentElement.classList.add("goi_cardContent");
 
           div.appendChild(aidContentElement);
@@ -3158,7 +3161,8 @@ define([
       }
     },
 
-    addCardTitle: function (titleElement, initialFont = 14, cardHeight = 230) {
+    addCardTitle: function (titleElement, initialFont = 13.5, cardHeight = 230) {
+      titleElement.style.fontSize = `${initialFont}px`;
       const titleHeight = titleElement.offsetHeight;
       const maxHeight = cardHeight * 0.09;
 
@@ -3189,6 +3193,7 @@ define([
 
         contentElement.style.fontFamily = "'rooney-web', serif";
         contentElement.style.fontSize = `${initialFont}px`;
+        contentElement.style.width = "95%";
         cardElement.appendChild(contentElement);
       }
 
@@ -3228,6 +3233,8 @@ define([
 
         contentElement.style.fontFamily = `"rooney-web", serif`;
         contentElement.style.fontSize = `${initialFont}px`;
+        contentElement.style.width = "95%";
+        contentElement.style.textAlign = "center";
         cardElement.appendChild(contentElement);
       }
 
@@ -3253,7 +3260,7 @@ define([
 
     addAidContent: function (div, contentElement, initialFont = 16) {
       const contentHeight = contentElement.offsetHeight;
-      const maxHeight = 409 * 0.6;
+      const maxHeight = 409 * 0.58;
 
       if (contentHeight > maxHeight) {
         const fontSize = initialFont * 0.98;
