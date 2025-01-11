@@ -68,9 +68,10 @@ function calcBackgroundPosition(face, type, type_arg) {
 }
 
 class Die extends BgaDie6 {
-  constructor() {
+  constructor(game) {
     super();
     this.size = 36;
+    this.game = game;
   }
 
   setupDieDiv(die, element) {
@@ -86,10 +87,8 @@ class Die extends BgaDie6 {
 }
 
 class GemDie extends Die {
-  constructor(game, dijit) {
-    super();
-    this.game = game;
-    this.dijit = dijit;
+  constructor(game) {
+    super(game);
   }
 
   setupDieDiv(die, element) {
@@ -98,7 +97,7 @@ class GemDie extends Die {
     const gem_label = this.game.goi.info.gems.tooltips[die.id];
 
     const tooltip = this.game.format_string_recursive(
-      _("${gem_label}. Value: ${marketValue}"),
+      _("Gem Market die: ${gem_label}. Value: ${marketValue}"),
       {
         gem_label: _(gem_label),
         marketValue: die.face,
@@ -119,12 +118,13 @@ class GemDie extends Die {
 }
 
 class StoneDie extends Die {
-  constructor() {
-    super();
+  constructor(game) {
+    super(game);
   }
 
   setupDieDiv(die, element) {
     super.setupDieDiv(die, element);
+    this.game.addTooltip(element.id, _("Stone die: rolled to mine gems"), "");
 
     if (die.active) {
       element.classList.add("goi_activeDie");
@@ -139,12 +139,13 @@ class StoneDie extends Die {
 }
 
 class MiningDie extends Die {
-  constructor() {
-    super();
+  constructor(game) {
+    super(game);
   }
 
   setupDieDiv(die, element) {
     super.setupDieDiv(die, element);
+    this.game.addTooltip(element.id, _("Mining die: rolled to mine gems"), "");
   }
 
   setupFaceDiv(die, element, face) {

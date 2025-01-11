@@ -284,9 +284,9 @@ define([
         selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
-          gem: new GemDie(this, dijit),
-          stone: new StoneDie(),
-          mining: new MiningDie(),
+          gem: new GemDie(this),
+          stone: new StoneDie(this),
+          mining: new MiningDie(this),
         },
       });
 
