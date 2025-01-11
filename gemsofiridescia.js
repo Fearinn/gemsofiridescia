@@ -304,7 +304,7 @@ define([
           div.style.backgroundPosition = backgroundPosition;
 
           const tooltip = this.goi.info.gems.tooltips[gem_id];
-          this.addTooltip(div.id, tooltip, "");
+          this.addTooltip(div.id, _(tooltip), "");
         },
         setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
@@ -743,11 +743,12 @@ define([
           continue;
         }
 
-        this.getPlayerPanelElement(
-          player_id
-        ).innerHTML += `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
+        this.getPlayerPanelElement(player_id).insertAdjacentHTML(
+          "beforeend",
+          `<div id="goi_playerPanel:${player_id}" class="goi_playerPanel">
             <div id="goi_gemCounters:${player_id}" class="goi_gemCounters"></div>
-          </div>`;
+          </div>`
+        );
 
         this.goi.counters[player_id] = {
           gems: {
@@ -766,36 +767,52 @@ define([
             this.calcBackgroundPosition(spritePosition);
           spritePosition++;
 
-          document.getElementById(
-            `goi_gemCounters:${player_id}`
-          ).innerHTML += `<div class="goi_gemCounter">
+          const counterElementId = `goi_gemCounter:${player_id}-${gemName}`;
+
+          document
+            .getElementById(`goi_gemCounters:${player_id}`)
+            .insertAdjacentHTML(
+              "beforeend",
+              `<div id="${counterElementId}" class="goi_gemCounter">
                 <div class="goi_gemIcon" style="background-position: ${backgroundPosition}"></div>
-                <span id="goi_gemCounter:${player_id}-${gemName}" class="goi_counterValue"></span>
-              </div>`;
+                <span id="goi_gemCount:${player_id}-${gemName}" class="goi_counterValue"></span>
+              </div>`
+            );
+
+          const gemCounter = gemCounters[gemName];
+          gemCounter.create(`goi_gemCount:${player_id}-${gemName}`);
+          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gemName]);
+
+          const gem_id = this.goi.info.gems.ids[gemName];
+          const tooltip = this.goi.info.gems.tooltips[gem_id];
+          this.addTooltip(counterElementId, _(tooltip), "");
         }
 
         const coins = this.goi.globals.coins[player_id];
         const positionLeft = this.calcCoinPosition(coins);
 
-        document.getElementById(
-          `goi_gemCounters:${player_id}`
-        ).innerHTML += `<div class="goi_gemCounter">
+        const coinCounterElementId = `goi_coinCounter:${player_id}`;
+        document
+          .getElementById(`goi_gemCounters:${player_id}`)
+          .insertAdjacentHTML(
+            "beforeend",
+            `<div id="${coinCounterElementId}" class="goi_gemCounter">
         <div class="goi_gemIcon goi_coinIcon"> 
-          <span id="goi_coinCounter:${player_id}" class="goi_iconValue" style="left: ${positionLeft}"></span>
+          <span id="goi_coinCount:${player_id}" class="goi_iconValue" style="left: ${positionLeft}"></span>
         </div>
-      </div>`;
-
-        for (const gemName in gemCounters) {
-          const gemCounter = gemCounters[gemName];
-          gemCounter.create(`goi_gemCounter:${player_id}-${gemName}`);
-          gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gemName]);
-        }
+      </div>`
+          );
 
         this.goi.counters[player_id].coins = new ebg.counter();
-        this.goi.counters[player_id].coins.create(
-          `goi_coinCounter:${player_id}`
-        );
+        this.goi.counters[player_id].coins.create(`goi_coinCount:${player_id}`);
         this.goi.counters[player_id].coins.setValue(coins);
+        this.addTooltip(
+          coinCounterElementId,
+          _(
+            "Coins: obtain them by selling gems and spend them to purchase Items"
+          ),
+          ""
+        );
       }
 
       /* BOARDS */
@@ -1020,7 +1037,9 @@ define([
         const playerColor = player.color;
         const order = this.player_id == player_id ? -1 : 0;
 
-        document.getElementById("goi_playerZones").innerHTML += `
+        document.getElementById("goi_playerZones").insertAdjacentHTML(
+          "beforeend",
+          `
         <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
@@ -1053,7 +1072,8 @@ define([
               </div>
             </div>
           </div>
-        </div>`;
+        </div>`
+        );
       }
 
       let currentStoneDie_id = 1;
@@ -1746,8 +1766,15 @@ define([
 
         for (const gemName in gemCounters) {
           const gemCounter = gemCounters[gemName];
-          gemCounter.create(`goi_gemCounter:${bot.id}-${gemName}`);
+          gemCounter.create(`goi_gemCount:${bot.id}-${gemName}`);
           gemCounter.setValue(this.goi.globals.gemsCounts[bot.id][gemName]);
+          const gem_id = this.goi.info.gems.ids[gemName];
+          const tooltip = this.goi.info.gems.tooltips[gem_id];
+          this.addTooltip(
+            `goi_gemCounter:${bot.id}-${gemName}`,
+            _(tooltip),
+            ""
+          );
         }
 
         /* RHOM ZONE */
@@ -3161,7 +3188,11 @@ define([
       }
     },
 
-    addCardTitle: function (titleElement, initialFont = 13.5, cardHeight = 230) {
+    addCardTitle: function (
+      titleElement,
+      initialFont = 13.5,
+      cardHeight = 230
+    ) {
       titleElement.style.fontSize = `${initialFont}px`;
       const titleHeight = titleElement.offsetHeight;
       const maxHeight = cardHeight * 0.09;
