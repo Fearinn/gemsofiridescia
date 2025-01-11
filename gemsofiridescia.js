@@ -96,6 +96,13 @@ define([
       this.goi.info.items = gamedatas.itemsInfo;
 
       this.goi.info.gems = {
+        names: {
+          0: "iridia",
+          1: "amethyst",
+          2: "citrine",
+          3: "emerald",
+          4: "sapphire",
+        },
         tooltips: {
           0: _("Iridia Stone"),
           1: _("Amethyst (purple)"),
@@ -275,7 +282,7 @@ define([
         selectedDieClass: "goi_selectedDie",
         perspective: 0,
         dieTypes: {
-          gem: new GemDie(),
+          gem: new GemDie(this, dijit),
           stone: new StoneDie(),
           mining: new MiningDie(),
         },
@@ -3953,7 +3960,6 @@ define([
           ?.classList.remove("goi_selectedDie");
         this.goi.stocks.dice.market.rollDie(die);
       } else {
-        console.log(die, "die");
         this.goi.stocks[player_id].dice.scene
           .getDieElement(die)
           ?.classList.remove("goi_selectedDie");
@@ -4432,7 +4438,6 @@ define([
             connectId: [id],
             getContent: (matchedNode) => {
               const relic_id = id.split("-")[1];
-              console.log(relic_id, "tooltip", id);
               return this.createRelicTooltip(relic_id);
             },
           });
@@ -4556,7 +4561,7 @@ define([
             args.green_flag = `<span class="textalign"><span class="goi_greenFlag textalign_inner"></span></span>`;
           }
 
-          if (args.gem_label) {
+          if (args.gem_label && args.gem_id) {
             const gem_id = args.gem_id;
             const backgroundPosition = this.calcBackgroundPosition(gem_id);
             args.gem_label = `<span class="goi_gemIcon goi_log" style="background-position: ${backgroundPosition};"></span>`;

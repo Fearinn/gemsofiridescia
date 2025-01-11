@@ -86,12 +86,26 @@ class Die extends BgaDie6 {
 }
 
 class GemDie extends Die {
-  constructor() {
+  constructor(game, dijit) {
     super();
+    this.game = game;
+    this.dijit = dijit;
   }
 
   setupDieDiv(die, element) {
     super.setupDieDiv(die, element);
+
+    const gem_label = this.game.goi.info.gems.tooltips[die.id];
+
+    const tooltip = this.game.format_string_recursive(
+      _("${gem_label}. Value: ${marketValue}"),
+      {
+        gem_label: _(gem_label),
+        marketValue: die.face,
+      }
+    );
+
+    this.game.addTooltip(element.id, tooltip, "");
   }
 
   setupFaceDiv(die, element, face) {
