@@ -186,10 +186,6 @@ html {
   position: relative;
 }
 
-.goi_playerAid .goi_iconValue {
-  font-size: 8px !important;
-}
-
 .goi_playerAid .goi_cardContent {
   position: absolute;
   top: 48%;
@@ -238,10 +234,6 @@ html {
   font-family: "sketchnote-square", sans-serif;
 }
 
-.goi_gemCounter .goi_iconValue {
-  font-size: 20px;
-}
-
 .goi_logMarker {
   position: relative;
   display: inline-block;
@@ -254,15 +246,20 @@ html {
 
 .goi_iconValue {
   font-family: "sketchnote-square", sans-serif;
-
   position: absolute;
-  font-size: 10px;
-  top: 18%;
-  left: 30%;
+  font-size: 9px;
+  top: 51%;
+  left: 47%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.goi_gemCounter .goi_iconValue {
+  font-size: 20px;
 }
 
 .goi_iconValue.goi_scoring {
   color: white;
+  left: 45%;
 }
 
 .goi_playerPanel {

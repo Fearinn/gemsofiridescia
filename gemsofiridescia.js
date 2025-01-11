@@ -212,11 +212,10 @@ define([
           );
           div.style.backgroundPosition = backgroundPosition;
 
-          const coinPosition = this.calcCoinPosition(3);
           const sentence3a = this.format_string_recursive(
             _("Spend ${coin_icon} to Mine gems. (∞)"),
             {
-              coin_icon: `<i class="goi_coinIcon"><span class="goi_iconValue" style="left: ${coinPosition}">3</span></i>`,
+              coin_icon: `<i class="goi_coinIcon"><span class="goi_iconValue">3</span></i>`,
             }
           );
 
@@ -789,8 +788,6 @@ define([
         }
 
         const coins = this.goi.globals.coins[player_id];
-        const positionLeft = this.calcCoinPosition(coins);
-
         const coinCounterElementId = `goi_coinCounter:${player_id}`;
         document
           .getElementById(`goi_gemCounters:${player_id}`)
@@ -798,7 +795,7 @@ define([
             "beforeend",
             `<div id="${coinCounterElementId}" class="goi_gemCounter">
         <div class="goi_gemIcon goi_coinIcon"> 
-          <span id="goi_coinCount:${player_id}" class="goi_iconValue" style="left: ${positionLeft}"></span>
+          <span id="goi_coinCount:${player_id}" class="goi_iconValue"></span>
         </div>
       </div>`
           );
@@ -2718,23 +2715,23 @@ define([
       return -spritePosition * 100 + "% 0%";
     },
 
-    calcCoinPosition: function (coins) {
-      let positionLeft = coins >= 10 ? "23%" : "32%";
+    // calcCoinPosition: function (coins) {
+    //   let positionLeft = coins >= 10 ? "23%" : "32%";
 
-      if (coins >= 20) {
-        positionLeft = "17%";
-      }
+    //   if (coins >= 20) {
+    //     positionLeft = "17%";
+    //   }
 
-      if (coins === 11 || coins === 4) {
-        positionLeft = "30%";
-      }
+    //   if (coins === 11 || coins === 4) {
+    //     positionLeft = "30%";
+    //   }
 
-      if (coins === 1) {
-        positionLeft = "36%";
-      }
+    //   if (coins === 1) {
+    //     positionLeft = "36%";
+    //   }
 
-      return positionLeft;
-    },
+    //   return positionLeft;
+    // },
 
     generateRainbowOptions: function (callback, pickableGems) {
       if (!pickableGems) {
@@ -3869,11 +3866,6 @@ define([
 
       this.goi.counters[player_id].coins.incValue(delta);
 
-      const coins = this.goi.counters[player_id].coins.getValue();
-      const positionLeft = this.calcCoinPosition(coins);
-
-      this.goi.counters[player_id].coins.span.style.left = positionLeft;
-
       if (delta > 0) {
         this.playSound("coins", 2000);
       }
@@ -4607,10 +4599,9 @@ define([
 
           if (args.coin) {
             const coins = Math.abs(args.delta_log);
-            const positionLeft = this.calcCoinPosition(coins);
 
             args.coin = `<span class="goi_logMarker">
-              <span class="goi_iconValue" style="left: ${positionLeft}">${coins}</span>
+              <span class="goi_iconValue">${coins}</span>
             </span>`;
 
             args.delta_log = "";
@@ -4629,7 +4620,7 @@ define([
             }
 
             args.points_log = `<span class="goi_logMarker" style="background-position: ${backgroundPosition};">
-              <span class="goi_iconValue goi_scoring" style="left: ${positionLeft};">${args.points_log}</span>
+              <span class="goi_iconValue goi_scoring">${args.points_log}</span>
             </span>`;
           }
         }
