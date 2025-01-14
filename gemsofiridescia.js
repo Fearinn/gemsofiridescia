@@ -1956,7 +1956,10 @@ define([
           const usableItems = args.args.usableItems;
           const singleCollectedTile = args.args.singleCollectedTile;
 
-          if (usableItems.length > 0) {
+          if (
+            usableItems.length > 0 &&
+            usableItems.length !== usableEpicElixir.length
+          ) {
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
                 _(
@@ -2049,7 +2052,11 @@ define([
           const usableItems = args.args.usableItems;
           const mustReveal = args.args.mustReveal;
 
-          if (usableItems.length > 0 && !mustReveal) {
+          if (
+            usableItems.length > 0 &&
+            usableItems.length !== usableEpicElixir.length &&
+            !mustReveal
+          ) {
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
                 _(
@@ -2069,7 +2076,10 @@ define([
               { you: _("${you}") }
             );
 
-            if (usableItems.length > 0) {
+            if (
+              usableItems.length > 0 &&
+              usableItems.length !== usableEpicElixir.length
+            ) {
               description = this.format_string_recursive(
                 _(
                   "${you} must reveal the only available adjacent tile or use an Item with the ${green_flag}"
@@ -4526,8 +4536,8 @@ define([
 
           if (args.OR) {
             args.OR = `<span style="font-weight: bold; font-style: italic"></br>${_(
-                args.OR
-              )}</br></span>`;
+              args.OR
+            )}</br></span>`;
           }
 
           if (args.tile && args.tileCard) {
