@@ -2202,9 +2202,9 @@ class Game extends \Table
                 $tokenName = $token_info["name"];
 
                 if ($player_id === 1) {
-                    $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
-                } else {
                     $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM robot WHERE id=1");
+                } else {
+                    $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
                 }
 
                 if ($hasObtainedToken) {
