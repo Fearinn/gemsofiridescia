@@ -3343,9 +3343,9 @@ class Game extends \Table
         if ($gemsPoints > 0) {
             $this->notifyAllPlayers(
                 "computeGemsPoints",
-                clienttranslate('${player_name} scores ${points_log} points from gem sets'),
+                clienttranslate('${player_name} scores ${points_log} point(s) from gem sets'),
                 [
-                    "player_id" => 1,
+                    "player_id" => $player_id,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $gemsPoints,
                     "preserve" => ["points_log", "finalScoring"],
@@ -3663,7 +3663,7 @@ class Game extends \Table
                 $rhomPoints = $this->getStatWithRhom("rhomPoints", $player_id);
             }
 
-            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $rhomPoints + $iridiaPoints;
+            $totalPoints = $gemsPoints + $tilesPoints + $relicsPoints + $objectivePoints + $tokenPoints + $iridiaPoints + $rhomPoints;
 
             $tableGems[] = $gemsPoints;
             $tableTiles[] = $tilesPoints;
@@ -4016,7 +4016,20 @@ class Game extends \Table
             $points = $marketValue * $excessGems;
 
             $this->discardGems(1, null, $newGem, $excessGems);
-            $this->incRoyaltyPoints($points, 1);
+            $this->incRoyaltyPoints($points, 1, true);
+            $this->incStatWithRhom($points, "rhomPoints", 1);
+
+            $this->notifyAllPlayers(
+                "message",
+                clienttranslate('${player_name} scores ${points_log} point(s) from the discarded gem(s)'),
+                [
+                    "player_id" => 1,
+                    "player_name" => $this->getPlayerOrRhomNameById(1),
+                    "preserve" => ["points_log"],
+                    "points_log" => $points,
+                ]
+            );
+
             return;
         }
 
