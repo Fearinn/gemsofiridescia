@@ -4388,7 +4388,9 @@ define([
 
       itemDetails.forEach((detail) => {
         const detailElement = document.createElement("li");
-        detailElement.textContent = _(detail);
+        detailElement.innerHTML = this.format_string_recursive(_(detail), {
+          OR: _("— OR —"),
+        });
         detailsElement.appendChild(detailElement);
       });
 
@@ -4520,6 +4522,12 @@ define([
               const tooltip = this.createRhomTooltip(rhom_id);
               this.registerCustomTooltip(tooltip, elementId);
             }
+          }
+
+          if (args.OR) {
+            args.OR = `<span style="font-weight: bold; font-style: italic"></br>${_(
+                args.OR
+              )}</br></span>`;
           }
 
           if (args.tile && args.tileCard) {
