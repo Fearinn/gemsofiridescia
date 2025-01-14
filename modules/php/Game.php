@@ -1486,7 +1486,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             'rollDie',
-            clienttranslate('${player_name} rolls a ${face} with a ${type_label} Die'),
+            clienttranslate('${player_name} rolls a ${face} with a ${type_label} die'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -2826,7 +2826,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "obtainStoneDie",
-            clienttranslate('${player_name} obtains a Stone Die'),
+            clienttranslate('${player_name} obtains a Stone die'),
             [
                 "player_id" => $player_id,
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -4240,7 +4240,7 @@ class Game extends \Table
                 if ($publicStoneDiceCount === 0) {
                     $this->notifyAllPlayers(
                         "message",
-                        clienttranslate('${player_name2} does not roll a die because all Stone Dice are with ${player_name}'),
+                        clienttranslate('${player_name2} does not roll a die because all Stone dice are with ${player_name}'),
                         [
                             "player_id" => $player_id,
                             "player_name" => $this->getPlayerOrRhomNameById($player_id),
@@ -4301,6 +4301,11 @@ class Game extends \Table
     }
 
     /*  DEBUG */
+
+    public function debug_calcFinalScoring(): void
+    {
+        $this->calcFinalScoring();
+    }
 
     public function debug_rollDie(int $player_id): void
     {
@@ -4388,21 +4393,6 @@ class Game extends \Table
     {
         $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
         $this->DbQuery("UPDATE objective SET card_location='hand', card_location_arg=$player_id WHERE card_type_arg=$objective_id LIMIT 1");
-    }
-
-    public function debug_calcFinalScoring(int $player_id, int $opponent_id): void
-    {
-        $this->setStatWithRhom(0, "1:TypeRelics", $player_id);
-        $this->setStatWithRhom(0, "2:TypeRelics", $player_id);
-        $this->setStatWithRhom(0, "3:TypeRelics", $player_id);
-        $this->setStatWithRhom(0, "iridia:Relics", $player_id);
-
-        $this->setStatWithRhom(0, "1:TypeRelics", $opponent_id);
-        $this->setStatWithRhom(0, "2:TypeRelics", $opponent_id);
-        $this->setStatWithRhom(0, "3:TypeRelics", $opponent_id);
-        $this->setStatWithRhom(0, "iridia:Relics", $opponent_id);
-
-        $this->calcFinalScoring();
     }
 
     public function debug_zombieQuit(int $player_id): void

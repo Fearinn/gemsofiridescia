@@ -926,14 +926,14 @@ $this->objectives_info = [
         "tr_name" => clienttranslate("Lots-O-Lore"),
         "content" => clienttranslate("Restore the most Lore Relics"),
         "points" => 7,
-        "variable" => 2,
+        "variable" => 3,
     ],
     14 => [
         "name" => "Tantalizing Tech",
         "tr_name" => clienttranslate("Tantalizing Tech"),
         "content" => clienttranslate("Restore the most Tech Relics"),
         "points" => 7,
-        "variable" => 3
+        "variable" => 2,
     ],
     15 => [
         "name" => "Master Miner",
