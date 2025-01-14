@@ -630,10 +630,10 @@ define([
           div.classList.add("goi_scoringMarker");
           div.style.backgroundColor = card.color;
 
-          if (card.score == 100) {
+          if (card.score >= 100) {
             const scoreElement = document.createElement("span");
             scoreElement.classList.add("goi_scoreHundred");
-            scoreElement.textContent = 100;
+            scoreElement.textContent = card.score;
             div.appendChild(scoreElement);
           }
         },
@@ -1073,7 +1073,6 @@ define([
         );
       }
 
-      let currentStoneDie_id = 1;
       for (const player_id in this.goi.globals.players) {
         const player = this.goi.globals.players[player_id];
         const player_color = player.color;
@@ -1486,23 +1485,25 @@ define([
         const score = player.score;
 
         if (score >= 100) {
-          const completeScoringMarker = {
-            id: `${player_id}-100`,
-            color: `#${player_color}`,
-            score: 100,
-          };
-
           const scoringMarker = {
             id: player_id,
             color: `#${player_color}`,
-            score: score - 100,
+            score: score % 100,
           };
 
-          if (score === 100) {
+          if (score % 100 === 0) {
             this.goi.stocks.scoringMarkers.track.removeCard(scoringMarker);
           } else {
             this.goi.stocks.scoringMarkers.track.addCard(scoringMarker);
           }
+
+          const multiple = Math.floor(score / 100);
+
+          const completeScoringMarker = {
+            id: `${player_id}-100`,
+            color: `#${player_color}`,
+            score: 100 * multiple,
+          };
 
           this.goi.stocks[player_id].scoringMarkers.hundred.addCard(
             completeScoringMarker
@@ -3905,25 +3906,27 @@ define([
         const scoringMarker = {
           id: player_id,
           color: player_color,
-          score: score - 100,
+          score: score % 100,
         };
 
-        const completeScoringMarker = {
-          id: `${player_id}-100`,
-          color: player_color,
-          score: 100,
-        };
-
-        if (score === 100) {
+        if (score % 100 === 0) {
           this.goi.stocks.scoringMarkers.track.removeCard(scoringMarker);
         } else {
           this.goi.stocks.scoringMarkers.track.addCard(scoringMarker);
         }
 
+        const multiple = Math.floor(score / 100);
+
+        const completeScoringMarker = {
+          id: `${player_id}-100`,
+          color: player_color,
+          score: 100 * multiple,
+        };
+
+        this.goi.stocks[player_id].scoringMarkers.hundred.removeCard(completeScoringMarker);
         this.goi.stocks[player_id].scoringMarkers.hundred.addCard(
           completeScoringMarker
         );
-
         return;
       }
 
