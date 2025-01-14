@@ -767,8 +767,8 @@ class Game extends \Table
         if ($args["_no_notify"]) {
             if ($args["hasReachedCastle"]) {
                 if ($isSolo) {
-                    $rhomReachedSolo = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
-                    if ($rhomReachedSolo) {
+                    $rhomReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle FROM robot WHERE id=1");
+                    if ($rhomReachedCastle) {
                         $this->gamestate->nextState("finalScoring");
                         return;
                     }
@@ -2200,7 +2200,12 @@ class Game extends \Table
 
             foreach ($this->royaltyTokens_info as $token_id => $token_info) {
                 $tokenName = $token_info["name"];
-                $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
+
+                if ($player_id === 1) {
+                    $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM player WHERE player_id=$player_id");
+                } else {
+                    $hasObtainedToken = !!$this->getUniqueValueFromDB("SELECT $tokenName FROM robot WHERE id=1");
+                }
 
                 if ($hasObtainedToken) {
                     $token_info["id"] = $token_id;
@@ -2286,7 +2291,7 @@ class Game extends \Table
         );
 
         if ($player_id === 1) {
-            $this->DbQuery("UPDATE robot SET score_aux=score_aux+$score_aux WHERE id=1");
+            $this->DbQuery("UPDATE robot SET $tokenName=1, score_aux=score_aux+$score_aux WHERE id=1");
         } else {
             $this->DbQuery("UPDATE player SET $tokenName=1, player_score_aux=player_score_aux+$score_aux WHERE player_id=$player_id");
         }
@@ -3343,7 +3348,7 @@ class Game extends \Table
                     "player_id" => 1,
                     "player_name" => $this->getPlayerOrRhomNameById($player_id),
                     "points" => $gemsPoints,
-                    "preserve" => ["points_log"],
+                    "preserve" => ["points_log", "finalScoring"],
                     "points_log" => $gemsPoints,
                     "finalScoring" => true,
                 ]
@@ -4489,6 +4494,17 @@ class Game extends \Table
             }
             $this->globals->set(PLAYER_STONE_DICE, $playersDice);
             $this->globals->set(ACTIVE_STONE_DICE, []);
+        }
+
+        if ($from_version <= 2501132214) {
+            if ($this->isSolo()) {
+                $rhomScepterColumn = $this->getUniqueValueFromDB("SHOW COLUMNS FROM robot LIKE 'scepter'");
+                if (empty($rhomScepterColumn)) {
+                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
+                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD banner TINYINT UNSIGNED NOT NULL DEFAULT 0");
+                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD throne TINYINT UNSIGNED NOT NULL DEFAULT 0");
+                }
+            }
         }
     }
 
