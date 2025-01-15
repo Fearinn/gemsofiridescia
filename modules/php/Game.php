@@ -3172,7 +3172,7 @@ class Game extends \Table
 
         $this->notifyAllPlayers(
             "reshuffleItemsDeck",
-            clienttranslate('The merchant&apos;s market is reshuffled'),
+            clienttranslate('All Items in the Market and in the discard are reshuffled into the deck for a Market refresh'),
             [
                 "itemsDeck" => $itemsDeck,
                 "itemsMarket" => $itemsMarket,

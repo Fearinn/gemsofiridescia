@@ -3404,7 +3404,7 @@ define([
 
       if (item_id === 2) {
         this.setClientState("client_regalReferenceBook", {
-          descriptionmyturn: _("${you} must select a Relic to reserve for you"),
+          descriptionmyturn: _("${you} must select a Relic to reserve"),
         });
       }
 
@@ -3454,7 +3454,7 @@ define([
 
       if (item_id === 11) {
         this.setClientState("client_cleverCatapult", {
-          descriptionmyturn: _("${you} must select a tile to jump to"),
+          descriptionmyturn: _("${you} must select a tile to catapult your explorer onto"),
         });
       }
     },
