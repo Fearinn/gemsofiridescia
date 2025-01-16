@@ -4080,13 +4080,12 @@ class Game extends \Table
 
     public function mostDemandingTiles(array $tileCards): array
     {
-        $mostDemandingTiles = [];
-
         $includesIridia = false;
         $gemsDemand = $this->gemsDemand();
 
         $gemsCounts = $this->getGemsCounts(1, true);
         $hasAllGems = true;
+        $onlyRainbow = true;
 
         foreach ($tileCards as $tileCard) {
             $tile_id = (int) $tileCard["type_arg"];
@@ -4099,9 +4098,13 @@ class Game extends \Table
             if ($gem_id % 10 !== 0 && $gemsCounts[$gem_id] === 0) {
                 $hasAllGems = false;
             }
+
+            if ($gem_id !== 0) {
+                $onlyRainbow = false;
+            }
         }
 
-        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($tileCards, $includesIridia, $gemsCounts, $hasAllGems) {
+        $mostDemandingTiles = array_filter($tileCards, function ($tileCard) use ($onlyRainbow, $includesIridia, $gemsCounts, $hasAllGems) {
             $tile_id = (int) $tileCard["type_arg"];
             $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
 
@@ -4109,7 +4112,7 @@ class Game extends \Table
                 return $gem_id === 10;
             }
 
-            if (count($tileCards) > 1 && $gem_id === 0) {
+            if (!$onlyRainbow && $gem_id === 0) {
                 return false;
             }
 
@@ -4121,17 +4124,20 @@ class Game extends \Table
         });
 
         if (count($mostDemandingTiles) > 1) {
-            uasort($mostDemandingTiles, function ($tileCard, $otherTileCard) use ($gemsDemand) {
+            uasort($mostDemandingTiles, function ($tileCard, $otherTileCard) use ($onlyRainbow, $gemsDemand) {
                 $tile_id = (int) $tileCard["type_arg"];
                 $gem_id = (int) $this->tiles_info[$tile_id]["gem"];
-                $demand = $gemsDemand[$gem_id];
 
-                $otherTile_id = (int) $otherTileCard["type_arg"];
-                $otherGem_id = (int) $this->tiles_info[$otherTile_id]["gem"];
-                $otherDemand = $gemsDemand[$otherGem_id];
+                if (!$onlyRainbow) {
+                    $demand = $gemsDemand[$gem_id];
 
-                if ($demand !== $otherDemand) {
-                    return $otherDemand <=> $demand;
+                    $otherTile_id = (int) $otherTileCard["type_arg"];
+                    $otherGem_id = (int) $this->tiles_info[$otherTile_id]["gem"];
+                    $otherDemand = $gemsDemand[$otherGem_id];
+
+                    if ($demand !== $otherDemand) {
+                        return $otherDemand <=> $demand;
+                    }
                 }
 
                 $hex = (int) $tileCard["location_arg"];
