@@ -706,9 +706,16 @@ class Game extends \Table
         $revealedTiles = $this->globals->get(REVEALED_TILES);
         $mustReveal = !array_key_exists($tileCard_id, $revealedTiles);
 
+        $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
+        $catapultableTiles = ["empty" => [], "tiles" => []];
+        if ($catapultCard_id) {
+            $catapultableTiles = $this->catapultableTiles($player_id);
+        }
+
         return [
             "usableItems" => $usableItems,
             "mustReveal" => $mustReveal,
+            "catapultableTiles" => $catapultableTiles,
         ];
     }
 
@@ -721,7 +728,7 @@ class Game extends \Table
         $explorableTiles = $this->explorableTiles($player_id);
 
         $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
-        $catapultableTiles = [];
+        $catapultableTiles = ["empty" => [], "tiles" => []];
         if ($catapultCard_id) {
             $catapultableTiles = $this->catapultableTiles($player_id);
         }
@@ -808,7 +815,7 @@ class Game extends \Table
         $usableItems = $this->usableItems($player_id);
 
         $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
-        $catapultableTiles = [];
+        $catapultableTiles = ["empty" => [], "tiles" => []];
         if ($catapultCard_id) {
             $catapultableTiles = $this->catapultableTiles($player_id);
         }
