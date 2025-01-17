@@ -103,10 +103,6 @@ class ObjectiveManager
                 }
             }
 
-            if ($maxRelics === 0) {
-                return false;
-            }
-
             $relicsForSets = $this->game->globals->get("relicsForSets:$current_player_id");
             $iridia = (int) $relicsForSets["iridia"];
             $jewelry = (int) $relicsForSets[1];
