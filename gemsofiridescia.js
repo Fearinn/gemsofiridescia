@@ -62,12 +62,12 @@ define([
 
       this.goi.managers.zoom = new ZoomManager({
         element: gameArea,
-        localStorageZoomKey: "gemsofiridescia-zoom",
+        localStorageZoomKey: "gemsofiridescia-zoom-1",
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
-        defaultZoom: 0.3,
+        zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+        defaultZoom: 0.5,
         smooth: true,
         onZoomChange: () => {
           const width = gameArea.offsetWidth;
@@ -83,7 +83,7 @@ define([
       });
 
       const width = gameArea.offsetWidth;
-      const scrollWidth = gameArea.scrollWidth;
+      const scrollWidth = gameArea.scrollWidt;
       if (scrollWidth > width) {
         gameArea.style.justifyContent = "flex-start";
       } else {
@@ -3454,7 +3454,9 @@ define([
 
       if (item_id === 11) {
         this.setClientState("client_cleverCatapult", {
-          descriptionmyturn: _("${you} must select a tile to catapult your explorer onto"),
+          descriptionmyturn: _(
+            "${you} must select a tile to catapult your explorer onto"
+          ),
         });
       }
     },
@@ -3923,7 +3925,9 @@ define([
           score: 100 * multiple,
         };
 
-        this.goi.stocks[player_id].scoringMarkers.hundred.removeCard(completeScoringMarker);
+        this.goi.stocks[player_id].scoringMarkers.hundred.removeCard(
+          completeScoringMarker
+        );
         this.goi.stocks[player_id].scoringMarkers.hundred.addCard(
           completeScoringMarker
         );

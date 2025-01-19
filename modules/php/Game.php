@@ -1269,8 +1269,6 @@ class Game extends \Table
 
         if ($rhomSkip <= 1) {
             $this->moveExplorer($tileCard_id, 1);
-        } else {
-            $this->rhomResolveTileEffect($tileCard);
         }
 
         if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
@@ -1303,6 +1301,7 @@ class Game extends \Table
             }
         }
 
+        if ($rhomSkip <= 1) {
         $explorableTiles = $this->explorableTiles(1);
 
         if (!$explorableTiles) {
@@ -1315,10 +1314,7 @@ class Game extends \Table
         $tileCard = reset($mostDemandingTiles);
         $tileCard_id = (int) $tileCard["id"];
 
-        if ($rhomSkip <= 1) {
             $this->moveExplorer($tileCard_id, 1);
-        } else {
-            $this->rhomResolveTileEffect($tileCard);
         }
 
         if ($this->globals->get(RHOM_POSSIBLE_RAINBOW)) {
