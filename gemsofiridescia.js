@@ -83,7 +83,7 @@ define([
       });
 
       const width = gameArea.offsetWidth;
-      const scrollWidth = gameArea.scrollWidt;
+      const scrollWidth = gameArea.scrollWidth;
       if (scrollWidth > width) {
         gameArea.style.justifyContent = "flex-start";
       } else {
