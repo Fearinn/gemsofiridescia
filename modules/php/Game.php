@@ -1302,17 +1302,17 @@ class Game extends \Table
         }
 
         if ($rhomSkip <= 1) {
-        $explorableTiles = $this->explorableTiles(1);
+            $explorableTiles = $this->explorableTiles(1);
 
-        if (!$explorableTiles) {
-            $this->gamestate->nextState("discardTileForRhom");
-            return;
-        }
+            if (!$explorableTiles) {
+                $this->gamestate->nextState("discardTileForRhom");
+                return;
+            }
 
-        $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
+            $mostDemandingTiles = $this->mostDemandingTiles($explorableTiles);
 
-        $tileCard = reset($mostDemandingTiles);
-        $tileCard_id = (int) $tileCard["id"];
+            $tileCard = reset($mostDemandingTiles);
+            $tileCard_id = (int) $tileCard["id"];
 
             $this->moveExplorer($tileCard_id, 1);
         }
@@ -1652,15 +1652,18 @@ class Game extends \Table
         $leftEdges = [1, 7, 14, 20, 27, 33, 40, 46, 53];
         $rightEdges = [6, 13, 19, 26, 32, 39, 45, 52, 58];
 
-        if ($this->getPlayersNumber() === 2 && !$onlyHexes) {
+        $shiftEdges = $this->getPlayersNumber() === 2 && !$onlyHexes;
+        if ($shiftEdges) {
             $leftEdges = [2, 8, 15, 21, 28, 34, 41, 47, 53];
             $rightEdges = [5, 12, 18, 25, 31, 38, 44, 51, 58];
         }
 
+        $excludeTop = $tileRow % 2 === 0 && ($tileRow < 8 || !$shiftEdges);
+
         if (in_array($hex, $leftEdges)) {
             $leftHex = null;
 
-            if ($tileRow % 2 === 0 && $tileRow < 8) {
+            if ($excludeTop) {
                 $topLeftHex = null;
             }
         };
@@ -1668,7 +1671,7 @@ class Game extends \Table
         if (in_array($hex, $rightEdges)) {
             $rightHex = null;
 
-            if ($tileRow % 2 === 0 && $tileRow < 8) {
+            if ($excludeTop) {
                 $topRightHex = null;
             }
         }
@@ -1679,6 +1682,8 @@ class Game extends \Table
             "topRight" => $topRightHex,
             "right" => $rightHex,
         ];
+
+        // throw new \BgaUserException(json_encode($adjacentHexes));
 
         if ($onlyHexes) {
             $hexes = [];
