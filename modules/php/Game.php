@@ -974,7 +974,7 @@ class Game extends \Table
         }
 
         $usableItems = $this->usableItems($player_id);
-        $rerrolableDice = $this->globals->get(REROLLABLE_DICE, []);
+        $rerollableDice = $this->globals->get(REROLLABLE_DICE, []);
         $auto = !$usableItems && count($pickableGems) === 1;
 
         $singlePickableGem = null;
@@ -990,7 +990,7 @@ class Game extends \Table
             "singlePickableGem" => $singlePickableGem,
             "failed" => !$pickableGems,
             "usableItems" => $usableItems,
-            "rerollableDice" => $rerrolableDice,
+            "rerollableDice" => $rerollableDice,
             "auto" => $auto,
             "no_notify" => $auto || !$pickableGems,
         ];

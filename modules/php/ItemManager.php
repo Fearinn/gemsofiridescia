@@ -404,15 +404,6 @@ class ItemManager
                 continue;
             }
 
-            if ($diceType === "gem") {
-                if ($duringWell) {
-                    $this->game->gamestate->nextState("pickWellGem");
-                } else {
-                    $this->game->globals->set(REROLLABLE_DICE, []);
-                }
-                return true;
-            }
-
             $rerollableDice = $this->game->globals->get(REROLLABLE_DICE, []);
 
             if (!array_key_exists($die_id, $rerollableDice)) {
@@ -444,8 +435,12 @@ class ItemManager
             }
         }
 
-        if ($duringWell) {
-            $this->game->gamestate->nextState("pickWellGem");
+        if ($diceType === "gem") {
+            if ($duringWell) {
+                $this->game->gamestate->nextState("pickWellGem");
+            } else {
+                $this->game->globals->set(REROLLABLE_DICE, []);
+            }
             return true;
         }
 
