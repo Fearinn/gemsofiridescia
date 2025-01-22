@@ -713,24 +713,6 @@ define([
         }
       });
 
-      this.goi.stocks.gems.rainbowOptions = new CardStock(
-        this.goi.managers.gems,
-        document.getElementById("goi_rainbowOptions")
-      );
-
-      this.goi.stocks.gems.rainbowOptions.onSelectionChange = (
-        selection,
-        lastChange
-      ) => {
-        if (selection.length > 0) {
-          this.goi.selections.gem = lastChange;
-        } else {
-          this.goi.selections.gem = null;
-        }
-
-        this.handleSelection();
-      };
-
       this.goi.stocks.gems.void = new VoidStock(
         this.goi.managers.gems,
         document.getElementById("goi_void")
@@ -2589,10 +2571,6 @@ define([
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
 
-      if (stateName === "rainbowTile") {
-        this.goi.stocks.gems.rainbowOptions.removeAll();
-      }
-
       if (stateName === "moveExplorer") {
         this.goi.stocks.tiles.board.setSelectionMode("none");
       }
@@ -2621,11 +2599,6 @@ define([
 
       if (stateName === "client_cauldronOfFortune") {
         this.goi.stocks[this.player_id].gems.cargo.setSelectionMode("none");
-      }
-
-      if (stateName === "client_cauldronOfFortune2") {
-        this.goi.stocks.gems.rainbowOptions.setSelectionMode("none");
-        this.goi.stocks.gems.rainbowOptions.removeAll();
       }
 
       if (stateName === "client_luckyLibation") {
