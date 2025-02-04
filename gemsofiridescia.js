@@ -3913,7 +3913,17 @@ define([
         score,
       };
 
-      this.goi.stocks.scoringMarkers.track.addCard(scoringMarker);
+      const isFirstScore = !this.goi.stocks.scoringMarkers.track.getCardElement(
+        {
+          id: player_id,
+        }
+      );
+
+      this.goi.stocks.scoringMarkers.track.addCard(scoringMarker, {
+        fromElement: isFirstScore
+          ? document.getElementById("goi_void")
+          : undefined,
+      });
     },
 
     notif_obtainStoneDie: function (notif) {
