@@ -672,6 +672,7 @@ class ItemManager
                 ]
             );
 
+            $this->game->gamestate->nextState("repeat");
             return;
         }
 

@@ -25,7 +25,6 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 use \Bga\GameFramework\Actions\Types\IntParam;
 use \Bga\GameFramework\Actions\Types\JsonParam;
 use \Bga\GameFramework\Actions\CheckAction;
-use Bga\GameFramework\Actions\Types\IntArrayParam;
 
 const ST_PICK_WELL_GEM = 40;
 const ST_TRANSFER_GEM = 31;
@@ -490,7 +489,9 @@ class Game extends \Table
             return;
         }
 
-        $this->gamestate->nextState("repeat");
+        if ($item->id !== 11) {
+            $this->gamestate->nextState("repeat");
+        }
     }
 
     public function actUndoItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id): void
@@ -1683,8 +1684,6 @@ class Game extends \Table
             "right" => $rightHex,
         ];
 
-        // throw new \BgaUserException(json_encode($adjacentHexes));
-
         if ($onlyHexes) {
             $hexes = [];
             foreach ($adjacentHexes as $hex) {
@@ -2141,7 +2140,6 @@ class Game extends \Table
                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
             ]
         );
-
 
         $this->gamestate->nextState("discardObjective");
     }

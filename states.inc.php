@@ -45,6 +45,7 @@ $machinestates = [
             "skip" => 3,
             "moveExplorer" => 3,
             "rainbowTile" => 30,
+            "discardObjective" => 32,
             "optionalActions" => 4,
             "startSolo" => 80,
             "finalScoring" => 7,
@@ -62,7 +63,8 @@ $machinestates = [
         "transitions" => [
             "repeat" => 2,
             "revealTile" => 2,
-            "optionalActions" => 4
+            "discardObjective" => 32,
+            "optionalActions" => 4,
         ],
     ],
 
@@ -163,7 +165,7 @@ $machinestates = [
         "args" => "argPickWellGem",
         "action" => "stPickWellGem",
         "possibleactions" => ["actPickWellGem", "actUseItem"],
-        "transitions" => ["pickWellGem" => 40,"repeat" => 4, "fail" => 4, "optionalActions" => 4],
+        "transitions" => ["pickWellGem" => 40, "repeat" => 4, "fail" => 4, "optionalActions" => 4],
     ],
 
     5 => [
