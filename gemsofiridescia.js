@@ -120,7 +120,7 @@ define([
         },
       };
 
-      this.goi.info.defaultSelections = {
+      this.goi_defaultSelections = {
         tile: null,
         emptyTile: null,
         gem: null,
@@ -134,7 +134,7 @@ define([
         delta: null,
       };
 
-      this.goi.selections = this.goi.info.defaultSelections;
+      this.goi.selections = this.goi_defaultSelections;
 
       this.goi.bot = gamedatas.bot;
       this.goi.globals.isSolo = gamedatas.isSolo;
@@ -1851,7 +1851,7 @@ define([
         );
 
         if (!stateName.includes("client_")) {
-          this.goi.selections = this.goi.info.defaultSelections;
+          this.goi.selections = this.goi_defaultSelections;
         }
 
         if (
