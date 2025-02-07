@@ -580,21 +580,22 @@ html {
 }
 
 .goi_selectedTile {
-  transform: scale(1.025);
+  transform: scale(1.05);
   z-index: 1;
 }
 
 .goi_selectedTile::after {
   position: absolute;
   bottom: 12%;
-  left: 37.5%;
+  left: 50%;
+  transform: translateX(-50%);
 
   animation: infinite 2s pickaxe;
   content: "";
   background-image: url("img/pickaxe.png");
-  background-size: cover;
-  height: calc(var(--tileSize) / 4);
-  width: calc(var(--tileSize) / 4);
+  background-size: 100% 100%;
+  height: calc(var(--tileSize) / 3);
+  width: calc(var(--tileSize) / 3);
   z-index: 1;
 }
 
@@ -716,15 +717,15 @@ html {
 
 @keyframes pickaxe {
   0% {
-    transform: rotate(90deg);
+    transform: translateX(-50%) rotate(90deg);
   }
 
   50% {
-    transform: rotate(-90deg);
+    transform: translateX(-50%) rotate(-90deg);
   }
 
   100% {
-    transform: rotate(90deg);
+    transform: translateX(-50%) rotate(90deg);
   }
 }
 

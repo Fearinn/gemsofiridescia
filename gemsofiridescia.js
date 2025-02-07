@@ -812,6 +812,7 @@ define([
         selection,
         lastChange
       ) => {
+        this.goi.stocks.tiles.empty.unselectAll(true);
         this.goi.stocks[this.player_id].items.hand.unselectAll(true);
         document.getElementById("goi_confirmItem_btn")?.remove();
 
