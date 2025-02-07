@@ -83,6 +83,11 @@ html {
   overflow-x: auto;
 }
 
+.goi_lockZoom {
+  --bga-game-zoom: 1 !important;
+  transform: scale(1) !important;
+}
+
 .goi_dialog {
   top: 300px !important;
   left: 200px !important;

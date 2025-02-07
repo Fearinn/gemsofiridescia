@@ -42,5 +42,13 @@
       "2": { "name": "Category" }
     },
     "needReload": true
+  },
+  "105": {
+    "name": "Manual scale adjustment",
+    "values": {
+      "1": { "name": "Enabled", "default": true },
+      "2": { "name": "Disabled" }
+    },
+    "needReload": true
   }
 }

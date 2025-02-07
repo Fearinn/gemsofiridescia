@@ -58,37 +58,48 @@ define([
 
       this.goi.version = gamedatas.version;
 
-      const gameArea = document.getElementById("goi_gameArea");
+      if (this.getGameUserPreference(105) == 1) {
+        document
+          .getElementById("overall-content")
+          .classList.add("goi_lockZoom");
 
-      // this.goi.managers.zoom = new ZoomManager({
-      //   element: gameArea,
-      //   localStorageZoomKey: "gemsofiridescia-zoom-1",
-      //   zoomControls: {
-      //     color: "black",
-      //   },
-      //   zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
-      //   defaultZoom: 0.5,
-      //   smooth: true,
-      //   onZoomChange: () => {
-      //     const width = gameArea.offsetWidth;
-      //     const scrollWidth = gameArea.scrollWidth;
+        const gameArea = document.getElementById("goi_gameArea");
 
-      //     if (scrollWidth > width) {
-      //       gameArea.style.justifyContent = "flex-start";
-      //       return;
-      //     }
+        this.goi.managers.zoom = new ZoomManager({
+          element: gameArea,
+          localStorageZoomKey: "gemsofiridescia-zoom-1",
+          zoomControls: {
+            color: "black",
+          },
+          zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+          defaultZoom: 0.5,
+          smooth: true,
+          onZoomChange: () => {
+            const width = gameArea.offsetWidth;
+            const scrollWidth = gameArea.scrollWidth;
 
-      //     gameArea.style.justifyContent = "center";
-      //   },
-      // });
+            if (scrollWidth > width) {
+              gameArea.style.justifyContent = "flex-start";
+              return;
+            }
 
-      // const width = gameArea.offsetWidth;
-      // const scrollWidth = gameArea.scrollWidth;
-      // if (scrollWidth > width) {
-      //   gameArea.style.justifyContent = "flex-start";
-      // } else {
-      //   gameArea.style.justifyContent = "center";
-      // }
+            gameArea.style.justifyContent = "center";
+          },
+          onDimensionsChange: () => {
+              document
+                .getElementById("overall-content")
+                .style.removeProperty("--bga-game-zoom");
+          },
+        });
+
+        const width = gameArea.offsetWidth;
+        const scrollWidth = gameArea.scrollWidth;
+        if (scrollWidth > width) {
+          gameArea.style.justifyContent = "flex-start";
+        } else {
+          gameArea.style.justifyContent = "center";
+        }
+      }
 
       this.goi.info.tiles = gamedatas.tilesInfo;
       this.goi.info.relics = gamedatas.relicsInfo;
@@ -2026,15 +2037,16 @@ define([
           }
 
           if (usableItems.length > 0) {
-            this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
-              _(
-                "${you} must move your explorer onto a revealed tile or use an item with the ${green_flag}"
-              ),
-              {
-                you: _("${you}"),
-                green_flag: _("green flag"),
-              }
-            );
+            this.gamedatas.gamestate.descriptionmyturn =
+              this.format_string_recursive(
+                _(
+                  "${you} must move your explorer onto a revealed tile or use an item with the ${green_flag}"
+                ),
+                {
+                  you: _("${you}"),
+                  green_flag: _("green flag"),
+                }
+              );
             this.updatePageTitle();
           }
 
