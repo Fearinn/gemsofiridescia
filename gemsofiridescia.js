@@ -2011,6 +2011,7 @@ define([
           const explorableTiles = args.args.explorableTiles;
           const revealsLimit = args.args.revealsLimit;
           const revealableTiles = args.args.revealableTiles;
+          const usableItems = args.args.usableItems;
 
           if (revealsLimit < 2 && revealableTiles.length > 0) {
             this.addActionButton(
@@ -2023,11 +2024,28 @@ define([
             );
           }
 
+          if (usableItems.length > 0) {
+            this.gamedatas.gamestate.descriptionmyturn = this.format_string_recursive(
+              _(
+                "${you} must move your explorer onto a revealed tile or use an item with the ${green_flag}"
+              ),
+              {
+                you: _("${you}"),
+                green_flag: _("green flag"),
+              }
+            );
+            this.updatePageTitle();
+          }
+
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",
             explorableTiles
           );
 
+          this.goi.stocks[this.player_id].items.hand.setSelectionMode(
+            "single",
+            usableItems
+          );
           return;
         }
 

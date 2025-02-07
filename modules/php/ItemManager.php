@@ -107,7 +107,7 @@ class ItemManager
                 return $this->canUseEpicElixir($player_id);
             }
 
-            $preRevealStates = [2, 20, 22];
+            $preRevealStates = [2, 20, 22, 3];
 
             if (in_array($state_id, $preRevealStates)) {
                 if ($this->id === 10) {

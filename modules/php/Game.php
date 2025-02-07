@@ -734,9 +734,8 @@ class Game extends \Table
             $catapultableTiles = $this->catapultableTiles($player_id);
         }
 
-        $noRevealableTile = !$revealableTiles;
-
         $singleRevealableTile = (!$explorableTiles && count($revealableTiles) === 1);
+        $noRevealableTile = !$revealableTiles;
 
         $hasReachedCastle = !!$this->getUniqueValueFromDB("SELECT castle from player WHERE player_id=$player_id");
         $skippable = !!$explorableTiles;
@@ -745,7 +744,6 @@ class Game extends \Table
         $cancellableItems = $this->cancellableItems($player_id);
 
         $mustDiscardCollectedTile = $revealsLimit < 2 && !$revealableTiles && !$explorableTiles;
-
         $auto = ($singleRevealableTile) && !$usableItems && !$cancellableItems;
 
         return [
@@ -863,14 +861,23 @@ class Game extends \Table
         $revealableTiles = $this->revealableTiles($player_id);
 
         $revealsLimit = $this->globals->get(REVEALS_LIMIT);
-
         $singleExplorableTile = count($explorableTiles) === 1 && ($revealsLimit === 2 || !$revealableTiles);
+
+        $usableItems = $this->usableItems($player_id);
+
+        $catapultCard_id = $this->getUniqueValueFromDB("SELECT card_id FROM item WHERE card_location='hand' AND card_location_arg=$player_id AND card_type_arg=11 LIMIT 1");
+        $catapultableTiles = ["empty" => [], "tiles" => []];
+        if ($catapultCard_id) {
+            $catapultableTiles = $this->catapultableTiles($player_id);
+        }
 
         return [
             "auto" => $singleExplorableTile,
             "explorableTiles" => $explorableTiles,
             "revealableTiles" => $revealableTiles,
             "revealsLimit" => $revealsLimit,
+            "usableItems" => $usableItems,
+            "catapultableTiles" => $catapultableTiles,
             "_no_notify" => !!$this->globals->get(HAS_MOVED_EXPLORER) || $singleExplorableTile
         ];
     }
@@ -4396,7 +4403,7 @@ class Game extends \Table
     public function debug_removeTiles(): void
     {
         $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-        WHERE card_location='board' AND card_location_arg IN (47, 48, 49, 50, 51)");
+        WHERE card_location='board' AND card_location_arg IN (1,2)");
     }
 
     public function debug_revealTiles(): void
