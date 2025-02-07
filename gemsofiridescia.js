@@ -60,35 +60,35 @@ define([
 
       const gameArea = document.getElementById("goi_gameArea");
 
-      this.goi.managers.zoom = new ZoomManager({
-        element: gameArea,
-        localStorageZoomKey: "gemsofiridescia-zoom-1",
-        zoomControls: {
-          color: "black",
-        },
-        zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
-        defaultZoom: 0.5,
-        smooth: true,
-        onZoomChange: () => {
-          const width = gameArea.offsetWidth;
-          const scrollWidth = gameArea.scrollWidth;
+      // this.goi.managers.zoom = new ZoomManager({
+      //   element: gameArea,
+      //   localStorageZoomKey: "gemsofiridescia-zoom-1",
+      //   zoomControls: {
+      //     color: "black",
+      //   },
+      //   zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+      //   defaultZoom: 0.5,
+      //   smooth: true,
+      //   onZoomChange: () => {
+      //     const width = gameArea.offsetWidth;
+      //     const scrollWidth = gameArea.scrollWidth;
 
-          if (scrollWidth > width) {
-            gameArea.style.justifyContent = "flex-start";
-            return;
-          }
+      //     if (scrollWidth > width) {
+      //       gameArea.style.justifyContent = "flex-start";
+      //       return;
+      //     }
 
-          gameArea.style.justifyContent = "center";
-        },
-      });
+      //     gameArea.style.justifyContent = "center";
+      //   },
+      // });
 
-      const width = gameArea.offsetWidth;
-      const scrollWidth = gameArea.scrollWidth;
-      if (scrollWidth > width) {
-        gameArea.style.justifyContent = "flex-start";
-      } else {
-        gameArea.style.justifyContent = "center";
-      }
+      // const width = gameArea.offsetWidth;
+      // const scrollWidth = gameArea.scrollWidth;
+      // if (scrollWidth > width) {
+      //   gameArea.style.justifyContent = "flex-start";
+      // } else {
+      //   gameArea.style.justifyContent = "center";
+      // }
 
       this.goi.info.tiles = gamedatas.tilesInfo;
       this.goi.info.relics = gamedatas.relicsInfo;
