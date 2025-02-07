@@ -4808,7 +4808,7 @@ class Game extends \Table
             $first_player_id = (int) $this->getNextPlayerTable()[0];
             $last_player_id = $this->getPlayerBefore($first_player_id);
 
-            $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$last_player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
+            $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$last_player_id WHERE card_location='deck' AND card_type_arg=11 LIMIT 1");
         }
 
         $itemsMarketCount = count($players) === 1 ? 6 : 5;
