@@ -411,7 +411,7 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actSellGems(?int $clientVersion, #[JsonParam(alphanum: false)] array $selectedGems): void
+    public function actSellGems(?int $clientVersion, #[JsonParam(alphanum: true)] array $selectedGems): void
     {
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
@@ -463,7 +463,7 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id, #[JsonParam(alphanum: false)] array $args): void
+    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id, #[JsonParam(alphanum: true)] array $args): void
     {
         $this->actionAfterSell();
 
@@ -566,7 +566,7 @@ class Game extends \Table
         $this->gamestate->nextState("optionalActions");
     }
 
-    public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: false)] array $gemCards, ?int $opponent_id): void
+    public function actTransferGem(?int $clientVersion, #[JsonParam(alphanum: true)] array $gemCards, ?int $opponent_id): void
     {
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();

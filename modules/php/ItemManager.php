@@ -179,7 +179,7 @@ class ItemManager
         return false;
     }
 
-    public function use(int $player_id, #[JsonParam(alphanum: false)] array $args): bool
+    public function use(int $player_id, #[JsonParam(alphanum: true)] array $args): bool
     {
         if (!$this->isUsable($player_id)) {
             throw new \BgaUserException($this->game->_("You can't use this item now"));
@@ -375,7 +375,7 @@ class ItemManager
     }
 
     public function luckyLibation(
-        #[JsonParam(alphanum: false)] array $dice,
+        #[JsonParam(alphanum: true)] array $dice,
         int $player_id,
         bool $duringWell,
     ): bool {
