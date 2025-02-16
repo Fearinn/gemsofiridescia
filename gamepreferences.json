@@ -44,10 +44,10 @@
     "needReload": true
   },
   "105": {
-    "name": "Manual scale adjustment",
+    "name": "Scale adjustment",
     "values": {
-      "1": { "name": "Enabled", "default": true },
-      "2": { "name": "Disabled" }
+      "1": { "name": "Manual", "default": true },
+      "2": { "name": "Auto" }
     },
     "needReload": true
   }

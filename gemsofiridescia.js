@@ -86,9 +86,9 @@ define([
             gameArea.style.justifyContent = "center";
           },
           onDimensionsChange: () => {
-              document
-                .getElementById("overall-content")
-                .style.removeProperty("--bga-game-zoom");
+            document
+              .getElementById("overall-content")
+              .style.removeProperty("--bga-game-zoom");
           },
         });
 
