@@ -85,7 +85,10 @@ html {
 
 .goi_lockZoom {
   --bga-game-zoom: 1 !important;
-  transform: scale(1) !important;
+}
+
+.goi_lockZoom .fixed-page-title {
+  width: 100% !important;
 }
 
 .goi_dialog {
