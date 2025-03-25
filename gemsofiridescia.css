@@ -122,15 +122,14 @@ html {
 }
 
 .goi_cardContent {
+  font-family: "rooney-web", serif;
+  font-size: 14px;
+  
   position: absolute;
   left: 2%;
-  overflow: hidden;
   text-align: center;
+  height: 12%;
   width: 95%;
-}
-
-.goi_cardContent::-webkit-scrollbar {
-  display: none;
 }
 
 .goi_selectedCard {
@@ -148,8 +147,7 @@ html {
   top: 7%;
   left: 50%;
   transform: translateY(-50%) translateX(-50%);
-  margin: 0;
-  overflow: hidden;
+  height: 9%;
   width: 95%;
   z-index: 1;
 }
@@ -195,14 +193,14 @@ html {
 }
 
 .goi_playerAid .goi_cardContent {
+  font-size: 14px !important;
   position: absolute;
   top: 48%;
   left: 50%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
   text-align: left;
+  height: 58%;
   transform: translateY(-50%) translateX(-50%);
 }
 
@@ -318,7 +316,6 @@ html {
 }
 
 .goi_objective .goi_cardContent {
-  font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
   top: 77%;
@@ -470,7 +467,6 @@ html {
 }
 
 .goi_item .goi_cardContent {
-  font-family: "rooney-web", serif;
   font-weight: 400;
   font-style: normal;
   top: 79.5%;
@@ -628,6 +624,10 @@ html {
 
 .goi_tooltip .goi_cardTitle {
   font-size: 24px;
+}
+
+.goi_tooltip .goi_cardContent {
+  font-size: 18px;
 }
 
 .goi_tooltipContainer-item {

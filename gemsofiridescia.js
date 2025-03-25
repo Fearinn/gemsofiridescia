@@ -15,6 +15,8 @@
  *
  */
 
+loadBgaGameLib("bga-autofit", "0.x");
+
 define([
   "dojo",
   "dojo/_base/declare",
@@ -223,6 +225,11 @@ define([
           );
           div.style.backgroundPosition = backgroundPosition;
 
+          div.insertAdjacentHTML(
+            "beforeend",
+            `<div class="bga-autofit goi_cardTitle">${_("Player aid")}</div>`
+          );
+
           const sentence3a = this.format_string_recursive(
             _("Spend ${coin_icon} to Mine gems. (∞)"),
             {
@@ -230,15 +237,8 @@ define([
             }
           );
 
-          const cardTitle = document.createElement("h4");
-          cardTitle.textContent = _("Player Aid");
-          cardTitle.classList.add("goi_cardTitle");
-          cardTitle.style.fontSize = "28px";
-
-          div.appendChild(cardTitle);
-          this.addCardTitle(cardTitle, 28, 409);
-
-          const aidContent = `
+          const aidContentHTML = `
+          <div class="bga-autofit goi_cardContent">
             <div class="goi_aidBlock">
               <h5 class="goi_aidSubtitle">${_("Main Actions")}</h5>
               <div class="goi_aidFlaggedSentence"><i class="goi_greenFlag"></i><span>1 ${_(
@@ -261,21 +261,10 @@ define([
               <span>5 ${_("Collect hex tile.")}</span>
               <span>6 ${_("Adjust Market die.")}</span>
             </div>
+          <div>
           `;
 
-          const aidContentElement = document.createElement("div");
-          aidContentElement.innerHTML = aidContent;
-          aidContentElement.style.boxSizing = "border-box";
-          aidContentElement.style.padding = "0 4px";
-          aidContentElement.style.fontFamily = "'rooney-web', serif";
-          aidContentElement.style.fontSize = "16px";
-          aidContentElement.style.width = "95%";
-          aidContentElement.style.display = "flex";
-          aidContentElement.style.flexDirection = "column";
-          aidContentElement.classList.add("goi_cardContent");
-
-          div.appendChild(aidContentElement);
-          this.addAidContent(div, aidContentElement, 16);
+          div.insertAdjacentHTML("beforeend", aidContentHTML);
 
           div.style.backgroundPosition = backgroundPosition;
           div.classList.add("goi_playerAid", "goi_tooltip", "goi_card");
@@ -467,17 +456,11 @@ define([
 
           const relicName = this.goi.info.relics[relic_id].tr_name;
 
-          const cardTitle = document.createElement("h4");
-          cardTitle.textContent = _(relicName);
-          cardTitle.classList.add("goi_cardTitle");
-
           if (div.childElementCount === 0) {
-            const initialFont = card.type == -99 ? 24 : undefined;
-            const cardHeight = card.type == -99 ? 409 : undefined;
-
-            cardTitle.style.fontSize = `${initialFont}px`;
-            div.appendChild(cardTitle);
-            this.addCardTitle(cardTitle, initialFont, cardHeight);
+            div.insertAdjacentHTML(
+              "beforeend",
+              `<div class="bga-autofit goi_cardTitle">${_(relicName)}</div>`
+            );
           }
 
           new dijit.Tooltip({
@@ -520,28 +503,20 @@ define([
           const objectiveInfo = this.goi.info.objectives[objective_id];
           const objectiveName = objectiveInfo.tr_name;
 
-          const cardTitle = document.createElement("h4");
-          cardTitle.textContent = _(objectiveName);
-          cardTitle.classList.add("goi_cardTitle");
-
           if (div.childElementCount === 0) {
-            const initialFont = card.type == -99 ? 28 : undefined;
-            const cardHeight = card.type == -99 ? 409 : undefined;
-
-            cardTitle.style.fontSize = `${initialFont}px`;
-            div.appendChild(cardTitle);
-            this.addCardTitle(cardTitle, initialFont, cardHeight);
+            div.insertAdjacentHTML(
+              "beforeend",
+              `<div class="bga-autofit goi_cardTitle">${_(objectiveName)}</div>`
+            );
           }
 
           if (div.childElementCount === 1) {
-            const initialFont = card.type == -99 ? 28 : undefined;
-            const cardHeight = card.type == -99 ? 409 : undefined;
-            this.addObjectiveContent(
-              objective_id,
-              div,
-              null,
-              initialFont,
-              cardHeight
+            const objectiveContent = objectiveInfo.content;
+            div.insertAdjacentHTML(
+              "beforeend",
+              `<div class="bga-autofit goi_cardContent">${_(
+                objectiveContent
+              )}</div>`
             );
           }
 
@@ -601,23 +576,20 @@ define([
           const itemInfo = this.goi.info.items[item_id];
           const itemName = itemInfo.tr_name;
 
-          const cardTitle = document.createElement("h4");
-          cardTitle.textContent = _(itemName);
-          cardTitle.classList.add("goi_cardTitle");
-
           if (div.childElementCount === 0) {
-            const initialFont = card.type == -99 ? 28 : undefined;
-            const cardHeight = card.type == -99 ? 409 : undefined;
-
-            cardTitle.style.fontSize = `${initialFont}px`;
-            div.appendChild(cardTitle);
-            this.addCardTitle(cardTitle, initialFont, cardHeight);
+            div.insertAdjacentHTML(
+              "beforeend",
+              `<div class="bga-autofit goi_cardTitle">${_(itemName)}</div>`
+            );
           }
 
           if (div.childElementCount === 1) {
-            const fontSize = card.type == -99 ? 28 : undefined;
-            const cardHeight = card.type == -99 ? 409 : undefined;
-            this.addItemContent(item_id, div, null, fontSize, cardHeight);
+            const itemInfo = this.goi.info.items[item_id];
+            const itemContent = itemInfo.content;
+            div.insertAdjacentHTML(
+              "beforeend",
+              `<div class="bga-autofit goi_cardContent">${itemContent}</div>`
+            );
           }
 
           const backgroundPosition = this.calcBackgroundPosition(item_id);
@@ -1825,6 +1797,7 @@ define([
       }
 
       this.setupNotifications();
+      bgaAutoFit();
 
       console.log("Ending game setup");
     },
@@ -3197,121 +3170,6 @@ define([
         );
 
         this.generateItemButton(item_id, elementId, isCancellable);
-      }
-    },
-
-    addCardTitle: function (
-      titleElement,
-      initialFont = 13.5,
-      cardHeight = 230
-    ) {
-      titleElement.style.fontSize = `${initialFont}px`;
-      const titleHeight = titleElement.offsetHeight;
-      const maxHeight = cardHeight * 0.09;
-
-      if (titleHeight > maxHeight) {
-        const fontSize = initialFont * 0.98;
-        titleElement.style.fontSize = `${fontSize}px`;
-
-        requestAnimationFrame(() => {
-          this.addCardTitle(titleElement, fontSize, cardHeight);
-        }, 0);
-      }
-    },
-
-    addItemContent: function (
-      item_id,
-      cardElement,
-      contentElement,
-      initialFont = 14,
-      cardHeight = 230
-    ) {
-      if (!contentElement) {
-        const itemInfo = this.goi.info.items[item_id];
-        const itemContent = itemInfo.content;
-
-        contentElement = document.createElement("span");
-        contentElement.textContent = _(itemContent);
-        contentElement.classList.add("goi_cardContent");
-
-        contentElement.style.fontFamily = "'rooney-web', serif";
-        contentElement.style.fontSize = `${initialFont}px`;
-        contentElement.style.width = "95%";
-        cardElement.appendChild(contentElement);
-      }
-
-      const contentHeight = contentElement.offsetHeight;
-      const maxHeight = cardHeight * 0.14;
-
-      if (contentHeight > maxHeight) {
-        const fontSize = initialFont * 0.98;
-        contentElement.style.fontSize = `${fontSize}px`;
-
-        requestAnimationFrame(() => {
-          this.addItemContent(
-            item_id,
-            cardElement,
-            contentElement,
-            fontSize,
-            cardHeight
-          );
-        }, 0);
-      }
-    },
-
-    addObjectiveContent: function (
-      objective_id,
-      cardElement,
-      contentElement,
-      initialFont = 12,
-      cardHeight = 230
-    ) {
-      if (!contentElement) {
-        const objectiveInfo = this.goi.info.objectives[objective_id];
-        const objectiveContent = objectiveInfo.content;
-
-        contentElement = document.createElement("span");
-        contentElement.textContent = _(objectiveContent);
-        contentElement.classList.add("goi_cardContent");
-
-        contentElement.style.fontFamily = `"rooney-web", serif`;
-        contentElement.style.fontSize = `${initialFont}px`;
-        contentElement.style.width = "95%";
-        contentElement.style.textAlign = "center";
-        cardElement.appendChild(contentElement);
-      }
-
-      const contentHeight = contentElement.offsetHeight;
-      const maxHeight = cardHeight * 0.12;
-
-      if (contentHeight > maxHeight) {
-        const fontSize = initialFont * 0.98;
-        contentElement.style.fontSize = `${fontSize}px`;
-
-        requestAnimationFrame(() => {
-          contentElement.style.transform = "translateY(-50%)";
-          this.addObjectiveContent(
-            objective_id,
-            cardElement,
-            contentElement,
-            fontSize,
-            cardHeight
-          );
-        }, 0);
-      }
-    },
-
-    addAidContent: function (div, contentElement, initialFont = 16) {
-      const contentHeight = contentElement.offsetHeight;
-      const maxHeight = 409 * 0.58;
-
-      if (contentHeight > maxHeight) {
-        const fontSize = initialFont * 0.98;
-        contentElement.style.fontSize = `${fontSize}px`;
-
-        requestAnimationFrame(() => {
-          this.addAidContent(div, contentElement, fontSize);
-        }, 0);
       }
     },
 
