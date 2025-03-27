@@ -2571,7 +2571,7 @@ class Game extends \Table
         );
     }
 
-    public function incGem(int $delta, int $gem_id, int $player_id, array $tileCard = null, bool $mine = false, bool $silent = false): bool
+    public function incGem(int $delta, int $gem_id, int $player_id, ?array $tileCard = null, bool $mine = false, bool $silent = false): bool
     {
         $gemName = $this->gems_info[$gem_id]["name"];
 
