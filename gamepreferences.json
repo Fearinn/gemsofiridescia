@@ -5,32 +5,34 @@
       "0": { "name": "Disabled" },
       "1": {
         "name": "Enabled",
-        "cssPref": "goi_thematicBackground",
-        "default": true
+        "cssPref": "goi_thematicBackground"
       }
     },
+    "default": 1,
     "needReload": true
   },
   "101": {
     "name": "Resources in the log",
     "values": {
       "0": { "name": "Plain text" },
-      "1": { "name": "Icons", "default": true }
+      "1": { "name": "Icons"}
     },
+    "default": 1,
     "needReload": true
   },
   "102": {
     "name": "Sound effects",
     "values": {
       "0": { "name": "Disabled" },
-      "1": { "name": "Enabled", "default": true }
+      "1": { "name": "Enabled" }
     },
+    "default": 1,
     "needReload": true
   },
   "103": {
     "name": "Sort tiles in victory pile by",
     "values": {
-      "1": { "name": "Gem", "default": true },
+      "1": { "name": "Gem" },
       "2": { "name": "Region" }
     },
     "needReload": true
@@ -38,7 +40,7 @@
   "104": {
     "name": "Sort relics in victory pile by",
     "values": {
-      "1": { "name": "Gem type", "default": true },
+      "1": { "name": "Gem type" },
       "2": { "name": "Category" }
     },
     "needReload": true
@@ -46,7 +48,7 @@
   "105": {
     "name": "Scale adjustment",
     "values": {
-      "1": { "name": "Manual", "default": true },
+      "1": { "name": "Manual" },
       "2": { "name": "Auto" }
     },
     "needReload": true
