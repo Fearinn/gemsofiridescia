@@ -861,7 +861,7 @@ html {
   position: relative;
 }
 
-.goi_cargoExcedent {
+.goi_cargoExcess {
   box-sizing: border-box;
   position: absolute;
   top: calc(var(--playerBoardSize) / 5 * -1);
@@ -872,7 +872,7 @@ html {
   overflow-x: auto;
 }
 
-.goi_cargoExcedent:empty {
+.goi_cargoExcess:empty {
   visibility: hidden;
 }
 

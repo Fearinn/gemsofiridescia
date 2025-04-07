@@ -121,8 +121,8 @@ $machinestates = [
 
     31 => [
         "name" => "transferGem",
-        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excedentGems} gem(s) to give away to another player'),
-        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excedentGems} gem(s) to give away to another player'),
+        "description" => clienttranslate('The cargo of ${actplayer} is full. ${actplayer} must pick up to ${excessGems} gem(s) to give away to another player'),
+        "descriptionmyturn" => clienttranslate('Your cargo is full. ${you} must pick up to ${excessGems} gem(s) to give away to another player'),
         "type" => "activeplayer",
         "args" => "argTransferGem",
         "action" => "stTransferGem",

@@ -1012,7 +1012,7 @@ define([
                 <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
               </div>
                 <div id="goi_cargo:${player_id}" class="goi_cargo">
-                  <div id="goi_cargoExcedent:${player_id}" class="goi_cargoExcedent whiteblock"></div> 
+                  <div id="goi_cargoExcess:${player_id}" class="goi_cargoExcess whiteblock"></div> 
                   <div id="goi_cargoBox:${player_id}-1" class="goi_cargoBox" data-box=1></div> 
                   <div id="goi_cargoBox:${player_id}-2" class="goi_cargoBox" data-box=2></div> 
                   <div id="goi_cargoBox:${player_id}-3" class="goi_cargoBox" data-box=3></div> 
@@ -1167,15 +1167,16 @@ define([
           }
 
           if (stateName === "transferGem") {
-            const excedentGems = this.goi.globals.excedentGems;
-            if (selection.length > excedentGems) {
+            const excessGems = this.goi.globals.excessGems;
+            if (selection.length > excessGems && excessGems > 1) {
               this.showMessage(
                 this.format_string(
-                  _("You can't select more than ${excedentGems} gem(s)"),
-                  { excedentGems }
+                  _("You can't select more than ${excessGems} gem(s)"),
+                  { excessGems }
                 ),
                 "error"
               );
+
               this.goi.stocks[player_id].gems.cargo.unselectCard(
                 lastChange,
                 true
@@ -2398,28 +2399,29 @@ define([
         }
 
         if (stateName === "transferGem") {
-          const excedentGems = args.args.excedentGems;
+          const excessGems = args.args.excessGems;
           const availableCargos = args.args.availableCargos;
 
-          this.goi.globals.excedentGems = excedentGems;
+          this.goi.globals.excessGems = excessGems;
           this.goi.globals.availableCargos = availableCargos;
 
           if (availableCargos.length === 0) {
             this.gamedatas.gamestate.descriptionmyturn =
               this.format_string_recursive(
                 _(
-                  "The cargos of all players are full. ${you} must pick up to ${excedentGems} gem(s) to discard"
+                  "The cargos of all players are full. ${you} must pick up to ${excessGems} gem(s) to discard"
                 ),
                 {
-                  excedentGems: excedentGems,
+                  excessGems: excessGems,
                   you: _("${you}"),
                 }
               );
             this.updatePageTitle();
           }
 
+          const selectionMode = excessGems > 1 ? "multiple" : "single";
           this.goi.stocks[this.player_id].gems.cargo.setSelectionMode(
-            "multiple"
+            selectionMode
           );
         }
 
@@ -2523,18 +2525,18 @@ define([
       }
 
       if (stateName === "transferGem") {
-        const excedentGems = args.args.excedentGems;
+        const excessGems = args.args.excessGems;
         const availableCargos = args.args.availableCargos;
 
         if (availableCargos.length === 0) {
           this.gamedatas.gamestate.descriptionmyturn =
             this.format_string_recursive(
               _(
-                "The cargos of all players are full. ${actplayer} must pick up to ${excedentGems} gem(s) to discard"
+                "The cargos of all players are full. ${actplayer} must pick up to ${excessGems} gem(s) to discard"
               ),
               {
                 actplayer: _("${actplayer}"),
-                excedentGems: excedentGems,
+                excessGems: excessGems,
               }
             );
           this.updatePageTitle();
@@ -2887,7 +2889,7 @@ define([
 
       const destinationElement = box
         ? document.getElementById(`goi_cargoBox:${player_id}-${box}`)
-        : document.getElementById(`goi_cargoExcedent:${player_id}`);
+        : document.getElementById(`goi_cargoExcess:${player_id}`);
 
       this.goi.stocks[player_id].gems.cargo.addCard(
         gemCard,
@@ -3678,7 +3680,7 @@ define([
           this.addGemToCargo(
             newGemCard,
             player_id,
-            document.getElementById(`goi_cargoExcedent:${player_id}`)
+            document.getElementById(`goi_cargoExcess:${player_id}`)
           );
         });
       }
@@ -3705,7 +3707,7 @@ define([
           this.addGemToCargo(
             newGemCard,
             player_id,
-            document.getElementById(`goi_cargoExcedent:${player_id}`)
+            document.getElementById(`goi_cargoExcess:${player_id}`)
           );
         });
       }

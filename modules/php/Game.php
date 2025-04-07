@@ -571,11 +571,11 @@ class Game extends \Table
         $this->checkVersion($clientVersion);
         $player_id = (int) $this->getActivePlayerId();
 
-        $excedentGems = $this->getTotalGemsCount($player_id) - 7;
+        $excessGems = $this->getTotalGemsCount($player_id) - 7;
         $transferredGemsCount = count($gemCards);
 
-        if ($transferredGemsCount > $excedentGems) {
-            throw new \BgaVisibleSystemException("You can't transfer more gems than your excedent");
+        if ($transferredGemsCount > $excessGems) {
+            throw new \BgaVisibleSystemException("You can't transfer more gems than your excess");
         }
 
         $availableCargos = $this->availableCargos($player_id, $transferredGemsCount);
@@ -1043,13 +1043,24 @@ class Game extends \Table
     {
         $player_id = (int) $this->getActivePlayerId();
 
-        $excedentGems = $this->getTotalGemsCount($player_id) - 7;
+        $excessGems = $this->getTotalGemsCount($player_id) - 7;
         $availableCargos = $this->availableCargos($player_id, 1);
 
+        $receivableGemsCounts = [0];
+        foreach ($availableCargos as $player_id) {
+            $receivableGemsCounts[] = 7 - $this->getTotalGemsCount($player_id);
+        }
+
+        $maxReceivableGems = max($receivableGemsCounts);
+
+        if ($maxReceivableGems > 0 && $maxReceivableGems < $excessGems) {
+            $excessGems = $maxReceivableGems;
+        }
+
         return [
-            "excedentGems" => $excedentGems,
+            "excessGems" => $excessGems,
             "availableCargos" => $availableCargos,
-            "_no_notify" => $excedentGems <= 0,
+            "_no_notify" => $excessGems <= 0,
         ];
     }
 
@@ -2470,7 +2481,7 @@ class Game extends \Table
         return $minedGemsCount;
     }
 
-    public function availableCargos(int $current_player_id = null, int $excess = 1): array
+    public function availableCargos(?int $current_player_id = null, int $excess = 1): array
     {
         if ($this->isSolo()) {
             if ($this->getTotalGemsCount(1) + $excess <= 7) {
@@ -4364,7 +4375,7 @@ class Game extends \Table
 
     public function debug_stat(int $player_id): void
     {
-        $stat = $this->getStatWithRhom("miningAttempts", $player_id);
+        $stat = (string) $this->getStatWithRhom("miningAttempts", $player_id);
         throw new \BgaUserException($stat);
     }
 
@@ -4551,7 +4562,7 @@ class Game extends \Table
      * - when the game starts
      * - when a player refreshes the game page (F5)
      */
-    protected function getAllDatas()
+    protected function getAllDatas(): array
     {
         $result = [];
         $result["version"] = (int) $this->gamestate->table_globals[300];
