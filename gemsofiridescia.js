@@ -15,19 +15,18 @@
  *
  */
 
-loadBgaGameLib("bga-autofit", "0.x");
-
 define([
   "dojo",
   "dojo/_base/declare",
   "ebg/core/gamegui",
   "ebg/counter",
+  getLibUrl("bga-autofit", "1.x"),
   g_gamethemeurl + "modules/js/bga-help.js",
   g_gamethemeurl + "modules/js/bga-zoom.js",
   g_gamethemeurl + "modules/js/bga-cards.js",
   g_gamethemeurl + "modules/js/bga-dice.js",
   g_gamethemeurl + "modules/js/diceTypes.js",
-], function (dojo, declare) {
+], function (dojo, declare, gamegui, counter, BgaAutoFit) {
   return declare("bgagame.gemsofiridescia", ebg.core.gamegui, {
     constructor: function () {
       console.log("gemsofiridescia constructor");
@@ -1798,7 +1797,7 @@ define([
       }
 
       this.setupNotifications();
-      bgaAutoFit();
+      BgaAutoFit.init();
 
       console.log("Ending game setup");
     },
