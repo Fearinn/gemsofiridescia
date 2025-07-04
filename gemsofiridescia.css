@@ -62,7 +62,12 @@ html {
   --barricadeSize: 75px;
 }
 
+#bga-zoom_wrapper {
+  direction: ltr;
+}
+
 .goi_gameArea {
+  direction: ltr !important;
   text-rendering: optimizeLegibility;
 
   box-sizing: border-box;
