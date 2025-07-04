@@ -8,8 +8,7 @@
         "cssPref": "goi_thematicBackground"
       }
     },
-    "default": 1,
-    "needReload": true
+    "default": 1
   },
   "101": {
     "name": "Resources in the log",
@@ -26,8 +25,7 @@
       "0": { "name": "Disabled" },
       "1": { "name": "Enabled" }
     },
-    "default": 1,
-    "needReload": true
+    "default": 1
   },
   "103": {
     "name": "Sort tiles in victory pile by",
