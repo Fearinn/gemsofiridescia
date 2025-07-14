@@ -230,5 +230,7 @@ class ObjectiveManager
 
             return true;
         }
+
+        return false;
     }
 }

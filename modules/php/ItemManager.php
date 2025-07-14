@@ -62,8 +62,11 @@ class ItemManager
         $hasEnoughCoins = $this->game->getCoins($player_id) >= $this->cost;
         $hasSameItem = !!$this->game->getCollectionFromDB("SELECT card_id from item 
         WHERE card_type_arg=$this->id AND card_location='hand' AND card_location_arg=$player_id");
+        $hasBoughItem = $this->game->globals->get(HAS_BOUGHT_ITEM);
+        $isInMarket = $this->checkLocation("market");
 
-        return !$this->game->globals->get(HAS_BOUGHT_ITEM) && $this->checkLocation("market") && $hasEnoughCoins && !$hasSameItem;
+        $isBuyable = !$hasBoughItem && $isInMarket && $hasEnoughCoins && !$hasSameItem;
+        return $isBuyable;
     }
 
     public function buy(int $player_id): void
@@ -900,7 +903,8 @@ class ItemManager
         return $registeredWell;
     }
 
-    public function duringWell(): bool {
+    public function duringWell(): bool
+    {
         return (int) $this->game->gamestate->state_id() === (int) ST_PICK_WELL_GEM;
     }
 }

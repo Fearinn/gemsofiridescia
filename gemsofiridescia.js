@@ -2102,17 +2102,19 @@ define([
         }
 
         if (stateName === "optionalActions") {
-          const canMine = args.args.canMine;
-          const activeStoneDiceCount = args.args.activeStoneDiceCount;
-          const activableStoneDiceCount = args.args.activableStoneDiceCount;
-          const canSellGems = args.args.canSellGems;
-          const canSellMoreGems = args.args.canSellMoreGems;
-          const soldGem = args.args.soldGem;
-          const canBuyItem = args.args.canBuyItem;
-          const buyableItems = args.args.buyableItems;
-          const canUseItem = args.args.canUseItem;
-          const usableItems = args.args.usableItems;
-          const cancellableItems = args.args.cancellableItems;
+          const {
+            canMine,
+            activeStoneDiceCount,
+            activableStoneDiceCount,
+            canSellGems,
+            canSellMoreGems,
+            soldGem,
+            canBuyItem,
+            canUseItem,
+            usableItems,
+            cancellableItems,
+            buyableItems,
+          } = args.args;
 
           this.goi.globals.cancellableItems = cancellableItems;
           this.goi.stocks.items.active.setSelectionMode(
