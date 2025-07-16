@@ -129,7 +129,7 @@ html {
 .goi_cardContent {
   font-family: "rooney-web", serif;
   font-size: 14px;
-  
+
   position: absolute;
   left: 2%;
   text-align: center;
@@ -827,8 +827,9 @@ html {
   display: grid;
   grid-template-rows: 1.1fr 0.9fr;
 
-  background: url("img/playerBoards.png");
-  height: var(--playerBoardSize);
+  background: url("img/playerBoards.jpg");
+  box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
+  aspect-ratio: 270 / 258;
   width: var(--playerBoardSize);
 }
 
