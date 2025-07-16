@@ -1002,7 +1002,8 @@ define([
         document.getElementById("goi_playerZones").insertAdjacentHTML(
           "beforeend",
           `
-        <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" style="border-color: #${playerColor}; order: ${order};">
+        <div id="goi_playerZoneContainer:${player_id}" class="goi_playerZoneContainer whiteblock" 
+        style="border-color: #${playerColor}; background-color: #${playerColor}44; order: ${order};">
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
             <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
