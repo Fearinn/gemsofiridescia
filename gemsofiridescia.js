@@ -587,7 +587,7 @@ define([
             const itemContent = itemInfo.content;
             div.insertAdjacentHTML(
               "beforeend",
-              `<div class="bga-autofit goi_cardContent">${itemContent}</div>`
+              `<div class="bga-autofit goi_cardContent">${_(itemContent)}</div>`
             );
           }
 
