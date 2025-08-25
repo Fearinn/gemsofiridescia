@@ -14,7 +14,7 @@
     "name": "Resources in the log",
     "values": {
       "0": { "name": "Plain text" },
-      "1": { "name": "Icons"}
+      "1": { "name": "Icons" }
     },
     "default": 1,
     "needReload": true
@@ -40,14 +40,6 @@
     "values": {
       "1": { "name": "Gem type" },
       "2": { "name": "Category" }
-    },
-    "needReload": true
-  },
-  "105": {
-    "name": "Scale adjustment",
-    "values": {
-      "1": { "name": "Manual" },
-      "2": { "name": "Auto" }
     },
     "needReload": true
   }

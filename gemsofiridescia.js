@@ -59,48 +59,25 @@ define([
 
       this.goi.version = gamedatas.version;
 
-      if (this.getGameUserPreference(105) == 1) {
-        document
-          .getElementById("overall-content")
-          .classList.add("goi_lockZoom");
+      document.getElementById("overall-content").classList.add("goi_lockZoom");
 
-        const gameArea = document.getElementById("goi_gameArea");
+      const gameArea = document.getElementById("goi_gameArea");
 
-        this.goi.managers.zoom = new ZoomManager({
-          element: gameArea,
-          localStorageZoomKey: "gemsofiridescia-zoom-1",
-          zoomControls: {
-            color: "black",
-          },
-          zoomLevels: [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
-          defaultZoom: 0.5,
-          smooth: true,
-          onZoomChange: () => {
-            const width = gameArea.offsetWidth;
-            const scrollWidth = gameArea.scrollWidth;
-
-            if (scrollWidth > width) {
-              gameArea.style.justifyContent = "flex-start";
-              return;
-            }
-
-            gameArea.style.justifyContent = "center";
-          },
-          onDimensionsChange: () => {
-            document
-              .getElementById("overall-content")
-              .style.removeProperty("--bga-game-zoom");
-          },
-        });
-
-        const width = gameArea.offsetWidth;
-        const scrollWidth = gameArea.scrollWidth;
-        if (scrollWidth > width) {
-          gameArea.style.justifyContent = "flex-start";
-        } else {
-          gameArea.style.justifyContent = "center";
-        }
-      }
+      this.goi.managers.zoom = new ZoomManager({
+        element: gameArea,
+        localStorageZoomKey: "gemsofiridescia-zoom-1",
+        zoomControls: {
+          color: "black",
+        },
+        zoomLevels: [0.25, 0.3, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+        defaultZoom: 0.5,
+        smooth: true,
+        onDimensionsChange: () => {
+          document
+            .getElementById("overall-content")
+            .style.removeProperty("--bga-game-zoom");
+        },
+      });
 
       this.goi.info.tiles = gamedatas.tilesInfo;
       this.goi.info.relics = gamedatas.relicsInfo;
@@ -531,7 +508,7 @@ define([
           const backgroundPosition =
             this.calcBackgroundPosition(spritePosition);
 
-          div.style.background = background;
+          div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
 
           new dijit.Tooltip({
@@ -545,7 +522,7 @@ define([
           const background = `url(${g_gamethemeurl}img/objectives-1.jpg)`;
           const backgroundPosition = this.calcBackgroundPosition(0);
 
-          div.style.background = background;
+          div.style.backgroundImage = background;
           div.style.backgroundPosition = backgroundPosition;
         },
       });
@@ -1619,6 +1596,7 @@ define([
       }
 
       if (this.goi.globals.isSolo) {
+        document.getElementById("goi_gameArea").classList.add("goi_solo");
         document.getElementById("goi_merchant").classList.add("goi_solo");
       }
 

@@ -86,7 +86,8 @@ html {
   column-gap: 16px;
   row-gap: 8px;
   padding: 12px;
-  overflow-x: auto;
+  width: 100%;
+  overflow: hidden;
 }
 
 .goi_lockZoom {
@@ -120,7 +121,7 @@ html {
 .goi_card {
   height: var(--cardHeight);
   width: var(--cardSize);
-    box-shadow: 1px 1px 8px 1px #000000;
+  box-shadow: 1px 1px 8px 1px #000000;
 }
 
 .goi_card,
@@ -440,9 +441,11 @@ html {
   position: relative;
   grid-area: e;
   display: flex;
+  justify-content: space-between;
   gap: 4px;
   min-height: calc(var(--cardHeight) + 20px);
   box-shadow: 1px 1px 16px 1px #000000;
+  width: calc(var(--cardSize) * 2 + 16px);
 }
 
 .goi_zoneTitle {
@@ -622,8 +625,8 @@ html {
 
 .goi_tooltip {
   height: var(--cardTooltipHeight);
-  width: var(--cardTooltipWidth);
   box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.5);
+  width: var(--cardTooltipWidth);
 }
 
 .goi_tooltip.goi_tile {
@@ -696,7 +699,7 @@ html {
   grid-area: f;
   justify-content: center;
   margin: 0 auto;
-  width: var(--boardSize);
+  width: calc(var(--boardSize) * 1.1);
 }
 
 .goi_merchant.goi_solo .goi_itemsMarket {
@@ -965,6 +968,56 @@ html {
 
 .goi_relicsPile .goi_relic.card:not(:first-child) {
   margin-top: -95%;
+}
+
+@media (max-width: 740px) {
+  :root {
+    --cardTooltipWidth: 150px;
+    --cardTooltipHeight: 204.5px;
+  }
+
+  .goi_gameArea {
+    grid-template-areas:
+      ". d d d d ."
+      "f f f f f f"
+      ". a a a a ."
+      ". c c c c ."
+      ". b b b b ."
+      ". e e e e .";
+    justify-items: center;
+  }
+
+  .goi_playerZones {
+    max-width: var(--boardSize);
+  }
+
+  .goi_merchant {
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .goi_itemsMarket {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .goi_itemsDeck {
+    left: 0;
+  }
+
+  .goi_tooltipContainer-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 320px;
+  }
+
+  .goi_tooltip .goi_card,
+  .goi_tooltip .card-side {
+    background-size: cover;
+  }
 }
 
 /* END OF CUSTOM STYLES */
