@@ -172,19 +172,20 @@ html {
 
 .goi_helpFolded {
   font-family: "sketchnote-square", sans-serif;
+  font-size: 32px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  background-color: white;
   height: 100%;
 }
 
 .goi_playerAid {
   position: relative;
   background-image: url("img/tooltips/playerAids.jpg");
-  height: var(--cardTooltipHeight);
-  width: var(--cardTooltipWidth);
+  height: 409px;
+  width: 300px;
 }
 
 .goi_playerAid i {

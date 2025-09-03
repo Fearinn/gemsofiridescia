@@ -243,7 +243,7 @@ define([
           div.insertAdjacentHTML("beforeend", aidContentHTML);
 
           div.style.backgroundPosition = backgroundPosition;
-          div.classList.add("goi_playerAid", "goi_tooltip", "goi_card");
+          div.classList.add("goi_playerAid", "goi_card");
         },
         setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
