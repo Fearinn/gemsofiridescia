@@ -69,14 +69,10 @@ define([
         zoomControls: {
           color: "black",
         },
-        zoomLevels: [0.25, 0.3, 0.375, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2],
+        zoomLevels: [
+          0.4, 0.5, 0.625, 0.75, 0.875, 1, 1.125, 1.25, 1.375, 1.5, 1.75, 2,
+        ],
         defaultZoom: 0.5,
-        smooth: true,
-        onDimensionsChange: () => {
-          document
-            .getElementById("overall-content")
-            .style.removeProperty("--bga-game-zoom");
-        },
       });
 
       this.goi.info.tiles = gamedatas.tilesInfo;

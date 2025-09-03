@@ -42,24 +42,24 @@
 }
 
 html {
-  --boardSize: 1128.4px;
-  --playerBoardSize: 270px;
-  --cardHeight: 230px;
-  --cardSize: 168.75px;
-  --cardTooltipHeight: 409px;
-  --cardTooltipWidth: 300px;
-  --tileHeight: 104px;
-  --tileSize: 90px;
-  --tileTooltipHeight: 230px;
-  --tileTooltipWidth: 200px;
-  --tileSpacing: 1.6px;
-  --explorerSize: 80px;
-  --gemSize: 40px;
-  --gemIconSize: 40px;
-  --dieSize: 45px;
-  --scoringMarkerSize: 22.5px;
-  --royaltyTokenSize: 112.8px;
-  --barricadeSize: 75px;
+  --boardSize: 902px;
+  --playerBoardSize: 216px;
+  --cardHeight: 184px;
+  --cardSize: 135px;
+  --cardTooltipHeight: 327px;
+  --cardTooltipWidth: 240px;
+  --tileHeight: 83px;
+  --tileSize: 72px;
+  --tileTooltipHeight: 184px;
+  --tileTooltipWidth: 160px;
+  --tileSpacing: 1px;
+  --explorerSize: 64px;
+  --gemSize: 32px;
+  --gemIconSize: 32px;
+  --dieSize: 36px;
+  --scoringMarkerSize: 18px;
+  --royaltyTokenSize: 90px;
+  --barricadeSize: 60px;
 }
 
 #bga-zoom_wrapper {
@@ -119,14 +119,16 @@ html {
 }
 
 .goi_card {
+  box-shadow: 1px 1px 8px 1px #000000;
+  background-size: cover;
   height: var(--cardHeight);
   width: var(--cardSize);
-  box-shadow: 1px 1px 8px 1px #000000;
 }
 
 .goi_card,
 .goi_card .card-side {
   border-radius: calc(var(--cardHeight) * 0.029);
+  background-size: cover;
 }
 
 .goi_cardContent {
