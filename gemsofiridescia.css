@@ -304,7 +304,7 @@ html {
 }
 
 .goi_gemIcon {
-  background-image: url("img/gems.png");
+  background-size: cover;
   height: var(--gemIconSize);
   width: var(--gemIconSize);
   filter: drop-shadow(2px 2px 2px #000000);
@@ -312,7 +312,7 @@ html {
 
 .goi_gemIcon.goi_log {
   position: relative;
-  top: 5px;
+  top: 2px;
   display: inline-block;
   background-size: cover;
   height: calc(var(--gemIconSize) / 2);
@@ -524,7 +524,7 @@ html {
 
 .goi_scoreHundred {
   font-family: "sketchnote-square", sans-serif;
-  font-size: 12px;
+  font-size: 10px;
   position: absolute;
   top: 14%;
   left: 5%;
@@ -595,6 +595,7 @@ html {
 .goi_tile .card-side,
 .goi_tile.goi_logImage {
   box-shadow: none !important;
+  background-size: cover;
   height: var(--tileHeight);
   width: var(--tileSize);
 }
@@ -819,6 +820,7 @@ html {
 
 .goi_royaltyToken {
   background-image: url("img/royaltyTokens.png");
+  background-size: cover;
   height: var(--royaltyTokenSize);
   width: var(--royaltyTokenSize);
   filter: drop-shadow(2px 2px 2px #000000);
@@ -839,8 +841,7 @@ html {
   position: relative;
   display: grid;
   grid-template-rows: 1.1fr 0.9fr;
-
-  background: url("img/playerBoards.jpg");
+  background-size: cover;
   box-shadow: 1px 1px 8px 1px #000000;
   aspect-ratio: 270 / 258;
   width: var(--playerBoardSize);
@@ -860,7 +861,7 @@ html {
 
 .goi_explorer {
   bottom: 12px;
-  background-image: url("img/explorers.png");
+  background-size: cover;
   height: var(--explorerSize);
   width: var(--explorerSize);
   z-index: 1;
@@ -932,7 +933,7 @@ html {
 }
 
 .goi_gem {
-  background-image: url("img/gems.png");
+  background-size: cover;
   height: var(--gemSize);
   width: var(--gemSize);
   filter: drop-shadow(1px 1px 1px #000000);

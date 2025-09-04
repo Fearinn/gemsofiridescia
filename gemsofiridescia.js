@@ -270,9 +270,7 @@ define([
           div.style.position = "relative";
 
           const gem_id = Number(card.type_arg);
-
-          const backgroundPosition = this.calcBackgroundPosition(gem_id);
-          div.style.backgroundPosition = backgroundPosition;
+          div.style.backgroundImage = `url(${g_gamethemeurl}/img/gem_${gem_id}.png)`;
 
           const tooltip = this.goi.info.gems.tooltips[gem_id];
           this.addTooltip(div.id, _(tooltip), "");
@@ -305,18 +303,10 @@ define([
             return;
           }
 
-          const backgroundCode = card.type;
-          const background = `url(${g_gamethemeurl}/img/tiles-${backgroundCode}.png)`;
-
-          const backgroundPosition = this.calcBackgroundPosition(
-            card.type_arg - 13 * (card.type - 1) - 1
-          );
-
+          const background = `url(${g_gamethemeurl}/img/tiles/tile_${card.type_arg}.png)`;
           div.style.backgroundImage = background;
-          div.style.backgroundPosition = backgroundPosition;
 
           const tooltip = this.createTileTooltip(card);
-
           this.addTooltipHtml(div.id, tooltip);
         },
         setupBackDiv: (card, div) => {
@@ -324,11 +314,8 @@ define([
             return;
           }
 
-          const background = `url(${g_gamethemeurl}/img/tilesBacks.png)`;
-          const backgroundPosition = this.calcBackgroundPosition(card.type - 1);
-
+          const background = `url(${g_gamethemeurl}/img/tileBack_${card.type}.png)`;
           div.style.backgroundImage = background;
-          div.style.backgroundPosition = backgroundPosition;
 
           if (card.location === "board") {
             this.addTooltip(
@@ -359,7 +346,7 @@ define([
       });
 
       this.goi.managers.explorers = new CardManager(this, {
-        getId: (card) => `explorer-${card.id}`,
+        getId: (card) => `goi_explorer-${card.id}`,
         selectedCardClass: "goi_selectedCard",
         setupDiv: (card, div) => {
           div.classList.add("goi_explorer");
@@ -374,19 +361,16 @@ define([
             return;
           }
 
-          const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
-          const backgroundPosition =
-            this.calcBackgroundPosition(spritePosition);
-
-          div.style.backgroundPosition = backgroundPosition;
+          const index = this.goi.globals.playerBoards[player_id];
+          div.style.backgroundImage = `url(${g_gamethemeurl}img/explorer_${index}.png)`;
         },
         setupFrontDiv: (card, div) => {},
         setupBackDiv: (card, div) => {},
       });
 
       this.goi.managers.relics = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 168.75,
+        cardHeight: 184,
+        cardWidth: 135,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `relic-${card.id}`,
         setupDiv: (card, div) => {
@@ -451,8 +435,8 @@ define([
       });
 
       this.goi.managers.objectives = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 168.75,
+        cardHeight: 184,
+        cardWidth: 135,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `objective-${card.id}`,
         setupDiv: (card, div) => {
@@ -492,20 +476,8 @@ define([
             );
           }
 
-          const backgroundCode = objective_id <= 7 ? 1 : 2;
-          let background = `url(${g_gamethemeurl}img/objectives-${backgroundCode}.jpg)`;
-
-          if (card.type == -99) {
-            background = background.replace("img/", "img/tooltips/");
-          }
-
-          let spritePosition = objective_id - 8 * (backgroundCode - 1);
-
-          const backgroundPosition =
-            this.calcBackgroundPosition(spritePosition);
-
-          div.style.backgroundImage = background;
-          div.style.backgroundPosition = backgroundPosition;
+          const backgroundImage = `url(${g_gamethemeurl}img/objectives/objective_${card.type_arg}.jpg)`;
+          div.style.backgroundImage = backgroundImage;
 
           new dijit.Tooltip({
             connectId: [div.id],
@@ -515,17 +487,14 @@ define([
           });
         },
         setupBackDiv: (card, div) => {
-          const background = `url(${g_gamethemeurl}img/objectives-1.jpg)`;
-          const backgroundPosition = this.calcBackgroundPosition(0);
-
-          div.style.backgroundImage = background;
-          div.style.backgroundPosition = backgroundPosition;
+          const backgroundImage = `url(${g_gamethemeurl}img/objectives/objectivesBack.jpg)`;
+          div.style.backgroundImage = backgroundImage;
         },
       });
 
       this.goi.managers.items = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 168.75,
+        cardHeight: 184,
+        cardWidth: 135,
         selectedCardClass: "goi_selectedCard",
         getId: (card) => `item-${card.id}`,
         setupDiv: (card, div) => {
@@ -578,8 +547,8 @@ define([
       });
 
       this.goi.managers.scoringMarkers = new CardManager(this, {
-        cardHeight: 40,
-        cardWidth: 40,
+        cardHeight: 18,
+        cardWidth: 18,
         getId: (card) => `scoringMarker-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_scoringMarker");
@@ -599,8 +568,8 @@ define([
       });
 
       this.goi.managers.rhom = new CardManager(this, {
-        cardHeight: 230,
-        cardWidth: 168.75,
+        cardHeight: 184,
+        cardWidth: 135,
         getId: (card) => `rhom-${card.id}`,
         setupDiv: (card, div) => {
           div.classList.add("goi_card");
@@ -644,13 +613,13 @@ define([
 
       scoringTrack.childNodes.forEach((slot) => {
         slot.style.position = "absolute";
-        slot.style.height = "40px";
-        slot.style.width = "40px";
+        slot.style.height = "18px";
+        slot.style.width = "18px";
 
         const slotId = Number(slot.dataset.slotId);
 
         if (slotId <= 34) {
-          slot.style.bottom = `${2.5 + slotId * 2.5}%`;
+          slot.style.bottom = `${4 + slotId * 2.5}%`;
           slot.style.left = slotId % 2 === 0 ? "6.5%" : "4.25%";
           return;
         }
@@ -663,7 +632,7 @@ define([
 
         if (slotId >= 75) {
           slot.style.top = `${11 + (slotId - 75) * 2.5}%`;
-          slot.style.right = slotId % 2 === 0 ? "5.5%" : "3.25%";
+          slot.style.right = slotId % 2 === 0 ? "7%" : "5%";
           return;
         }
       });
@@ -697,11 +666,9 @@ define([
 
         const gemCounters = this.goi.counters[player_id].gems;
 
-        let spritePosition = 1;
         for (const gemName in gemCounters) {
-          const backgroundPosition =
-            this.calcBackgroundPosition(spritePosition);
-          spritePosition++;
+          const gem_id = this.goi.info.gems.ids[gemName];
+          const backgroundImage = `url(${g_gamethemeurl}/img/gem_${gem_id}.png)`;
 
           const counterElementId = `goi_gemCounter:${player_id}-${gemName}`;
 
@@ -710,7 +677,7 @@ define([
             .insertAdjacentHTML(
               "beforeend",
               `<div id="${counterElementId}" class="goi_gemCounter">
-                <div class="goi_gemIcon" style="background-position: ${backgroundPosition}"></div>
+                <div class="goi_gemIcon" style="background-image: ${backgroundImage}"></div>
                 <span id="goi_gemCount:${player_id}-${gemName}" class="goi_counterValue"></span>
               </div>`
             );
@@ -719,7 +686,6 @@ define([
           gemCounter.create(`goi_gemCount:${player_id}-${gemName}`);
           gemCounter.setValue(this.goi.globals.gemsCounts[player_id][gemName]);
 
-          const gem_id = this.goi.info.gems.ids[gemName];
           const tooltip = this.goi.info.gems.tooltips[gem_id];
           this.addTooltip(counterElementId, _(tooltip), "");
         }
@@ -961,8 +927,7 @@ define([
       });
 
       for (const player_id in this.goi.globals.players) {
-        const spritePosition = this.goi.globals.playerBoards[player_id] - 1;
-        const backgroundPosition = this.calcBackgroundPosition(spritePosition);
+        const index = this.goi.globals.playerBoards[player_id];
 
         const player = this.goi.globals.players[player_id];
         const playerName =
@@ -972,6 +937,8 @@ define([
         const playerColor = player.color;
         const order = this.player_id == player_id ? -1 : 0;
 
+        const backgroundImage = `url(${g_gamethemeurl}/img/board_${index}.jpg)`;
+
         document.getElementById("goi_playerZones").insertAdjacentHTML(
           "beforeend",
           `
@@ -979,7 +946,7 @@ define([
         style="border-color: #${playerColor}; background-color: #${playerColor}44; order: ${order};">
           <h3 id="goi_playerZoneTitle:${player_id}" class="goi_zoneTitle" style="color: #${playerColor};">${playerName}</h3>
           <div id="goi_playerZone:${player_id}" class="goi_playerZone">
-            <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-position: ${backgroundPosition}" data-player="${player_id}">
+            <div id="goi_playerBoard:${player_id}" class="goi_playerBoard" style="background-image: ${backgroundImage}" data-player="${player_id}">
               <div id="goi_scene:${player_id}" class="goi_scene">
                 <div id="goi_sceneExplorer:${player_id}" class="goi_sceneExplorer"></div>
                 <div id="goi_sceneDice:${player_id}" class="goi_sceneDice"></div>
@@ -2707,12 +2674,11 @@ define([
       for (const gemName in pickableGems) {
         const gem_id = this.goi.info.gems.ids[gemName];
         const buttonId = `goi_rainbow-${gem_id}_btn`;
-
-        const backgroundPosition = this.calcBackgroundPosition(gem_id);
+        const backgroundImage = `url(${g_gamethemeurl}/img/gem_${gem_id}.png)`;
 
         this.addActionButton(
           buttonId,
-          `<div class="goi_gem card" style="background-position: ${backgroundPosition}"></div>`,
+          `<div class="goi_gem card" style="background-image: ${backgroundImage}"></div>`,
           () => {
             this.goi.selections.gem = gem_id;
             callback();
@@ -4196,15 +4162,7 @@ define([
     /* LOGS MANIPULATION */
 
     createTileTooltip: function (tileCard) {
-      const tile_id = Number(tileCard.type_arg);
-      const region_id = Number(tileCard.type);
       const hex = Number(tileCard.location_arg);
-
-      const background = `url(${g_gamethemeurl}/img/tooltips/tiles-${region_id}.png)`;
-
-      const backgroundPosition = this.calcBackgroundPosition(
-        tile_id - 13 * (region_id - 1) - 1
-      );
 
       const hexText = this.format_string_recursive(_("Hex: ${log_hex}"), {
         log_hex: hex,
@@ -4216,7 +4174,7 @@ define([
           : "";
 
       const tooltip = `<div>
-      <div class="goi_tooltip goi_tile" style="background-image: ${background}; background-position: ${backgroundPosition}"></div>
+      <div class="goi_tooltip goi_tile"></div>
       ${hexElement}
       </div>`;
 
@@ -4468,8 +4426,8 @@ define([
 
           if (args.gem_label && args.gem_id) {
             const gem_id = args.gem_id;
-            const backgroundPosition = this.calcBackgroundPosition(gem_id);
-            args.gem_label = `<span class="goi_gemIcon goi_log" style="background-position: ${backgroundPosition};"></span>`;
+            const backgroundImage = `url(${g_gamethemeurl}/img/gem_${gem_id}.png)`;
+            args.gem_label = `<span class="goi_gemIcon goi_log" style="background-image: ${backgroundImage}"></span>`;
           }
 
           if (args.coin) {

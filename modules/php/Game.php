@@ -2299,6 +2299,11 @@ class Game extends \Table
             $token_id = 1;
         }
 
+        $this->obtainRoyaltyToken($token_id, $score_aux, $player_id);
+    }
+
+    public function obtainRoyaltyToken(int $token_id, int $score_aux, int $player_id): void
+    {
         $token_info = $this->royaltyTokens_info[$token_id];
         $tokenName = $token_info["name"];
         $tokenLabel = $token_info["tr_name"];
@@ -4357,6 +4362,18 @@ class Game extends \Table
     {
         $player_id = (int) $this->getCurrentPlayerId();
         $this->incCoin(10, $player_id);
+    }
+
+    public function debug_score(): void
+    {
+        $player_id = (int) $this->getCurrentPlayerId();
+        $this->incRoyaltyPoints(5, $player_id);
+    }
+
+    public function debug_obtainRoyaltyToken(): void
+    {
+        $player_id = (int) $this->getCurrentPlayerId();
+        $this->obtainRoyaltyToken(1, 1, $player_id);
     }
 
     // public function debug_calcFinalScoring(): void
