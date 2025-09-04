@@ -215,6 +215,11 @@ html {
   transform: translateY(-50%) translateX(-50%);
 }
 
+.goi_playerAid .goi_cardTitle {
+  font-size: 32px;
+  height: 15%;
+}
+
 .goi_aidBlock {
   display: flex;
   flex-direction: column;
