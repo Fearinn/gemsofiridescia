@@ -32,41 +32,6 @@ var BgaDie6 = /** @class */ (function () {
   return BgaDie6;
 })();
 
-const faceToBackgroundPosition = {
-  1: { x: 0, y: 100 },
-  2: { x: 0, y: 0 },
-  3: { x: 100, y: 100 },
-  4: { x: 100, y: 0 },
-  5: { x: 200, y: 0 },
-  6: { x: 200, y: 100 },
-};
-
-const colorToMultiplier = {
-  ff0000: 5,
-  "0000ff": 6,
-  "008000": 7,
-  ffa500: 8,
-  "982F9B": 8,
-};
-
-function calcBackgroundPosition(face, type, type_arg) {
-  let multiplier = 0;
-
-  if (type === "gem") {
-    multiplier = type_arg;
-  }
-
-  if (type === "mining") {
-    multiplier = colorToMultiplier[type_arg];
-  }
-
-  const basePosition = faceToBackgroundPosition[face];
-  const x = basePosition.x + 100 * 3 * multiplier;
-  const y = basePosition.y;
-
-  return `-${x}% -${y}%`;
-}
-
 class Die extends BgaDie6 {
   constructor(game) {
     super();
@@ -82,7 +47,8 @@ class Die extends BgaDie6 {
 
   setupFaceDiv(die, element, face) {
     element.classList.add("goi_dieFace");
-    element.style.backgroundPosition = calcBackgroundPosition(face);
+    const backgroundImage = `url(${g_gamethemeurl}img/dice/${die.type}Die_${die.type_arg}_${face}.jpg)`;
+    element.style.backgroundImage = backgroundImage;
   }
 }
 
@@ -108,12 +74,8 @@ class GemDie extends Die {
   }
 
   setupFaceDiv(die, element, face) {
+    die.type_arg = die.id;
     super.setupFaceDiv(die, element, face);
-    element.style.backgroundPosition = calcBackgroundPosition(
-      face,
-      die.type,
-      die.id
-    );
   }
 }
 
@@ -134,6 +96,7 @@ class StoneDie extends Die {
   }
 
   setupFaceDiv(die, element, face) {
+    die.type_arg = 1;
     super.setupFaceDiv(die, element, face);
   }
 }
@@ -150,10 +113,5 @@ class MiningDie extends Die {
 
   setupFaceDiv(die, element, face) {
     super.setupFaceDiv(die, element, face);
-    element.style.backgroundPosition = calcBackgroundPosition(
-      face,
-      die.type,
-      die.color
-    );
   }
 }

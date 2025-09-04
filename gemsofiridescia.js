@@ -1046,13 +1046,13 @@ define([
             id: mininigDie1_id,
             face: rolledDice[mininigDie1_id]?.face || 6,
             type: "mining",
-            color: player_color,
+            type_arg: this.goi.globals.playerBoards[player_id],
           },
           {
             id: mininigDie2_id,
             face: rolledDice[mininigDie2_id]?.face || 6,
             type: "mining",
-            color: player_color,
+            type_arg: this.goi.globals.playerBoards[player_id],
           },
         ];
 
@@ -3844,7 +3844,7 @@ define([
         id: die_id,
         face: face,
         type: type,
-        color: this.goi.globals.players[player_id].color,
+        type_arg: this.goi.globals.playerBoards[player_id],
       };
 
       this.goi.stocks[player_id].dice.scene.removeDie(die);

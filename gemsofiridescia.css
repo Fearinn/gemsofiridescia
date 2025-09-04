@@ -381,7 +381,7 @@ html {
 .goi_stoneDice {
   position: absolute;
   bottom: 33%;
-  right: 14%;
+  right: 12%;
   display: flex;
   justify-content: center;
   gap: 4px;
@@ -395,7 +395,7 @@ html {
 }
 
 .goi_dieFace {
-  background-image: url("img/dice.png");
+  background-size: cover;
 }
 
 .goi_void {
