@@ -4173,8 +4173,10 @@ define([
           ? `<span style="font-size: 16px">${hexText}</span></span>`
           : "";
 
+      const backgroundImage = `url(${g_gamethemeurl}img/tiles/tile_${tileCard.type_arg}.png)`;
+
       const tooltip = `<div>
-      <div class="goi_tooltip goi_tile"></div>
+      <div class="goi_tooltip goi_tile" style="background-image: ${backgroundImage}"></div>
       ${hexElement}
       </div>`;
 
