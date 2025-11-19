@@ -2263,9 +2263,7 @@ define([
         }
 
         if (stateName === "client_axeOfAwesomeness") {
-          this.goi.stocks[this.player_id].gems.cargo.setSelectionMode(
-            "multiple"
-          );
+          this.goi.stocks[this.player_id].gems.cargo.setSelectionMode("single");
         }
 
         if (stateName === "client_prosperousPickaxe") {
@@ -3010,6 +3008,7 @@ define([
       if (stateName === "client_axeOfAwesomeness") {
         if (this.goi.selections.gem) {
           this.addActionButton(elementId, message, "actUseItem");
+          g;
         }
         return;
       }
@@ -3353,9 +3352,11 @@ define([
         args = {};
       }
 
+      console.log(args, "TEST");
+
       this.performAction("actUseItem", {
         itemCard_id: selectedItem.id,
-        args: JSON.stringify(args),
+        actionArgs: JSON.stringify(args),
       });
     },
 

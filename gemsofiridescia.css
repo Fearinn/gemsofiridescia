@@ -298,6 +298,7 @@ html {
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  gap: 8px;
 }
 
 .goi_gemCounter {

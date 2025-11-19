@@ -463,8 +463,11 @@ class Game extends \Table
         $this->gamestate->nextState("repeat");
     }
 
-    public function actUseItem(?int $clientVersion, #[IntParam(min: 1, max: 36)] int $itemCard_id, #[JsonParam(alphanum: true)] array $args): void
-    {
+    public function actUseItem(
+        ?int $clientVersion,
+        #[IntParam(min: 1, max: 36)] int $itemCard_id,
+        #[JsonParam(alphanum: true)] array $actionArgs
+    ): void {
         $this->actionAfterSell();
 
         $this->checkVersion($clientVersion);
@@ -472,7 +475,7 @@ class Game extends \Table
 
         $item = new ItemManager($itemCard_id, $this);
 
-        if (!$item->use($player_id, $args)) {
+        if (!$item->use($player_id, $actionArgs)) {
             $anchorState_id = (int) $this->gamestate->state_id();
             $this->globals->set(ANCHOR_STATE, $anchorState_id);
             $this->gamestate->jumpToState(ST_TRANSFER_GEM);
