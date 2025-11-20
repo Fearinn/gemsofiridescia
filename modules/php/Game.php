@@ -64,6 +64,8 @@ class Game extends \Table
 {
     public function __construct()
     {
+        require "material.inc.php";
+        
         parent::__construct();
 
         $this->initGameStateLabels([
@@ -4646,16 +4648,6 @@ class Game extends \Table
         }
 
         return $result;
-    }
-
-    /**
-     * Returns the game name.
-     *
-     * IMPORTANT: Please do not modify.
-     */
-    protected function getGameName()
-    {
-        return "gemsofiridescia";
     }
 
     protected function setupNewGame($players, $options = [])
