@@ -122,43 +122,12 @@ define([
       this.goi.selections = this.goi_defaultSelections;
 
       this.goi.bot = gamedatas.bot;
-      this.goi.globals.isSolo = gamedatas.isSolo;
-      this.goi.globals.realPlayer = gamedatas.realPlayer;
-      this.goi.globals.rhomDeck = gamedatas.rhomDeck;
-      this.goi.globals.rhomDeckTop = gamedatas.rhomDeckTop;
-      this.goi.globals.rhomDiscard = gamedatas.rhomDiscard;
-      this.goi.globals.barricadeTiles = gamedatas.barricadeTiles;
-
-      this.goi.globals.players = gamedatas.playersNoZombie;
-      this.goi.globals.player = gamedatas.players[this.player_id];
-      this.goi.globals.tilesBoard = gamedatas.tilesBoard;
-      this.goi.globals.playerBoards = gamedatas.playerBoards;
-      this.goi.globals.revealedTiles = gamedatas.revealedTiles;
-      this.goi.globals.collectedTiles = gamedatas.collectedTiles;
-      this.goi.globals.iridiaStoneOwner = gamedatas.iridiaStoneOwner;
-      this.goi.globals.royaltyTokens = gamedatas.royaltyTokens;
-      this.goi.globals.explorers = gamedatas.explorers;
-      this.goi.globals.coins = gamedatas.coins;
-      this.goi.globals.gems = gamedatas.gems;
-      this.goi.globals.gemsCounts = gamedatas.gemsCounts;
-      this.goi.globals.availableCargos = [];
-      this.goi.globals.marketValues = gamedatas.marketValues;
-      this.goi.globals.publicStoneDice = gamedatas.publicStoneDice;
-      this.goi.globals.playerStoneDice = gamedatas.playerStoneDice;
-      this.goi.globals.activeStoneDice = gamedatas.activeStoneDice;
-      this.goi.globals.rolledDice = gamedatas.rolledDice;
-      this.goi.globals.relicsDeck = gamedatas.relicsDeck;
-      this.goi.globals.relicsDeckTop = gamedatas.relicsDeckTop;
-      this.goi.globals.relicsMarket = gamedatas.relicsMarket;
-      this.goi.globals.restoredRelics = gamedatas.restoredRelics;
-      this.goi.globals.itemsDeck = gamedatas.itemsDeck;
-      this.goi.globals.itemsMarket = gamedatas.itemsMarket;
-      this.goi.globals.itemsDiscard = gamedatas.itemsDiscard;
-      this.goi.globals.boughtItems = gamedatas.boughtItems;
-      this.goi.globals.activeItems = gamedatas.activeItems;
-      this.goi.globals.cancellableItems = gamedatas.cancellableItems;
-      this.goi.globals.objectives = gamedatas.objectives;
-      this.goi.globals.books = gamedatas.books;
+      this.goi.globals = {
+        ...gamedatas,
+        players: gamedatas.playersNoZombie,
+        player: gamedatas.players[this.player_id],
+        availableCargos: []
+      };
 
       for (const player_id in this.goi.globals.players) {
         this.goi.stocks[player_id] = {
