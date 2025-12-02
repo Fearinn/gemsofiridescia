@@ -126,7 +126,7 @@ define([
         ...gamedatas,
         players: gamedatas.playersNoZombie,
         player: gamedatas.players[this.player_id],
-        availableCargos: []
+        availableCargos: [],
       };
 
       for (const player_id in this.goi.globals.players) {
@@ -1891,11 +1891,7 @@ define([
         }
 
         if (stateName === "discardTile") {
-          const discardableTiles = this.goi.stocks.tiles.board
-            .getCards()
-            .filter((tileCard) => {
-              return tileCard.type != 5;
-            });
+          const { discardableTiles } = args.args;
 
           this.goi.stocks.tiles.board.setSelectionMode(
             "single",

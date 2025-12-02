@@ -73,6 +73,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must discard a tile from the board'),
         "descriptionmyturn" => clienttranslate('${you} must discard a tile from the board'),
         "type" => "activeplayer",
+        "action" => "stDiscardTile",
         "possibleactions" => ["actDiscardTile"],
         "transitions" => ["betweenTurns" => 6],
     ],

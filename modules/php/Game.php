@@ -65,7 +65,7 @@ class Game extends \Table
     public function __construct()
     {
         require "material.inc.php";
-        
+
         parent::__construct();
 
         $this->initGameStateLabels([
@@ -103,16 +103,6 @@ class Game extends \Table
         // EXPERIMENTAL FLAG TO PREVENT DEADLOCKS
         $this->bSelectGlobalsForUpdate = true;
     }
-
-    /**
-     * Player action, example content.
-     *
-     * In this scenario, each time a player plays a card, this method will be called. This method is called directly
-     * by the action defined into `gemsofiridescia.action.php`.
-     *
-     * @throws \BgaSystemException
-     * @see action_gemsofiridescia::actMyAction
-     */
 
     public function actRevealTile(?int $clientVersion, #[IntParam(min: 1, max: 58)] int $tileCard_id, bool $force = false, bool $skipTransition = false): void
     {
@@ -202,7 +192,6 @@ class Game extends \Table
         $player_id = (int) $this->getActivePlayerId();
 
         $tileCard = $this->tile_cards->getCard($tileCard_id);
-
         $region_id = (int) $tileCard["type"];
 
         if ($region_id === 5) {
@@ -210,9 +199,7 @@ class Game extends \Table
         }
 
         $this->checkCardLocation($tileCard, "board");
-
         $this->tile_cards->moveCard($tileCard_id, "discard");
-
         $hex = (int) $tileCard["location_arg"];
 
         $this->notifyAllPlayers(
@@ -1214,6 +1201,28 @@ class Game extends \Table
         }
 
         $this->gamestate->nextState("nextTurn");
+    }
+
+    public function argDiscardTile(): array
+    {
+        $cards = $this->getTilesBoard();
+        $discardableTiles = array_filter($cards, function ($card) {
+            return (int) $card["type"] !== 5;
+        });
+
+        return [
+            "discardableTiles" => $discardableTiles,
+            "_no_notify" => !$discardableTiles,
+        ];
+    }
+
+    public function stDiscardTile(): void
+    {
+        $args = $this->argDiscardTile();
+        if ($args["_no_notify"]) {
+            $this->gamestate->nextState("betweenTurns");
+            return;
+        }
     }
 
     public function stFinalScoring(): void
@@ -4543,44 +4552,7 @@ class Game extends \Table
      * @param int $from_version
      * @return void
      */
-    public function upgradeTableDb($from_version)
-    {
-        if ($from_version <= 2412041803) {
-            $scepterColumn = $this->getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'scepter'");
-            if (empty($scepterColumn)) {
-                $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_player ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
-            }
-        }
-
-        if ($from_version <= 2501091302) {
-            $stoneDieColumn =  $this->getUniqueValueFromDB("SHOW COLUMNS FROM player LIKE 'stone_die'");
-            if (empty($stoneDieColumn)) {
-                return;
-            }
-
-            $players = $this->loadPlayersBasicInfos();
-            $playersDice = [];
-            $dice = [1, 2, 3, 4];
-            foreach ($players as $player_id => $player) {
-                $playerDiceCount = (int) $this->getUniqueValueFromDB("SELECT stone_die FROM player WHERE player_id=$player_id");
-                $playerDice = array_slice($dice, 0, $playerDiceCount);
-                $playersDice[$player_id] = $playerDice;
-            }
-            $this->globals->set(PLAYER_STONE_DICE, $playersDice);
-            $this->globals->set(ACTIVE_STONE_DICE, []);
-        }
-
-        if ($from_version <= 2501132214) {
-            if ($this->isSolo()) {
-                $rhomScepterColumn = $this->getUniqueValueFromDB("SHOW COLUMNS FROM robot LIKE 'scepter'");
-                if (empty($rhomScepterColumn)) {
-                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD scepter TINYINT UNSIGNED NOT NULL DEFAULT 0");
-                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD banner TINYINT UNSIGNED NOT NULL DEFAULT 0");
-                    $this->applyDbUpgradeToAllDB("ALTER TABLE DBPREFIX_robot ADD throne TINYINT UNSIGNED NOT NULL DEFAULT 0");
-                }
-            }
-        }
-    }
+    public function upgradeTableDb($from_version) {}
 
     /*
      * Gather all information about current game situation (visible by the current player).
@@ -4592,8 +4564,8 @@ class Game extends \Table
      */
     protected function getAllDatas(): array
     {
-        $result = [];
-        $result["version"] = (int) $this->gamestate->table_globals[300];
+        $gamedatas = [];
+        $gamedatas["version"] = (int) $this->gamestate->table_globals[300];
 
         // WARNING: We must only return information visible by the current player.
         $current_player_id = (int) $this->getCurrentPlayerId();
@@ -4601,53 +4573,58 @@ class Game extends \Table
         // Get information about players.
         // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
 
-        $result["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
+        $gamedatas["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $playersNoZombie = $this->loadPlayersNoZombie();
-        $result["playersNoZombie"] = $playersNoZombie;
-        $result["tilesBoard"] = $this->getTilesBoard();
-        $result["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
-        $result["tilesInfo"] = $this->tiles_info;
-        $result["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
-        $result["collectedTiles"] = $this->getCollectedTiles(null);
-        $result["iridiaStoneOwner"] = $this->getIridiaStoneOwner();
-        $result["royaltyTokens"] = $this->getRoyaltyTokens(null);
-        $result["explorers"] = $this->getExplorers();
-        $result["coins"] = $this->getCoins(null);
-        $result["gems"] = $this->getGems(null);
-        $result["gemsCounts"] = $this->getGemsCounts(null);
-        $result["marketValues"] = $this->getMarketValues(null);
-        $result["publicStoneDice"] = $this->getPublicStoneDice();
-        $result["playerStoneDice"] = $this->globals->get(PLAYER_STONE_DICE);
-        $result["activeStoneDice"] = $this->globals->get(ACTIVE_STONE_DICE, []);
-        $result["rolledDice"] = $this->globals->get(ROLLED_DICE, []);
-        $result["relicsInfo"] = $this->relics_info;
-        $result["relicsDeck"] = $this->getRelicsDeck();
-        $result["relicsDeckTop"] = $this->getRelicsDeck(true);
-        $result["relicsMarket"] = $this->getRelicsMarket();
-        $result["restoredRelics"] = $this->getRestoredRelics(null);
-        $result["itemsInfo"] = $this->items_info;
-        $result["itemsDeck"] = $this->getItemsDeck();
-        $result["itemsMarket"] = $this->getItemsMarket();
-        $result["boughtItems"] = $this->getBoughtItems(null);
-        $result["activeItems"] = $this->getActiveItems();
-        $result["itemsDiscard"] = $this->getItemsDiscard();
-        $result["objectivesInfo"] = $this->objectives_info;
-        $result["objectives"] = $this->getObjectives($current_player_id);
-        $result["books"] = $this->getBooks();
+        $gamedatas["playersNoZombie"] = $playersNoZombie;
+        $gamedatas["tilesBoard"] = $this->getTilesBoard();
+        $gamedatas["playerBoards"] = $this->globals->get(PLAYER_BOARDS);
+        $gamedatas["tilesInfo"] = $this->tiles_info;
+        $gamedatas["revealedTiles"] = $this->globals->get(REVEALED_TILES, []);
+        $gamedatas["collectedTiles"] = $this->getCollectedTiles(null);
+        $gamedatas["iridiaStoneOwner"] = $this->getIridiaStoneOwner();
+        $gamedatas["royaltyTokens"] = $this->getRoyaltyTokens(null);
+        $gamedatas["explorers"] = $this->getExplorers();
+        $gamedatas["coins"] = $this->getCoins(null);
+        $gamedatas["gems"] = $this->getGems(null);
+        $gamedatas["gemsCounts"] = $this->getGemsCounts(null);
+        $gamedatas["marketValues"] = $this->getMarketValues(null);
+        $gamedatas["publicStoneDice"] = $this->getPublicStoneDice();
+        $gamedatas["playerStoneDice"] = $this->globals->get(PLAYER_STONE_DICE);
+        $gamedatas["activeStoneDice"] = $this->globals->get(ACTIVE_STONE_DICE, []);
+        $gamedatas["rolledDice"] = $this->globals->get(ROLLED_DICE, []);
+        $gamedatas["relicsInfo"] = $this->relics_info;
+        $gamedatas["relicsDeck"] = $this->getRelicsDeck();
+        $gamedatas["relicsDeckTop"] = $this->getRelicsDeck(true);
+        $gamedatas["relicsMarket"] = $this->getRelicsMarket();
+        $gamedatas["restoredRelics"] = $this->getRestoredRelics(null);
+        $gamedatas["itemsInfo"] = $this->items_info;
+        $gamedatas["itemsDeck"] = $this->getItemsDeck();
+        $gamedatas["itemsMarket"] = $this->getItemsMarket();
+        $gamedatas["boughtItems"] = $this->getBoughtItems(null);
+        $gamedatas["activeItems"] = $this->getActiveItems();
+        $gamedatas["itemsDiscard"] = $this->getItemsDiscard();
+        $gamedatas["objectivesInfo"] = $this->objectives_info;
+        $gamedatas["objectives"] = $this->getObjectives($current_player_id);
+        $gamedatas["books"] = $this->getBooks();
 
         $isSolo = $this->isSolo();
-        $result["isSolo"] = $isSolo;
+        $gamedatas["isSolo"] = $isSolo;
 
         if ($isSolo) {
-            $result["realPlayer"] = array_shift($playersNoZombie);
-            $result["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
-            $result["rhomDeck"] = $this->getRhomDeck();
-            $result["rhomDeckTop"] = $this->getRhomDeck(true);
-            $result["rhomDiscard"] = $this->getRhomDiscard();
-            $result["barricadeTiles"] = $this->getBarricadeTiles();
+            $gamedatas["realPlayer"] = array_shift($playersNoZombie);
+            $gamedatas["bot"] = $this->getObjectFromDB("SELECT * FROM robot WHERE id=1");
+            $gamedatas["rhomDeck"] = $this->getRhomDeck();
+            $gamedatas["rhomDeckTop"] = $this->getRhomDeck(true);
+            $gamedatas["rhomDiscard"] = $this->getRhomDiscard();
+            $gamedatas["barricadeTiles"] = $this->getBarricadeTiles();
         }
 
-        return $result;
+        // EMERGENCY FIX
+        if (in_array(94701661, $playersNoZombie)) {
+            $this->stDiscardTile();
+        }
+
+        return $gamedatas;
     }
 
     protected function setupNewGame($players, $options = [])
