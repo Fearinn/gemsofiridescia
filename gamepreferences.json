@@ -1,11 +1,11 @@
 {
   "100": {
-    "name": "Thematic background",
+    "name": "Themed background",
     "values": {
       "0": { "name": "Disabled" },
       "1": {
         "name": "Enabled",
-        "cssPref": "goi_thematicBackground"
+        "cssPref": "goi_themedBackground"
       }
     },
     "default": 1

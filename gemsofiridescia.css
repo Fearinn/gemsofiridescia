@@ -26,18 +26,18 @@
   position: absolute !important;
 }
 
-.goi_thematicBackground body {
+.goi_themedBackground body {
   background-image: url("img/background.jpg");
   background-size: cover;
   background-position: center top;
 }
 
-.goi_thematicBackground .player-board {
+.goi_themedBackground .player-board {
   background-image: url("img/background.jpg");
   background-position: center bottom;
 }
 
-.goi_thematicBackground #seemorelogs {
+.goi_themedBackground #seemorelogs {
   background-image: none;
 }
 
