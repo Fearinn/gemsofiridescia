@@ -4619,11 +4619,6 @@ class Game extends \Table
             $gamedatas["barricadeTiles"] = $this->getBarricadeTiles();
         }
 
-        // EMERGENCY FIX
-        if (in_array(94701661, $playersNoZombie)) {
-            $this->stDiscardTile();
-        }
-
         return $gamedatas;
     }
 
