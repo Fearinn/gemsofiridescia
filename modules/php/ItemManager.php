@@ -186,7 +186,7 @@ class ItemManager
     public function use(int $player_id, #[JsonParam(alphanum: true)] array $args): bool
     {
         if (!$this->isUsable($player_id)) {
-            throw new \BgaUserException($this->game->_("You can't use this item now"));
+            throw new \BgaUserException(clienttranslate("You can't use this item now"));
         }
 
         $eventKey = "message";

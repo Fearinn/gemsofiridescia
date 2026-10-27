@@ -1460,7 +1460,7 @@ class Game extends \Table
 
         $serverVersion = (int) $this->gamestate->table_globals[300];
         if ($clientVersion != $serverVersion) {
-            throw new \BgaVisibleSystemException($this->_("A new version of this game is now available. Please reload the page (F5)."));
+            throw new \BgaVisibleSystemException(clienttranslate("A new version of this game is now available. Please reload the page (F5)."));
         }
     }
 
@@ -4549,7 +4549,7 @@ class Game extends \Table
         $tileCards = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
-            
+
             $tileCards[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
