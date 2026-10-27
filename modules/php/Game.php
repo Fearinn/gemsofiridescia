@@ -3,7 +3,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * GemsOfIridescia implementation : © Matheus Gomes matheusgomesforwork@gmail.com
+ * GemsOfIridescia implementation : © Matheus Gomes mrfixer.dev@gmail.com
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -4370,208 +4370,14 @@ class Game extends \Table
         $this->rhomRestoreRelic();
     }
 
-    /*  DEBUG */
-
-    public function debug_incCoin(): void
-    {
-        $player_id = (int) $this->getCurrentPlayerId();
-        $this->incCoin(10, $player_id);
-    }
-
-    public function debug_score(): void
-    {
-        $player_id = (int) $this->getCurrentPlayerId();
-        $this->incRoyaltyPoints(5, $player_id);
-    }
-
-    public function debug_obtainRoyaltyToken(): void
-    {
-        $player_id = (int) $this->getCurrentPlayerId();
-        $this->obtainRoyaltyToken(1, 1, $player_id);
-    }
-
-    // public function debug_calcFinalScoring(): void
-    // {
-    //     $this->calcFinalScoring();
-    // }
-
-    public function debug_rollDie(int $player_id): void
-    {
-        $this->rollDie(1, $player_id, "gem");
-    }
-
-    // public function debug_obtainStoneDie(int $player_id): void
-    // {
-    //     $this->obtainStoneDie($player_id);
-    // }
-
-    // public function debug_resetStoneDice(int $player_id): void
-    // {
-    //     $this->resetStoneDice($player_id);
-    // }
-
-    // public function debug_stat(int $player_id): void
-    // {
-    //     $stat = (string) $this->getStatWithRhom("miningAttempts", $player_id);
-    //     throw new \BgaUserException($stat);
-    // }
-
-    // public function debug_incGem(int $delta, int $gem_id, int $player_id): void
-    // {
-    //     $this->incGem($delta, $gem_id, $player_id);
-    // }
-
-    // public function debug_fillCargo(int $player_id): void
-    // {
-    //     $totalGemsCount = $this->getTotalGemsCount($player_id);
-    //     $this->incGem(7 - $totalGemsCount, 2, $player_id);
-    // }
-
-    // public function debug_overflowCargo(int $player_id): void
-    // {
-    //     $this->incGem(4, 4, $player_id);
-    //     $this->incGem(4, 3, $player_id);
-
-    //     $anchorState_id = (int) $this->gamestate->state_id();
-    //     $this->globals->set(ANCHOR_STATE, $anchorState_id);
-    //     $this->gamestate->jumpToState(ST_TRANSFER_GEM);
-    // }
-
-    // public function debug_setMarketValue(int $value, int $gem_id): void
-    // {
-    //     $gemName = $this->gems_info[$gem_id]["name"];
-    //     $this->globals->set("$gemName:MarketValue", $value);
-    // }
-
-    // public function debug_moveExplorer(int $hex, int $player_id): void
-    // {
-    //     $this->DbQuery("UPDATE explorer SET card_location='board', card_location_arg=$hex WHERE card_location<>'box'AND card_type_arg=$player_id");
-    // }
-
-    // public function debug_removeTiles(): void
-    // {
-    //     $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-    //     WHERE card_location='board' AND card_location_arg IN (1,2)");
-    // }
-
-    // public function debug_revealTiles(): void
-    // {
-    //     $tileCards =  $this->getCollectionFromDB("$this->deckSelectQuery from tile WHERE card_type=5");
-    //     $this->globals->set(REVEALED_TILES, $tileCards);
-    // }
-
-    // public function debug_reshuffleRelicsDeck(): void
-    // {
-    //     $this->relic_cards->moveAllCardsInLocation(null, "deck");
-    //     $this->relic_cards->shuffle("deck");
-    //     $this->relic_cards->pickCardsForLocation(5, "deck", "market");
-    // }
-
-    // public function debug_giveItem(int $item_id, int $player_id): void
-    // {
-    //     $this->DbQuery("UPDATE item SET card_location='hand', card_location_arg=$player_id WHERE card_location='deck' AND card_type_arg=$item_id LIMIT 1");
-    // }
-
-    // public function debug_reshuffleItemsDeck(): void
-    // {
-    //     $this->reshuffleItemsDeck();
-    // }
-
-    // public function debug_giveObjective(int $objective_id, int $player_id): void
-    // {
-    //     $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-    //     $this->DbQuery("UPDATE objective SET card_location='hand', card_location_arg=$player_id WHERE card_type_arg=$objective_id LIMIT 1");
-    // }
-
-    // public function debug_zombieQuit(int $player_id): void
-    // {
-    //     $this->explorer_cards->moveAllCardsInLocation("board", "scene", null, $player_id);
-    //     $this->gem_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-    //     $this->tile_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-    //     $this->objective_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-
-    //     $this->relic_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-    //     $this->relic_cards->moveAllCardsInLocation("book", "discard", $player_id);
-
-    //     $this->item_cards->moveAllCardsInLocation("hand", "discard", $player_id);
-    //     $this->item_cards->moveAllCardsInLocation("book", "discard", $player_id);
-    //     $this->globals->set(EPIC_ELIXIR, false);
-
-    //     $stoneDice = $this->globals->get(PLAYER_STONE_DICE);
-    //     $stoneDice[$player_id] = [];
-    //     $this->globals->set(PLAYER_STONE_DICE, $stoneDice);
-    //     $this->globals->set(ACTIVE_STONE_DICE, []);
-
-    //     $this->DbQuery("UPDATE player SET coin=0 WHERE player_id=$player_id");
-
-    //     $zombies = $this->globals->get("zombies", []);
-
-    //     if (!in_array($player_id, $zombies)) {
-    //         $zombies[$player_id] = $player_id;
-    //         $this->globals->set("zombies", $zombies);
-
-    //         $this->notifyAllPlayers(
-    //             "zombieQuit",
-    //             clienttranslate('${player_name} quits the game. All his dice, tiles, gems, relics and items are discarded'),
-    //             [
-    //                 "player_id" => $player_id,
-    //                 "player_name" => $this->getPlayerOrRhomNameById($player_id),
-    //                 "explorerCard" => $this->getExplorerByPlayerId($player_id),
-    //             ]
-    //         );
-    //     }
-
-    //     if ($this->getActivePlayerId() == $player_id) {
-    //         $this->gamestate->jumpToState(6);
-    //     }
-    // }
-
-    // public function debug_reshuffleRhomDeck(): void
-    // {
-    //     $this->reshuffleRhomDeck();
-    // }
-
-    // public function debug_rhomBarricade(): void
-    // {
-    //     $this->rhomBarricade();
-    // }
-
-    // public function debug_barricadeTile(int $hex): void
-    // {
-    //     $this->DbQuery("UPDATE tile SET card_location='barricade' WHERE card_location='board' AND card_location_arg=$hex");
-    // }
-
-    /**
-     * Migrate database.
-     *
-     * You don't have to care about this until your game has been published on BGA. Once your game is on BGA, this
-     * method is called everytime the system detects a game running with your old database scheme. In this case, if you
-     * change your database scheme, you just have to apply the needed changes in order to update the game database and
-     * allow the game to continue to run with your new version.
-     *
-     * @param int $from_version
-     * @return void
-     */
     public function upgradeTableDb($from_version) {}
 
-    /*
-     * Gather all information about current game situation (visible by the current player).
-     *
-     * The method is called each time the game interface is displayed to a player, i.e.:
-     *
-     * - when the game starts
-     * - when a player refreshes the game page (F5)
-     */
     protected function getAllDatas(): array
     {
         $gamedatas = [];
         $gamedatas["version"] = (int) $this->gamestate->table_globals[300];
 
-        // WARNING: We must only return information visible by the current player.
         $current_player_id = (int) $this->getCurrentPlayerId();
-
-        // Get information about players.
-        // NOTE: you can retrieve some extra field you added for "player" table in `dbmodel.sql` if you need it.
 
         $gamedatas["players"] = $this->getCollectionFromDb("SELECT player_id, player_score score FROM player");
         $playersNoZombie = $this->loadPlayersNoZombie();
