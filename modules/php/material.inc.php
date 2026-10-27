@@ -215,7 +215,6 @@ $this->tiles_info = [
         "gem" => 1,
         "effect" => 0,
     ],
-
     2 => [
         "region" => 1,
         "gem" => 1,

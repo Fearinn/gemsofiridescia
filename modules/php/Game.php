@@ -4549,13 +4549,40 @@ class Game extends \Table
         $tileCards = [];
         foreach ($this->tiles_info as $tile_id => $tile_info) {
             $region_id = $tile_info["region"];
-
+            
             $tileCards[] = ["type" => $region_id, "type_arg" => $tile_id, "nbr" => 1];
         }
 
         $this->tile_cards->createCards($tileCards, "deck");
 
-        $hex = 1;
+        if (count($players) <= 2) {
+            $boxTiles = [];
+            foreach ($this->regions_info as $region_id => $region) {
+                if ($region_id === 5) {
+                    continue;
+                }
+
+                $gems = [];
+                $regionTiles = $this->tile_cards->getCardsOfTypeInLocation($region_id, null, "deck");
+                foreach ($regionTiles as $card_id => $card) {
+                    $tile_id = (int) $card["type_arg"];
+                    $gem_id = $this->tiles_info[$tile_id]["gem"];
+                    if ($gem_id > 0 && !isset($gems[$gem_id])) {
+                        $gems[$gem_id] = true;
+                        $boxTiles[] = $card_id;
+                    }
+                }
+            }
+
+            $this->tile_cards->moveCards($boxTiles, "box");
+        }
+
+        $emptyHexes = [
+            1 => [1, 6, 7, 13],
+            2 => [14, 19, 20, 26],
+            3 => [27, 32, 33, 39],
+            4 => [40, 45, 46, 52],
+        ];
         foreach ($this->regions_info as $region_id => $region) {
             $tilesOfregion = $this->tile_cards->getCardsOfTypeInLocation($region_id, null, "deck");
             $k_tilesOfregion = array_keys($tilesOfregion);
@@ -4564,16 +4591,21 @@ class Game extends \Table
             $this->tile_cards->moveCards($k_tilesOfregion, $temporaryLocation);
             $this->tile_cards->shuffle($temporaryLocation);
 
-            for ($i = 1; $i <= count($tilesOfregion); $i++) {
-                $this->tile_cards->pickCardForLocation($temporaryLocation, "board", $hex);
-                $hex++;
+            $hexes = [];
+            foreach ($this->tiles_info as $tile_id => $tile_info) {
+                if ($tile_info["region"] === $region_id) {
+                    $hexes[] = $tile_id;
+                }
             }
-        }
 
-        if (count($players) <= 2) {
-            $this->DbQuery("UPDATE tile SET card_location='box', card_location_arg=0 
-            WHERE card_location='board' AND 
-            card_location_arg IN (1, 6, 7, 13, 14, 19, 20, 26, 27, 32, 33, 39, 40, 45, 46, 52)");
+            if (isset($emptyHexes[$region_id]) && count($players) <= 2) {
+                $hexes = array_values(array_diff($hexes, $emptyHexes[$region_id]));
+            }
+
+            $tilesOfregion = array_values($tilesOfregion);
+            for ($i = 0; $i < count($tilesOfregion); $i++) {
+                $this->tile_cards->pickCardForLocation($temporaryLocation, "board", $hexes[$i]);
+            }
         }
 
         $gemCards = [];
